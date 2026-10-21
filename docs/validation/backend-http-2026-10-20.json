@@ -1,0 +1,56 @@
+{
+  "fecha": "2026-10-20T18:52:25.746006-05:00",
+  "url": "http://127.0.0.1:8080/api/v1",
+  "casos": [
+    {
+      "caso": "Actividades sin credencial",
+      "esperado": 401,
+      "http": 401,
+      "duracion_ms": 373.01,
+      "aprobado": true
+    },
+    {
+      "caso": "Login con contraseña incorrecta",
+      "esperado": 401,
+      "http": 401,
+      "duracion_ms": 390.0,
+      "aprobado": true
+    },
+    {
+      "caso": "Login DEV válido",
+      "esperado": 200,
+      "http": 200,
+      "duracion_ms": 129.74,
+      "aprobado": true
+    },
+    {
+      "caso": "Listado autenticado de actividades",
+      "esperado": 200,
+      "http": 200,
+      "duracion_ms": 57.64,
+      "aprobado": true
+    },
+    {
+      "caso": "Detalle de actividad autorizada",
+      "esperado": 200,
+      "http": 200,
+      "duracion_ms": 16.11,
+      "aprobado": true
+    },
+    {
+      "caso": "Logout",
+      "esperado": 204,
+      "http": 204,
+      "duracion_ms": 11.41,
+      "aprobado": true
+    },
+    {
+      "caso": "Credencial revocada rechazada",
+      "esperado": 401,
+      "http": 401,
+      "duracion_ms": 6.05,
+      "aprobado": true
+    }
+  ],
+  "aprobado": true
+}

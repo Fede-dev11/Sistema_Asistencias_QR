@@ -1,0 +1,100 @@
+name: GeoAsist checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: tools/contracts/package-lock.json
+      - run: npm ci
+        working-directory: tools/contracts
+      - run: npm run validate && npm run check
+        working-directory: tools/contracts
+  api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - run: ./mvnw -B spotless:check verify
+        working-directory: services/api
+      - run: bash infra/tests/retention-restore.sh
+  clients:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [web, mobile]
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+  browser:
+    runs-on: ubuntu-latest
+    env:
+      POSTGRES_USER: geoasist
+      POSTGRES_DB: geoasist
+      POSTGRES_PASSWORD: ci-password-ficticia-exclusiva
+      DEV_SEED_PASSWORD: ci-password-ficticia-exclusiva
+      GEOASIST_HMAC_KEY: ci-key-ficticia-larga-exclusiva-no-productiva
+      SPRING_PROFILES_ACTIVE: dev
+      API_PORT: '18080'
+      WEB_ORIGIN: http://127.0.0.1:13000
+      NEXT_PUBLIC_API_URL: http://127.0.0.1:18080/api/v1
+      WEB_URL: http://127.0.0.1:13000
+      API_URL: http://127.0.0.1:18080/api/v1
+      # La suite funcional autentica repetidamente el mismo usuario ficticio;
+      # PrivacyAndLimitsTest verifica por separado los límites efectivos sin multiplicador.
+      GEOASIST_RATE_LIMIT_MULTIPLIER: '10'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+      - run: docker compose -f infra/docker-compose.yml up -d --wait db
+      - run: ./mvnw -B -DskipTests package
+        working-directory: services/api
+      - run: java -jar services/api/target/geoasist-api-0.1.0-SNAPSHOT.jar > /tmp/api-ci.log 2>&1 &
+      - run: npm ci && npx playwright install --with-deps chromium && npm run build
+        working-directory: apps/web
+      - run: npm run start -- --hostname 127.0.0.1 --port 13000 > /tmp/web-ci.log 2>&1 &
+        working-directory: apps/web
+      - name: Wait for services
+        run: |
+          for attempt in $(seq 1 60); do
+            status=$(curl -s -o /dev/null -w '%{http_code}' "$API_URL/activities" || true)
+            if [ "$status" = 401 ] && curl -fsS "$WEB_URL/login" > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - run: npx playwright test
+        working-directory: apps/web
+      # No subir trazas, snapshots ni logs que puedan capturar credenciales de formularios.
+      - if: always()
+        run: docker compose -f infra/docker-compose.yml down -v

@@ -1,0 +1,9 @@
+**/node_modules/
+**/dist/
+**/build/
+**/coverage/
+**/target/
+**/package-lock.json
+.agents/
+.codex/
+.specify/
