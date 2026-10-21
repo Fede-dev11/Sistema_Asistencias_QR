@@ -23,13 +23,12 @@ def main():
                     "--tmpfs", "/var/lib/postgresql/data:rw", "-e", "PGDATA=/var/lib/postgresql/data", "-e", "POSTGRES_PASSWORD", "postgres:17.7"],
                    check=True, stdout=subprocess.DEVNULL)
     try:
-        for _ in range(60):
-            if subprocess.run(["docker", "exec", container, "pg_isready", "-U", "postgres"],
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
-                break
-            time.sleep(0.5)
+        tool.wait_for_postgres(container)
         for migration in sorted((ROOT / "services/api/src/main/resources/db/migration").glob("*.sql")):
-            tool.query(migration.read_text())
+            try:
+                tool.query(migration.read_text())
+            except RuntimeError as error:
+                raise RuntimeError("No se pudo aplicar la migración " + migration.name) from error
         person, account, expired, current = [str(uuid.uuid4()) for _ in range(4)]
         tool.query(f"""
         INSERT INTO personas VALUES ('{person}','0012345678','Cuenta ficticia vigente','INSTITUCIONAL');

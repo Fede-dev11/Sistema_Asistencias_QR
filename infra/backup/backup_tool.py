@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import time
 import uuid
 
 
@@ -32,6 +33,20 @@ def query(sql):
     if result.returncode:
         raise RuntimeError("Falló la operación SQL; el tratamiento permanece pendiente.")
     return result.stdout.strip()
+
+
+def wait_for_postgres(container, attempts=60):
+    # La imagen oficial inicia primero un servidor temporal que solo escucha por socket.
+    # Comprobar TCP dentro del contenedor espera al proceso definitivo sin publicar puertos.
+    for _ in range(attempts):
+        result = subprocess.run(
+            ["docker", "exec", container, "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "postgres"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        )
+        if result.returncode == 0:
+            return
+        time.sleep(0.5)
+    raise RuntimeError("PostgreSQL aislado no aceptó conexiones TCP dentro del plazo de arranque.")
 
 
 def timestamp():
@@ -133,14 +148,7 @@ def restore(source):
     previous_user = os.environ.get("PGUSER")
     previous_db = os.environ.get("PGDATABASE")
     try:
-        import time
-        for _ in range(60):
-            if subprocess.run(["docker", "exec", container, "pg_isready", "-U", "postgres"],
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0:
-                break
-            time.sleep(0.5)
-        else:
-            raise RuntimeError("La restauración aislada no arrancó.")
+        wait_for_postgres(container)
         with source.open("rb") as data:
             result = subprocess.run(["docker", "exec", "-i", container, "pg_restore", "-U", "postgres",
                                      "-d", "postgres", "--no-owner", "--no-acl", "--exit-on-error"],

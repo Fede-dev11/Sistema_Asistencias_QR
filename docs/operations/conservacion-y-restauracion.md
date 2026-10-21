@@ -79,5 +79,12 @@ El ensayo utiliza contenedores sin red y datos ficticios. Verifica copia previa 
 restauración saneada, preservación de cuenta/actividad vigente, catálogo BACKUP/WAL/EXPORT,
 rechazo de enlaces externos, bloqueo de finalización y retiro de archivos gestionados. Incluye
 un segmento WAL real como soporte inventariado; no ejecuta recuperación PITR de una cadena WAL.
+Antes del ensayo se ejecutan dos regresiones de disponibilidad: un socket listo durante la
+inicialización no habilita las migraciones y un servidor definitivo que no arranca produce
+un error por tiempo agotado. Tanto el contenedor del ensayo como el de restauración esperan
+`pg_isready -h 127.0.0.1` dentro del contenedor: la imagen oficial inicia primero un servidor
+temporal solo por socket. La comprobación TCP evita operar sobre ese proceso transitorio y
+no requiere publicar puertos ni habilitar una red externa. Si falla una migración del ensayo,
+el error identifica su archivo sin imprimir SQL ni datos.
 La habilitación productiva sigue requiriendo un ensayo de infraestructura institucional,
 incluyendo snapshots, réplica y PITR si se utilizan.
