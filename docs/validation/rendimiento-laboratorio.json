@@ -1,0 +1,23 @@
+{
+  "date_utc": "2026-10-20T21:37:16.488Z",
+  "elapsed_seconds": 600.032064911,
+  "runtime": "v24.15.0",
+  "os": "linux 7.0.0-38-generic",
+  "cpu": "AMD Ryzen 7 3700U with Radeon Vega Mobile Gfx",
+  "logical_cpus": 8,
+  "memory_gib": 9.1,
+  "network": "HTTP loopback; API y PostgreSQL Docker en el mismo host",
+  "profile": "50 personas ficticias, 5 sesiones EVENTO, GPS OFF, 50 concurrentes cada 15s, 10min",
+  "attempts": 2000,
+  "statuses": {
+    "200": 1750,
+    "201": 250
+  },
+  "errors": 0,
+  "p95_http_ms": 487.7706729999918,
+  "max_http_ms": 667.9741369999829,
+  "max_db_lock_waiters_sampled": 0,
+  "lock_samples": 119,
+  "scan_to_result_seconds": null,
+  "limitation": "HTTP medido incluye red loopback y servidor. No mide cámara, GPS, red de aula ni capacidad institucional."
+}

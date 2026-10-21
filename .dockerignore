@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+.git
+.next
+.expo
+**/target
+coverage
+*.log
+.env
+.env.*
+!.env.example
+.venv
+.cache

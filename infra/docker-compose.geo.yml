@@ -1,0 +1,6 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+  api:
+    environment:
+      SPRING_PROFILES_ACTIVE: dev,geo

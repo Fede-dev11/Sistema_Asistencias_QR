@@ -1,0 +1,3 @@
+-- Las semillas académicas e identidades ficticias se cargan por DevelopmentSeed solo con perfil dev.
+-- La contraseña se cifra desde DEV_SEED_PASSWORD; no se incluye aquí ni se crea un usuario de producción.
+-- IDs y escenarios: infra/README.md. Nunca ejecutar sobre datos institucionales reales.
