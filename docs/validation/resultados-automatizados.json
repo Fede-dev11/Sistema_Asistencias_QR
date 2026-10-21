@@ -1,0 +1,152 @@
+{
+  "date": "2026-10-20",
+  "java": "21.0.12.1",
+  "node_clients": "22.20.0",
+  "source_validation": "exportación sin artefactos; npm ci y compilación Java desde cero",
+  "api": {
+    "tests": 60,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "api_suites": [
+    {
+      "name": "ActivityClosureTest",
+      "tests": 4,
+      "seconds": 0.729
+    },
+    {
+      "name": "ActivityScopeTest",
+      "tests": 1,
+      "seconds": 0.328
+    },
+    {
+      "name": "GuestConfigurationContractTest",
+      "tests": 3,
+      "seconds": 0.36
+    },
+    {
+      "name": "AttendanceConcurrencyTest",
+      "tests": 6,
+      "seconds": 43.68
+    },
+    {
+      "name": "AttendanceContractTest",
+      "tests": 2,
+      "seconds": 0.397
+    },
+    {
+      "name": "GeographicPolicyTest",
+      "tests": 4,
+      "seconds": 0.007
+    },
+    {
+      "name": "GeographyReviewContractTest",
+      "tests": 2,
+      "seconds": 0.474
+    },
+    {
+      "name": "GuestDeadlineTest",
+      "tests": 4,
+      "seconds": 1.125
+    },
+    {
+      "name": "LocationDisabledTest",
+      "tests": 1,
+      "seconds": 0.203
+    },
+    {
+      "name": "ParticipantEligibilityTest",
+      "tests": 2,
+      "seconds": 0.55
+    },
+    {
+      "name": "ReviewConcurrencyTest",
+      "tests": 4,
+      "seconds": 0.597
+    },
+    {
+      "name": "TransientSecretCleanupTest",
+      "tests": 1,
+      "seconds": 0.252
+    },
+    {
+      "name": "RetentionLifecycleTest",
+      "tests": 5,
+      "seconds": 0.384
+    },
+    {
+      "name": "RetentionPolicyTest",
+      "tests": 1,
+      "seconds": 0.002
+    },
+    {
+      "name": "AuthContractTest",
+      "tests": 7,
+      "seconds": 0.479
+    },
+    {
+      "name": "QrLifecycleTest",
+      "tests": 1,
+      "seconds": 0.159
+    },
+    {
+      "name": "AdministrativeAuditTest",
+      "tests": 2,
+      "seconds": 0.366
+    },
+    {
+      "name": "ReportingAuthorizationTest",
+      "tests": 2,
+      "seconds": 1.117
+    },
+    {
+      "name": "ReportingContractTest",
+      "tests": 2,
+      "seconds": 0.376
+    },
+    {
+      "name": "OptionalPostgisTest",
+      "tests": 1,
+      "seconds": 6.576
+    },
+    {
+      "name": "SessionContractTest",
+      "tests": 3,
+      "seconds": 14.132
+    },
+    {
+      "name": "ArchitectureDependencyTest",
+      "tests": 1,
+      "seconds": 0.014
+    },
+    {
+      "name": "PrivacyAndLimitsTest",
+      "tests": 1,
+      "seconds": 1.289
+    }
+  ],
+  "web_unit": {
+    "tests": 12,
+    "failures": 0
+  },
+  "mobile_unit": {
+    "tests": 10,
+    "failures": 0
+  },
+  "browser": {
+    "tests": 5,
+    "failures": 0,
+    "configuration": "Chromium; web de producción y JAR desde fuentes sin artefactos",
+    "reported_duration": "1.4m"
+  },
+  "contract": {
+    "operations": 18,
+    "examples": 129,
+    "types_synchronized": true
+  },
+  "restore_isolated": "PASS; fixtures; sin red; no PITR institucional",
+  "android_apk": "assembleDebug x86_64 PASS, 6m 2s; anterior al ajuste de permisos de micrófono; ejecución nativa pendiente",
+  "native_devices": "PENDIENTE; emulador y recompilación detenidos por presión de memoria; alternativa remota preparada",
+  "github_actions_remote": "PENDIENTE"
+}

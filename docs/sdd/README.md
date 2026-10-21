@@ -1,7 +1,8 @@
 # Flujo SDD con GitHub Spec Kit
 
 Este proyecto sigue **Specification-Driven Development (SDD)** con
-[GitHub Spec Kit](https://github.com/github/spec-kit) v1.1.3, integrado con Claude Code.
+[GitHub Spec Kit](https://github.com/github/spec-kit) v1.1.3, integrado con Codex y Claude Code.
+Codex es la integración predeterminada del proyecto.
 Antes de escribir código se define *qué* debe hacer el sistema y *cómo se comprobará*;
 después se decide *cómo* construirlo y se divide en tareas.
 
@@ -12,7 +13,8 @@ después se decide *cómo* construirlo y se divide en tareas.
 ├── memory/constitution.md     # constitution: principios no negociables
 ├── templates/                 # plantillas de spec, plan, tasks y checklist
 └── scripts/bash/              # scripts que crean ramas y carpetas de cada feature
-.claude/skills/speckit-*/      # comandos /speckit-* para el asistente de IA
+.agents/skills/speckit-*/      # habilidades $speckit-* para Codex
+.claude/skills/speckit-*/      # comandos /speckit-* para Claude Code
 specs/
 └── 001-asistencia-qr-dinamico/
     ├── spec.md                # specify (+ sección Clarifications de clarify)
@@ -39,7 +41,52 @@ specs/
 del problema (el qué, sin tecnología); *plan* traduce el problema a decisiones técnicas
 (el cómo); *tasks* convierte el plan en trabajo asignable y verificable.
 
-## Cómo crear una nueva especificación
+## Uso con Codex
+
+Abre este repositorio en Codex. Escribe `$` para seleccionar una habilidad o invócala
+directamente en el chat. Codex descubre las habilidades locales en `.agents/skills/`;
+si no aparecen después del cambio, reinicia Codex, según la
+[documentación oficial de habilidades](https://learn.chatgpt.com/docs/build-skills).
+
+| Habilidad de Codex | Propósito |
+|-------------------|-----------|
+| `$speckit-constitution` | Crear o actualizar los principios del proyecto |
+| `$speckit-specify` | Crear o actualizar una especificación |
+| `$speckit-clarify` | Resolver ambigüedades de la especificación |
+| `$speckit-plan` | Preparar el plan y los artefactos de diseño |
+| `$speckit-tasks` | Desglosar el plan en tareas |
+| `$speckit-analyze` | Revisar consistencia entre especificación, plan y tareas |
+| `$speckit-checklist` | Crear una lista de revisión de requisitos |
+| `$speckit-implement` | Ejecutar las tareas de implementación |
+| `$speckit-converge` | Detectar trabajo pendiente después de implementar y añadir tareas |
+| `$speckit-taskstoissues` | Convertir tareas en issues de GitHub; obsoleta en Spec Kit 1.1.3 |
+
+Ejemplo para comenzar una nueva funcionalidad:
+
+```text
+$speckit-specify Permitir al docente cerrar una sesión de asistencia y consultar su resumen.
+```
+
+Continúa con `$speckit-clarify`, `$speckit-plan`, `$speckit-tasks`,
+`$speckit-analyze` y `$speckit-implement`, revisando cada artefacto antes de avanzar.
+La constitución vigente está en `.specify/memory/constitution.md`.
+
+Para trabajar sobre la especificación existente, puedes indicar su ruta en el mensaje:
+
+```text
+$speckit-clarify Revisa specs/001-asistencia-qr-dinamico/spec.md contra la constitución vigente.
+```
+
+Las habilidades usan los scripts y las plantillas compartidos de `.specify/`.
+Comprueba la instalación desde la raíz con `specify integration status`.
+Para reproducir la configuración en otro checkout que solo tenga Claude instalado:
+
+```bash
+specify integration install codex
+specify integration use codex
+```
+
+## Cómo crear una nueva especificación con Claude Code
 
 1. Desde `develop`, crear la rama: `git switch -c feature/NNN-nombre-corto`.
 2. En Claude Code: `/speckit-specify <descripción en lenguaje natural del problema>`.

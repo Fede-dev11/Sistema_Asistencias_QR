@@ -1,0 +1,38 @@
+{
+  "name": "@geoasist/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest --runInBand",
+    "build": "expo export --platform all"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "dependencies": {
+    "expo": "57.0.30",
+    "expo-camera": "57.0.6",
+    "expo-crypto": "57.0.4",
+    "expo-location": "57.0.21",
+    "expo-secure-store": "57.0.4",
+    "react": "19.2.3",
+    "react-native": "0.86.3"
+  },
+  "main": "index.ts",
+  "devDependencies": {
+    "@testing-library/react-native": "14.1.0",
+    "@types/jest": "30.0.0",
+    "@types/react": "19.3.0",
+    "eslint": "10.13.0",
+    "jest": "29.7.0",
+    "jest-expo": "57.0.6",
+    "react-test-renderer": "19.2.3",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.0"
+  }
+}

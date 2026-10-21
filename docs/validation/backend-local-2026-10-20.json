@@ -1,0 +1,263 @@
+{
+  "fecha": "2026-10-20T18:52:46.664073-05:00",
+  "estado": "BUILD SUCCESS",
+  "maven_total": "02:00 min",
+  "java": "21.0.12.1",
+  "spring_boot": "4.1.1",
+  "postgresql": "17.7",
+  "comando": "./mvnw -B -T 1 spotless:check verify -DforkCount=1 -DreuseForks=true -DargLine=\"-Xmx768m -XX:MaxMetaspaceSize=256m -XX:ActiveProcessorCount=2\"",
+  "maven_opts": "-Xmx384m -XX:ActiveProcessorCount=2",
+  "total": {
+    "tests": 60,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "ActivityClosureTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.745
+    },
+    {
+      "suite": "ActivityScopeTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.435
+    },
+    {
+      "suite": "GuestConfigurationContractTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.102
+    },
+    {
+      "suite": "AttendanceConcurrencyTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 67.043
+    },
+    {
+      "suite": "AttendanceContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.432
+    },
+    {
+      "suite": "GeographicPolicyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.009
+    },
+    {
+      "suite": "GeographyReviewContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.626
+    },
+    {
+      "suite": "GuestDeadlineTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.001
+    },
+    {
+      "suite": "LocationDisabledTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.276
+    },
+    {
+      "suite": "ParticipantEligibilityTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.801
+    },
+    {
+      "suite": "ReviewConcurrencyTest",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.562
+    },
+    {
+      "suite": "TransientSecretCleanupTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.237
+    },
+    {
+      "suite": "RetentionLifecycleTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.487
+    },
+    {
+      "suite": "RetentionPolicyTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.003
+    },
+    {
+      "suite": "AuthContractTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.556
+    },
+    {
+      "suite": "QrLifecycleTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 20.969
+    },
+    {
+      "suite": "AdministrativeAuditTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.479
+    },
+    {
+      "suite": "ReportingAuthorizationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.802
+    },
+    {
+      "suite": "ReportingContractTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.352
+    },
+    {
+      "suite": "OptionalPostgisTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 8.743
+    },
+    {
+      "suite": "SessionContractTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.79
+    },
+    {
+      "suite": "ArchitectureDependencyTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.019
+    },
+    {
+      "suite": "PrivacyAndLimitsTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 2.17
+    }
+  ],
+  "jar_sha256": "eec12a48b9768a471d5bb922baa4db59b57c0e2e8c60c686307bf369a00df877",
+  "base_git": "82d3318688ab84eea71cecc5ebf8541f4b90f103",
+  "fuentes": "copia de trabajo modificada; no commit integrado",
+  "quarto": "1.10.19",
+  "typst": "0.15.1",
+  "http": {
+    "fecha": "2026-10-20T18:52:25.746006-05:00",
+    "url": "http://127.0.0.1:8080/api/v1",
+    "casos": [
+      {
+        "caso": "Actividades sin credencial",
+        "esperado": 401,
+        "http": 401,
+        "duracion_ms": 373.01,
+        "aprobado": true
+      },
+      {
+        "caso": "Login con contraseña incorrecta",
+        "esperado": 401,
+        "http": 401,
+        "duracion_ms": 390.0,
+        "aprobado": true
+      },
+      {
+        "caso": "Login DEV válido",
+        "esperado": 200,
+        "http": 200,
+        "duracion_ms": 129.74,
+        "aprobado": true
+      },
+      {
+        "caso": "Listado autenticado de actividades",
+        "esperado": 200,
+        "http": 200,
+        "duracion_ms": 57.64,
+        "aprobado": true
+      },
+      {
+        "caso": "Detalle de actividad autorizada",
+        "esperado": 200,
+        "http": 200,
+        "duracion_ms": 16.11,
+        "aprobado": true
+      },
+      {
+        "caso": "Logout",
+        "esperado": 204,
+        "http": 204,
+        "duracion_ms": 11.41,
+        "aprobado": true
+      },
+      {
+        "caso": "Credencial revocada rechazada",
+        "esperado": 401,
+        "http": 401,
+        "duracion_ms": 6.05,
+        "aprobado": true
+      }
+    ],
+    "aprobado": true
+  }
+}

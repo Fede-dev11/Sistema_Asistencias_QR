@@ -1,0 +1,40 @@
+name: Android APK de pruebas
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-apk-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci
+      - run: npx expo prebuild --platform android --no-install
+      - name: Compilar APK para teléfono ARM64
+        working-directory: apps/mobile/android
+        env:
+          NODE_ENV: development
+        run: ./gradlew :app:assembleDebug --no-daemon --max-workers=2 -Dorg.gradle.jvmargs=-Xmx2048m -PreactNativeArchitectures=arm64-v8a
+      - name: Guardar APK de depuración
+        uses: actions/upload-artifact@v4
+        with:
+          name: geoasist-android-debug-arm64
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 3

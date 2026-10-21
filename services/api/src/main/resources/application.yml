@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: geoasist-api
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5433/geoasist}
+    username: ${POSTGRES_USER:geoasist}
+    password: ${POSTGRES_PASSWORD}
+    hikari:
+      maximum-pool-size: 24
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    locations: classpath:db/migration
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+      accept-float-as-int: false
+server:
+  port: ${API_PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+geoasist:
+  hmac-key: ${GEOASIST_HMAC_KEY}
+  dev-seed-password: ${DEV_SEED_PASSWORD:}
+  allowed-origin: ${WEB_ORIGIN:http://localhost:3000}
+  geography-enabled: false
