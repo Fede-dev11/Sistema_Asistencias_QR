@@ -16,6 +16,7 @@ class DeviceUniquenessTest extends PostgresFixture {
   @Test
   void authenticatedDeviceIsUniquePerSessionAndNeverStoredInClear() throws Exception {
     var first = scenario("EVENTO", 200);
+    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", first[0]); // cuentas sin listado
     String owner = token(ScenarioFixtures.TEACHER);
     start(first[1], owner);
     UUID device = UUID.randomUUID();
@@ -26,6 +27,7 @@ class DeviceUniquenessTest extends PostgresFixture {
         .andExpect(jsonPath("code").value("DISPOSITIVO_YA_REGISTRADO"));
 
     var second = scenario("EVENTO", 200);
+    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", second[0]);
     start(second[1], owner);
     account(second[1], token(ScenarioFixtures.DIRECTOR), qr(second[1], owner), device)
         .andExpect(status().isCreated());

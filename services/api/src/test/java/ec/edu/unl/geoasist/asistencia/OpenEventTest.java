@@ -23,9 +23,9 @@ class OpenEventTest extends ClassSupport {
         .content(json.writeValueAsString(Map.of("qr_token",qr,"dispositivo_id",UUID.randomUUID()))))
         .andExpect(r->assertEquals(201,r.getResponse().getStatus()));
     guestSubmit(secret,cedula,"Nombre escrito",UUID.randomUUID(),UUID.randomUUID()).andExpect(r->assertEquals(201,r.getResponse().getStatus()));
-    assertEquals("AUTORREGISTRO",db.queryForObject("SELECT forma FROM asistencias WHERE sesion_id=?",String.class,session));
+    assertEquals("AUTORREGISTRO",db.queryForObject("SELECT forma FROM asistencias a JOIN personas p ON p.id=a.persona_id WHERE a.sesion_id=? AND p.cedula_normalizada=?",String.class,session,cedula));
     assertEquals("EXTERNA",db.queryForObject("SELECT tipo FROM personas WHERE cedula_normalizada=?",String.class,cedula));
-    assertEquals("Nombre escrito",db.queryForObject("SELECT nombres_registro FROM asistencias WHERE sesion_id=?",String.class,session));
+    assertEquals("Nombre escrito",db.queryForObject("SELECT nombres_registro FROM asistencias a JOIN personas p ON p.id=a.persona_id WHERE a.sesion_id=? AND p.cedula_normalizada=?",String.class,session,cedula));
 
     String existing=fictionalId(); UUID person=UUID.randomUUID();
     db.update("INSERT INTO personas VALUES (?,?,?,'EXTERNA')",person,existing,"Nombre original");

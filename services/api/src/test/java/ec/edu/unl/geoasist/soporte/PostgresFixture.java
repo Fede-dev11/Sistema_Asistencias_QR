@@ -117,7 +117,7 @@ public abstract class PostgresFixture {
         .asText();
   }
 
-  protected record GuestScenario(
+  public record GuestScenario(
       java.util.UUID activity, java.util.UUID session, String owner, String qr) {}
 
   protected GuestScenario guests(int duration, String... cedulas) throws Exception {

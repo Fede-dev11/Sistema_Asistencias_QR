@@ -32,11 +32,13 @@ class CreateEventTest extends ClassSupport {
 
   @Test void accessCanChangeBeforeStartButNotAfterAndEventCanBeCancelledBeforeStart() throws Exception {
     String bearer=token(ScenarioFixtures.TEACHER);
-    var editable=ok(send("POST","/api/v1/activities",bearer,body("Editable")),201);
+    var started=new HashMap<>(body("Editable")); started.put("inicio","2026-10-19T00:00:00Z"); started.put("fin","2026-10-21T00:00:00Z");
+    var editable=ok(send("POST","/api/v1/activities",bearer,started),201);
     String activity=editable.get("id").asText(); String session=editable.get("sesiones").get(0).get("id").asText();
     assertEquals("ABIERTO",ok(send("PATCH","/api/v1/activities/"+activity,bearer,Map.of("acceso","ABIERTO")),200).get("acceso").asText());
     start(UUID.fromString(session),bearer);
     ok(send("PATCH","/api/v1/activities/"+activity,bearer,Map.of("acceso","CERRADO")),409);
+    ok(send("POST","/api/v1/sessions/"+session+"/close",bearer,null),200); // no dejar sesión activa para otras pruebas
 
     var cancellable=ok(send("POST","/api/v1/activities",bearer,body("Cancelable")),201);
     assertEquals("CANCELADA",ok(send("POST","/api/v1/activities/"+cancellable.get("id").asText()+"/cancel",bearer,null),200).get("estado").asText());

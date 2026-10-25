@@ -81,6 +81,7 @@ class GuestDeadlineTest extends PostgresFixture {
   @Test
   void ordinaryTokensUseServerReceptionAndNeverTheGuestAllowance() throws Exception {
     var event = guests(301, fictionalId());
+    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", event.activity()); // la cuenta estudiante no está en el listado
     Instant initial = clock.instant();
     String student = token(ScenarioFixtures.STUDENT);
     clock.set(initial.plusSeconds(39));

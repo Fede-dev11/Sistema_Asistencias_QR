@@ -11,7 +11,8 @@ public class ActiveSessionsRepository {
   private static final String FROM =
       " FROM sesiones s JOIN actividades a ON a.id=s.actividad_id LEFT JOIN espacios e ON e.id=s.espacio_id"
           + " WHERE s.estado='ACTIVA' AND a.estado='ABIERTA' AND s.ventana_inicio<=? AND s.ventana_fin>?"
-          + " AND (a.modalidad='EVENTO' OR EXISTS(SELECT 1 FROM estudiantes_autorizados ea"
+          + " AND ((a.modalidad='EVENTO' AND (a.acceso='ABIERTO' OR EXISTS(SELECT 1 FROM invitados_evento ie"
+          + " WHERE ie.actividad_id=a.id AND ie.persona_id=? AND ie.activo))) OR EXISTS(SELECT 1 FROM estudiantes_autorizados ea"
           + " JOIN roles_cuenta r ON r.cuenta_id=? AND r.rol='ESTUDIANTE'"
           + " WHERE ea.actividad_id=a.id AND ea.persona_id=? AND ea.vigente))";
 
@@ -23,7 +24,7 @@ public class ActiveSessionsRepository {
 
   public Map<String, Object> list(UUID account, UUID person, Instant now, int page, int size) {
     var at = Timestamp.from(now);
-    Long total = db.queryForObject("SELECT count(*)" + FROM, Long.class, at, at, account, person);
+    Long total = db.queryForObject("SELECT count(*)" + FROM, Long.class, at, at, person, account, person);
     var items =
         db.query(
             "SELECT s.id,a.id,a.nombre,a.modalidad,e.id,e.nombre,s.metodo_verificacion,s.ventana_inicio,s.ventana_fin"
@@ -49,6 +50,7 @@ public class ActiveSessionsRepository {
             },
             at,
             at,
+            person,
             account,
             person,
             size,
