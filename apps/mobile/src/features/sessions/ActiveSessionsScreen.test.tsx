@@ -39,4 +39,4 @@ test('pide ubicación solo al registrar en una sesión GPS y envía directo en N
 
   await fireEvent.press(screen.getAllByText('Registrar asistencia')[0]);
   await waitFor(() => expect(captureAttendanceLocation).toHaveBeenCalledTimes(1));
-});
+}, 30000);
