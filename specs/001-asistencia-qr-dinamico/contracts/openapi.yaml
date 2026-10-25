@@ -24,6 +24,7 @@ tags:
 - name: guest-registrations
 - name: attempts
 - name: admin
+- name: spaces
 paths:
   /auth/login:
     post:
@@ -1186,6 +1187,103 @@ paths:
                     items: {$ref: '#/components/schemas/MyParallel'}
         '401': {$ref: '#/components/responses/Unauthorized'}
         '403': {$ref: '#/components/responses/Forbidden'}
+  /spaces:
+    get:
+      operationId: searchSpaces
+      summary: Buscar espacios
+      description: Búsqueda paginada por código (normalizado) o nombre. Disponible para DOCENTE, ENCARGADO y ADMINISTRADOR.
+      tags:
+      - spaces
+      parameters:
+      - name: q
+        in: query
+        description: Texto parcial del código o del nombre.
+        schema:
+          type: string
+          maxLength: 200
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de espacios.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpacePage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+    post:
+      operationId: createSpace
+      summary: Crear espacio
+      description: Crea un espacio compartido. El código se normaliza (mayúsculas, sin espacios ni guiones); si ya existe responde 409 ESPACIO_CODIGO_EXISTE con el espacio_id existente. Latitud y longitud van juntas o ninguna.
+      tags:
+      - spaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSpaceRequest'
+      responses:
+        '201':
+          description: Espacio creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /spaces/{spaceId}:
+    patch:
+      operationId: updateSpace
+      summary: Editar espacio
+      description: Solo el creador o un ADMINISTRADOR. El código no cambia. Las sesiones ya configuradas conservan sus valores geográficos.
+      tags:
+      - spaces
+      parameters:
+      - name: spaceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSpaceRequest'
+      responses:
+        '200':
+          description: Espacio actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
 components:
   securitySchemes:
     SessionBearer:
@@ -1390,6 +1488,10 @@ components:
         attempt_id:
           type: string
           format: uuid
+        espacio_id:
+          type: string
+          format: uuid
+          description: Espacio existente en ESPACIO_CODIGO_EXISTE.
         correlation_id:
           type: string
       required:
@@ -1456,6 +1558,96 @@ components:
       - radio_defecto_m
       - precision_defecto_m
       - editable
+    SpacePage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Space'
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - page
+      - size
+      - total
+    CreateSpaceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        codigo:
+          type: string
+          minLength: 1
+          maxLength: 40
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 200
+        tipo:
+          $ref: '#/components/schemas/SpaceType'
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+      required:
+      - codigo
+      - nombre
+    UpdateSpaceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 200
+        tipo:
+          $ref: '#/components/schemas/SpaceType'
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+    SpaceType:
+      type: string
+      enum:
+      - AULA
+      - LABORATORIO
+      - AUDITORIO
+      - EXTERIOR
+      - OTRO
     ImportReport:
       type: object
       additionalProperties: false

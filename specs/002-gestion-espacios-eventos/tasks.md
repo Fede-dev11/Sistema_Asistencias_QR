@@ -88,16 +88,16 @@ que deben fallar antes de implementar. Pruebas de integración contra PostgreSQL
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] Prueba `TEST/espacios/SpaceTest.java`: US2-1 a US2-4 (alta, `ESPACIO_CODIGO_EXISTE` con `espacio_id` del existente para `a-334`/`A 334`, coordenadas fuera de rango y radio ≤0 → 400, edición por no creador → 403, administrador puede editar); búsqueda paginada por código y nombre; ESTUDIANTE no puede crear
-- [ ] T030 [P] [US2] Prueba `TEST/espacios/SpaceSnapshotTest.java`: US2-6 — editar `radio_defecto_m` no cambia `configuracion_geografica` de sesiones ACTIVA o CERRADA
+- [X] T029 [P] [US2] Prueba `TEST/espacios/SpaceTest.java`: US2-1 a US2-4 (alta, `ESPACIO_CODIGO_EXISTE` con `espacio_id` del existente para `a-334`/`A 334`, coordenadas fuera de rango y radio ≤0 → 400, edición por no creador → 403, administrador puede editar); búsqueda paginada por código y nombre; ESTUDIANTE no puede crear
+- [X] T030 [P] [US2] Prueba `TEST/espacios/SpaceSnapshotTest.java`: US2-6 — editar `radio_defecto_m` no cambia `configuracion_geografica` de sesiones ACTIVA o CERRADA
 
 ### Implementation for User Story 2
 
-- [ ] T031 [P] [US2] `API/espacios/dominio/SpaceCode.java`: normalización (mayúsculas, sin espacios ni guiones, 1–40 caracteres) con prueba unitaria en `TEST/espacios/SpaceCodeTest.java`
-- [ ] T032 [US2] `API/espacios/persistencia/SpaceRepository.java` y `API/espacios/aplicacion/ManageSpaces.java`: crear (DOCENTE/ENCARGADO/ADMINISTRADOR, `creado_por`), editar (creador o ADMINISTRADOR), buscar; conflicto de unicidad → 409 con el id existente; auditar ediciones
-- [ ] T033 [US2] `API/espacios/presentacion/SpaceController.java` con `GET/POST /spaces` y `PATCH /spaces/{spaceId}`; añadir al YAML y regenerar tipos
-- [ ] T034 [US2] Cambiar `API/asistencia/persistencia/PostgisProximityAdapter.java` y `API/sesiones/dominio/GeographicCapability.java` para que "configurado" signifique espacio con `latitud`/`longitud` no nulos (US2-5)
-- [ ] T035 [P] [US2] Web: `apps/web/src/features/spaces/SpacePicker.tsx` (búsqueda con debounce + "crear nuevo") y `SpaceForm.tsx` con mapa Leaflet (ADR 0005) para fijar latitud/longitud, radio y precisión por defecto; texto alternativo y entrada manual de coordenadas para accesibilidad
+- [X] T031 [P] [US2] `API/espacios/dominio/SpaceCode.java`: normalización (mayúsculas, sin espacios ni guiones, 1–40 caracteres) con prueba unitaria en `TEST/espacios/SpaceCodeTest.java`
+- [X] T032 [US2] `API/espacios/persistencia/SpaceRepository.java` y `API/espacios/aplicacion/ManageSpaces.java`: crear (DOCENTE/ENCARGADO/ADMINISTRADOR, `creado_por`), editar (creador o ADMINISTRADOR), buscar; conflicto de unicidad → 409 con el id existente; auditar ediciones
+- [X] T033 [US2] `API/espacios/presentacion/SpaceController.java` con `GET/POST /spaces` y `PATCH /spaces/{spaceId}`; añadir al YAML y regenerar tipos
+- [X] T034 [US2] Cambiar `API/asistencia/persistencia/PostgisProximityAdapter.java` y `API/sesiones/dominio/GeographicCapability.java` para que "configurado" signifique espacio con `latitud`/`longitud` no nulos (US2-5)
+- [X] T035 [P] [US2] Web: `apps/web/src/features/spaces/SpacePicker.tsx` (búsqueda con debounce + "crear nuevo") y `SpaceForm.tsx` con mapa Leaflet (ADR 0005) para fijar latitud/longitud, radio y precisión por defecto; texto alternativo y entrada manual de coordenadas para accesibilidad
 
 **Checkpoint**: US2 operable; las sesiones pueden usar espacios con coordenadas.
 
