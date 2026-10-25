@@ -24,7 +24,7 @@ export function AuthorizedStudents({ activityId }: { activityId: string }) {
   }
   async function add(event: FormEvent) {
     event.preventDefault();
-    if (await run(() => request(base, { method: 'POST', body: JSON.stringify({ cedula }) }), 'Estudiante añadido.')) setCedula('');
+    if (await run(() => request(base, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ cedula }) }), 'Estudiante añadido.')) setCedula('');
   }
 
   return (

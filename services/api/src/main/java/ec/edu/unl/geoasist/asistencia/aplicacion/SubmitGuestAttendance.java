@@ -53,6 +53,7 @@ public class SubmitGuestAttendance {
   public Receipt submit(
       String secret,
       String cedula,
+      String names,
       UUID deviceId,
       GeoMeasurement location,
       UUID key,
@@ -84,16 +85,24 @@ public class SubmitGuestAttendance {
           || !Boolean.TRUE.equals(configs.getFirst().get("habilitado"))
           || ((Number) configs.getFirst().get("acceso_generacion")).longValue()
               != start.generation()) throw ApiFailure.forbidden();
-      person = eligible.guest(activityId, personId);
+      String access = db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId);
+      if ("ABIERTO".equals(access)) {
+        person = eligible.selfRegistered(activity, cedula, names);
+      } else {
+        if (names != null) throw ApiFailure.invalid();
+        person = eligible.guest(activityId, personId);
+      }
       if (start.bound() != null && !start.bound().equals(person.id()))
         throw new ApiFailure(
             409,
             "FORMULARIO_CONSUMIDO",
             "Este formulario ya está vinculado a otra persona. Escanea nuevamente.");
     } catch (ApiFailure e) {
-      return recording.reject(start.session(), null, deviceId, e, "INVITADO_LISTADO", received, start.id());
+      String channel = "ABIERTO".equals(db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId)) ? "AUTORREGISTRO" : "INVITADO_LISTADO";
+      return recording.reject(start.session(), null, deviceId, e, channel, received, start.id());
     }
     AttendanceEligibility.Person authorized = person;
+    String channel = "ABIERTO".equals(db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId)) ? "AUTORREGISTRO" : "INVITADO_LISTADO";
     return replay.run(
         "attendance-guest",
         "guest:" + start.id(),
@@ -109,7 +118,7 @@ public class SubmitGuestAttendance {
                     authorized,
                     deviceId,
                     location,
-                    "INVITADO_LISTADO",
+                    channel,
                     received,
                     start.id());
             starts.bind(start.id(), authorized.id());
@@ -120,7 +129,7 @@ public class SubmitGuestAttendance {
             return receipt;
           } catch (ApiFailure e) {
             return recording.reject(
-                start.session(), authorized, deviceId, e, "INVITADO_LISTADO", received, start.id());
+                start.session(), authorized, deviceId, e, channel, received, start.id());
           }
         });
   }

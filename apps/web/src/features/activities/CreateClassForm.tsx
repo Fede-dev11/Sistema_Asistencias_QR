@@ -51,6 +51,7 @@ export function CreateClassForm({ onCreated }: { onCreated?: (activity: Created)
     try {
       const created = await request<Created>('/activities', {
         method: 'POST',
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
         body: JSON.stringify({
           modalidad: 'CLASE', nombre: name, espacio_id: space.id, metodo_verificacion: method, paralelo_ids: chosen,
           ...(withSchedule ? { horario: { dias: days, hora_inicio: start, hora_fin: end, desde: from, hasta: to } } : {})

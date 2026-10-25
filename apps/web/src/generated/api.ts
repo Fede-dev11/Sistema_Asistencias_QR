@@ -287,6 +287,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/open/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consultar datos publicos minimos de un evento abierto activo */
+        get: operations["getOpenEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sessions/{sessionId}/attendances": {
         parameters: {
             query?: never;
@@ -1022,13 +1039,23 @@ export interface components {
             inicio_en: string;
             /** Format: date-time */
             vence_en: string;
+            evento_abierto: boolean;
         };
         GuestSubmitRequest: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             registro_invitado_token: string;
             cedula: string;
+            nombres?: string;
             dispositivo_id: components["schemas"]["DeviceId"];
             ubicacion?: components["schemas"]["Location"];
+        };
+        OpenEvent: {
+            /** Format: uuid */
+            sesion_id: string;
+            nombre: string;
+            espacio?: string | null;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
         };
         /** @description Una fila por persona identificada en la sesión. Prevalece su asistencia confirmada; si no existe, mostrar su último intento identificado pendiente o rechazado. Nunca exponer intentos sin persona identificada ni cédulas desconocidas. El filtro estado se aplica después de esta proyección. */
         AttendanceRow: {
@@ -1185,14 +1212,23 @@ export interface components {
         };
         CreateActivityRequest: {
             /** @enum {string} */
-            modalidad: "CLASE";
+            modalidad: "CLASE" | "EVENTO";
             nombre: string;
             /** Format: uuid */
             espacio_id: string;
             /** @enum {string} */
             metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
-            paralelo_ids: string[];
+            paralelo_ids?: string[];
             horario?: components["schemas"]["Schedule"];
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
+            /** Format: date-time */
+            inicio?: string;
+            /** Format: date-time */
+            fin?: string;
+            /** @default 120 */
+            tolerancia_invitado_segundos: number;
+            carrera_ids?: string[];
         };
         Schedule: {
             dias: number[];
@@ -1211,6 +1247,8 @@ export interface components {
             espacio_id?: string;
             /** @enum {string} */
             metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
         };
         SessionSummary: {
             /** Format: uuid */
@@ -1234,7 +1272,10 @@ export interface components {
             espacio_id: string;
             /** @enum {string} */
             metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
-            estudiantes_autorizados: number;
+            estudiantes_autorizados?: number;
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
+            tolerancia_invitado_segundos?: number;
             paralelo_ids?: string[];
             carrera_ids?: string[];
             sesiones: components["schemas"]["SessionSummary"][];
@@ -1572,7 +1613,10 @@ export interface operations {
     createActivity: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -1582,6 +1626,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Replay idempotente de una actividad ya creada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedActivity"];
+                };
+            };
             /** @description Actividad creada con sus sesiones generadas. */
             201: {
                 headers: {
@@ -2009,7 +2062,8 @@ export interface operations {
                      * @example {
                      *       "registro_invitado_token": "ejemplo-formulario-opaco-no-real-00000001",
                      *       "inicio_en": "2026-10-19T16:00:20Z",
-                     *       "vence_en": "2026-10-19T16:02:20Z"
+                     *       "vence_en": "2026-10-19T16:02:20Z",
+                     *       "evento_abierto": true
                      *     }
                      */
                     "application/json": components["schemas"]["GuestStartResult"];
@@ -2102,6 +2156,29 @@ export interface operations {
             410: components["responses"]["Gone"];
             422: components["responses"]["BusinessRejected"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    getOpenEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evento abierto activo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenEvent"];
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
     listAttendances: {
@@ -2927,7 +3004,10 @@ export interface operations {
     addAuthorizedStudent: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 activityId: components["parameters"]["activityId"];
             };
@@ -3044,7 +3124,10 @@ export interface operations {
     createLooseSession: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 activityId: components["parameters"]["activityId"];
             };

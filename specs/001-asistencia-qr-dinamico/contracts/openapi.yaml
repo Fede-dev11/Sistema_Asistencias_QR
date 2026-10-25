@@ -129,6 +129,8 @@ paths:
       description: DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). La modalidad EVENTO aún no se acepta aquí.
       tags:
       - activities
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
         content:
@@ -138,6 +140,12 @@ paths:
       responses:
         '201':
           description: Actividad creada con sus sesiones generadas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedActivity'
+        '200':
+          description: Replay idempotente de una actividad ya creada.
           content:
             application/json:
               schema:
@@ -584,6 +592,7 @@ paths:
                 registro_invitado_token: ejemplo-formulario-opaco-no-real-00000001
                 inicio_en: '2026-10-19T16:00:20Z'
                 vence_en: '2026-10-19T16:02:20Z'
+                evento_abierto: true
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -680,6 +689,27 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GuestSubmitRequest'
+  /events/open/{sessionId}:
+    get:
+      operationId: getOpenEvent
+      summary: Consultar datos publicos minimos de un evento abierto activo
+      tags:
+      - guest-registrations
+      security: []
+      parameters:
+      - name: sessionId
+        in: path
+        required: true
+        schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Evento abierto activo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenEvent'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /sessions/{sessionId}/attendances:
     get:
       operationId: listAttendances
@@ -1469,6 +1499,7 @@ paths:
           $ref: '#/components/responses/RateLimited'
       parameters:
       - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/IdempotencyKey'
   /activities/{activityId}/students/{personId}:
     delete:
       operationId: removeAuthorizedStudent
@@ -1588,6 +1619,7 @@ paths:
           $ref: '#/components/responses/RateLimited'
       parameters:
       - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/IdempotencyKey'
   /sessions/{sessionId}:
     patch:
       operationId: updateScheduledSession
@@ -2460,10 +2492,13 @@ components:
         vence_en:
           type: string
           format: date-time
+        evento_abierto:
+          type: boolean
       required:
       - registro_invitado_token
       - inicio_en
       - vence_en
+      - evento_abierto
     GuestSubmitRequest:
       type: object
       additionalProperties: false
@@ -2476,6 +2511,10 @@ components:
         cedula:
           type: string
           pattern: ^[0-9]{10}$
+        nombres:
+          type: string
+          minLength: 1
+          maxLength: 200
         dispositivo_id:
           $ref: '#/components/schemas/DeviceId'
         ubicacion:
@@ -2484,6 +2523,15 @@ components:
       - registro_invitado_token
       - cedula
       - dispositivo_id
+    OpenEvent:
+      type: object
+      additionalProperties: false
+      required: [sesion_id, nombre, metodo_verificacion]
+      properties:
+        sesion_id: {type: string, format: uuid}
+        nombre: {type: string}
+        espacio: {type: string, nullable: true}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
     AttendanceRow:
       type: object
       additionalProperties: false
@@ -2794,9 +2842,9 @@ components:
         matriculados: {type: integer, minimum: 0}
     CreateActivityRequest:
       type: object
-      required: [modalidad, nombre, espacio_id, paralelo_ids]
+      required: [modalidad, nombre, espacio_id]
       properties:
-        modalidad: {type: string, enum: [CLASE]}
+        modalidad: {type: string, enum: [CLASE, EVENTO]}
         nombre: {type: string, minLength: 1, maxLength: 200}
         espacio_id: {type: string, format: uuid}
         metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
@@ -2805,6 +2853,14 @@ components:
           minItems: 1
           items: {type: string, format: uuid}
         horario: {$ref: '#/components/schemas/Schedule'}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        tolerancia_invitado_segundos: {type: integer, minimum: 41, default: 120}
+        carrera_ids:
+          type: array
+          uniqueItems: true
+          items: {type: string, format: uuid}
     Schedule:
       type: object
       required: [dias, hora_inicio, hora_fin, desde, hasta]
@@ -2825,6 +2881,7 @@ components:
         nombre: {type: string, minLength: 1, maxLength: 200}
         espacio_id: {type: string, format: uuid}
         metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
     SessionSummary:
       type: object
       required: [id, estado, inicio, fin]
@@ -2835,7 +2892,7 @@ components:
         fin: {type: string, format: date-time}
     CreatedActivity:
       type: object
-      required: [id, nombre, tipo, estado, espacio_id, metodo_verificacion, estudiantes_autorizados, sesiones]
+      required: [id, nombre, tipo, estado, espacio_id, metodo_verificacion, sesiones]
       properties:
         id: {type: string, format: uuid}
         nombre: {type: string}
@@ -2844,6 +2901,8 @@ components:
         espacio_id: {type: string, format: uuid}
         metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
         estudiantes_autorizados: {type: integer, minimum: 0}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
+        tolerancia_invitado_segundos: {type: integer, minimum: 41}
         paralelo_ids:
           type: array
           items: {type: string, format: uuid}

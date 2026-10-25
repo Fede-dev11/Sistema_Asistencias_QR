@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EditActivity {
-  public record Changes(String nombre, UUID espacio_id, String metodo_verificacion) {}
+  public record Changes(String nombre, UUID espacio_id, String metodo_verificacion, String acceso) {}
 
   private final JdbcTemplate db;
   private final Clock clock;
@@ -47,7 +47,7 @@ public class EditActivity {
     locks.allSessions(id);
     if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
     return db.queryForMap(
-        "SELECT nombre,espacio_id,metodo_verificacion FROM actividades WHERE id=?", id);
+        "SELECT nombre,espacio_id,metodo_verificacion,acceso FROM actividades WHERE id=?", id);
   }
 
   /** Cambia los valores por defecto de la actividad; las sesiones ya creadas no se tocan. */
@@ -62,11 +62,20 @@ public class EditActivity {
             ? (String) before.get("metodo_verificacion")
             : c.metodo_verificacion();
     rules.check(space, method);
+    String access = c.acceso() == null ? (String) before.get("acceso") : c.acceso();
+    if (c.acceso() != null && !("CERRADO".equals(c.acceso()) || "ABIERTO".equals(c.acceso())))
+      throw ApiFailure.invalid();
+    if (c.acceso() != null && !Objects.equals(c.acceso(), before.get("acceso"))) {
+      Integer started = db.queryForObject(
+          "SELECT count(*) FROM sesiones WHERE actividad_id=? AND estado<>'PROGRAMADA'", Integer.class, id);
+      if (started != null && started > 0) throw ApiFailure.conflict();
+    }
     db.update(
-        "UPDATE actividades SET nombre=?,espacio_id=?,metodo_verificacion=? WHERE id=?",
+        "UPDATE actividades SET nombre=?,espacio_id=?,metodo_verificacion=?,acceso=? WHERE id=?",
         name,
         space,
         method,
+        access,
         id);
     audit.write(
         id,

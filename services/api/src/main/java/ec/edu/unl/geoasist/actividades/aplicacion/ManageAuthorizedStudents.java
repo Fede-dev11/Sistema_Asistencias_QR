@@ -1,6 +1,8 @@
 package ec.edu.unl.geoasist.actividades.aplicacion;
 
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
+import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService;
+import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService.Receipt;
 import ec.edu.unl.geoasist.compartido.persistencia.AttendanceLocks;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import java.util.*;
@@ -14,16 +16,19 @@ public class ManageAuthorizedStudents {
   private final ActivityAuthorization scope;
   private final AttendanceLocks locks;
   private final ActivityAuditWriter audit;
+  private final IdempotencyService replay;
 
   public ManageAuthorizedStudents(
       JdbcTemplate db,
       ActivityAuthorization scope,
       AttendanceLocks locks,
-      ActivityAuditWriter audit) {
+      ActivityAuditWriter audit,
+      IdempotencyService replay) {
     this.db = db;
     this.scope = scope;
     this.locks = locks;
     this.audit = audit;
+    this.replay = replay;
   }
 
   @Transactional(readOnly = true)
@@ -58,7 +63,12 @@ public class ManageAuthorizedStudents {
   }
 
   @Transactional
-  public Map<String, Object> add(UserSession user, UUID id, String cedula) {
+  public Receipt add(UserSession user, UUID id, UUID key, String cedula) {
+    return replay.run("add-activity-student", user.accountId().toString(), key, id,
+        Map.of("cedula", cedula), () -> new Receipt(201, addOnce(user, id, cedula)));
+  }
+
+  private Map<String, Object> addOnce(UserSession user, UUID id, String cedula) {
     lockOpenClass(user, id);
     var person =
         db.queryForList(

@@ -47,6 +47,8 @@ public class ReplaceGuestList {
     var activity = scope.write(user, id);
     if (!activity.mode().equals("EVENTO") || !activity.state().equals("ABIERTA"))
       throw ApiFailure.conflict();
+    String access = db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, id);
+    if ("ABIERTO".equals(access)) throw ApiFailure.conflict();
     if (entries.size() > 1000) throw ApiFailure.invalid();
     Set<String> seen = new HashSet<>();
     List<Integer> invalid = new ArrayList<>();

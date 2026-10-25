@@ -32,7 +32,7 @@ export function ClassSessions({ activityId }: { activityId: string }) {
   const save = (s: Session) => run(() => request(`/sessions/${s.id}`, { method: 'PATCH', body: JSON.stringify({ inicio: new Date(start).toISOString(), fin: new Date(end).toISOString() }) }));
   const addLoose = () => run(() => {
     const begin = new Date(); begin.setHours(begin.getHours() + 1, 0, 0, 0);
-    return request(`/activities/${activityId}/sessions`, { method: 'POST', body: JSON.stringify({ inicio: begin.toISOString(), fin: new Date(begin.getTime() + 3600000).toISOString() }) });
+    return request(`/activities/${activityId}/sessions`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ inicio: begin.toISOString(), fin: new Date(begin.getTime() + 3600000).toISOString() }) });
   });
 
   return (

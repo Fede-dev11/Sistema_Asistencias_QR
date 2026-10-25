@@ -92,11 +92,12 @@ public class DevelopmentSeed implements ApplicationRunner {
     for (int i = 1; i <= 3; i++) {
       UUID activity = id(300 + i);
       db.update(
-          "INSERT INTO actividades(id,nombre,modalidad,responsable_id) VALUES (?,?,?,?) ON CONFLICT DO NOTHING",
+          "INSERT INTO actividades(id,nombre,modalidad,responsable_id,acceso) VALUES (?,?,?,?,?) ON CONFLICT DO NOTHING",
           activity,
           "Actividad ficticia " + i,
           i == 1 ? "CLASE" : "EVENTO",
-          id(i == 1 ? 200 : i == 2 ? 201 : 205));
+          id(i == 1 ? 200 : i == 2 ? 201 : 205),
+          i == 1 ? null : "CERRADO");
       db.update(
           "INSERT INTO actividad_carreras VALUES (?,?) ON CONFLICT DO NOTHING",
           activity,

@@ -34,6 +34,11 @@ public class FindVisibleActivities {
     out.put("cerrada_en", a.closedAt());
     out.put("anonimizar_en", a.anonymizeAt());
     out.put("responsable_id", a.responsible());
+    var details = db.queryForMap(
+        "SELECT acceso,espacio_id,metodo_verificacion FROM actividades WHERE id=?", a.id());
+    out.put("acceso", details.get("acceso"));
+    out.put("espacio_id", details.get("espacio_id"));
+    out.put("metodo_verificacion", details.get("metodo_verificacion"));
     out.put(
         "carrera_ids",
         db.queryForList(

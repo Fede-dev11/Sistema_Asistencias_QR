@@ -3,6 +3,8 @@ package ec.edu.unl.geoasist.sesiones.aplicacion;
 import ec.edu.unl.geoasist.actividades.aplicacion.*;
 import ec.edu.unl.geoasist.actividades.persistencia.ActivityRepository;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
+import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService;
+import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService.Receipt;
 import ec.edu.unl.geoasist.compartido.persistencia.AttendanceLocks;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import java.sql.Timestamp;
@@ -23,6 +25,7 @@ public class ManageScheduledSessions {
   private final AttendanceLocks locks;
   private final ActivityAuditWriter audit;
   private final SpaceMethodRules rules;
+  private final IdempotencyService replay;
 
   public ManageScheduledSessions(
       JdbcTemplate db,
@@ -30,13 +33,15 @@ public class ManageScheduledSessions {
       ActivityAuthorization scope,
       AttendanceLocks locks,
       ActivityAuditWriter audit,
-      SpaceMethodRules rules) {
+      SpaceMethodRules rules,
+      IdempotencyService replay) {
     this.db = db;
     this.activities = activities;
     this.scope = scope;
     this.locks = locks;
     this.audit = audit;
     this.rules = rules;
+    this.replay = replay;
   }
 
   private static final String COLUMNS =
@@ -75,7 +80,12 @@ public class ManageScheduledSessions {
   }
 
   @Transactional
-  public Map<String, Object> create(UserSession user, UUID activityId, Changes c) {
+  public Receipt create(UserSession user, UUID activityId, UUID key, Changes c) {
+    return replay.run("create-activity-session", user.accountId().toString(), key, activityId, c,
+        () -> new Receipt(201, createOnce(user, activityId, c)));
+  }
+
+  private Map<String, Object> createOnce(UserSession user, UUID activityId, Changes c) {
     scope.write(user, activityId);
     locks.activity(activityId, true);
     var activity = scope.write(user, activityId);
