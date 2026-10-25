@@ -121,6 +121,13 @@ class SessionCycleTest extends AbsenceSupport {
     db.update("UPDATE sesiones SET espacio_id=NULL WHERE id=?", ids[1]);
     clock.set(start.plusSeconds(60));
     cycle.tick();
+    assertEquals("PROGRAMADA", state(ids[1]), "método con GPS sin geolocalización habilitada");
+    assertEquals(2, audits(ids[0], "SISTEMA_INICIO_FALLIDO"));
+    db.update(
+        "INSERT INTO configuracion_geografica(sesion_id,habilitada,radio_m,precision_max_m,antiguedad_max_s,modo,configurada_por,configurada_en) VALUES (?,true,20,30,60,'REVIEW_ONLY',(SELECT id FROM cuentas LIMIT 1),now())",
+        ids[1]);
+    clock.set(start.plusSeconds(120));
+    cycle.tick();
     assertEquals("ACTIVA", state(ids[1]));
   }
 

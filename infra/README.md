@@ -14,3 +14,10 @@ Semillas de 002 (solo `dev`): administrador `admin@dev.geoasist.local` (persona 
 Los listados de invitados se precargan mediante la operación contractual; no se publican ni se habilitan por defecto. Para capturar QR o elegir sesión en este incremento se utiliza el ID de sesión sembrado: todavía no existe un endpoint de descubrimiento de sesiones.
 
 No borrar volúmenes de Docker para reiniciar pruebas: Testcontainers usa una base independiente efímera. `.env` nunca se incluye en backups compartidos ni en Git.
+
+Propiedades de 003: `geoasist.correccion.dias` (por defecto 7) fija el plazo de correcciones
+(asistencia manual, justificaciones y revisión) tras el cierre de una sesión. El programador del
+ciclo automático (`SessionCycleScheduler`) ejecuta `SessionCycle.tick()` cada 60 s; inicia y cierra
+las sesiones de actividades con `ciclo_automatico` y reintenta cada 60 s un inicio fallido
+(auditado como `SISTEMA_INICIO_FALLIDO`). La prueba de rendimiento SC-003 queda fuera de `verify`:
+`./mvnw -B test -DexcludedGroups= -Dgroups=performance -Dtest=StatsPerformanceTest`.

@@ -67,9 +67,9 @@ Reutilizar `ActivityAuthorization`, `ActivityAuditWriter`, `AttendanceLocks`, `I
 
 ## Phase 8: Polish
 
-- [ ] T031 [P] Medir SC-003 con 1 000 estudiantes de prueba en `TEST/estadisticas/StatsPerformanceTest.java` (etiqueta `performance`, excluida de `verify` por defecto) y anotar el resultado real en `docs/validation/revision-incremento-003.md`
-- [ ] T032 [P] Actualizar `infra/README.md` (propiedades `geoasist.correccion.dias`, programador de ciclo) y `README.md`
-- [ ] T033 Ejecutar `./mvnw -B verify`, `npm run validate && npm run check` en `tools/contracts`, y lint/typecheck/test de `apps/web` y `apps/mobile` (los tipos generados cambian); registrar resultados reales en `docs/validation/revision-incremento-003.md`
+- [X] T031 [P] Medir SC-003 con 1 000 estudiantes de prueba en `TEST/estadisticas/StatsPerformanceTest.java` (etiqueta `performance`, excluida de `verify` por defecto) y anotar el resultado real en `docs/validation/revision-incremento-003.md`
+- [X] T032 [P] Actualizar `infra/README.md` (propiedades `geoasist.correccion.dias`, programador de ciclo) y `README.md`
+- [X] T033 Ejecutar `./mvnw -B verify`, `npm run validate && npm run check` en `tools/contracts`, y lint/typecheck/test de `apps/web` y `apps/mobile` (los tipos generados cambian); registrar resultados reales en `docs/validation/revision-incremento-003.md`
 
 ## Dependencies
 

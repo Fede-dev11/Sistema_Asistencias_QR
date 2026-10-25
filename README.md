@@ -39,6 +39,10 @@ Comprobaciones: `./mvnw -B spotless:check verify` dentro de `services/api`; `npm
 `npm run check` en `tools/contracts`; `bash infra/tests/retention-restore.sh` desde la raíz.
 El ensayo de copias crea solo contenedores y archivos ficticios, sin tocar la base de desarrollo.
 
+Incremento 003: ausencias y estadísticas, asistencia manual y justificaciones, historial propio,
+ciclo automático de sesiones y renovación de cuenta; ver `specs/003-ausencias-reportes-cuenta/` y
+[su revisión](docs/validation/revision-incremento-003.md).
+
 La [guía de validación](specs/001-asistencia-qr-dinamico/quickstart.md) contiene los recorridos,
 el [procedimiento de conservación](docs/operations/conservacion-y-restauracion.md) documenta
 backups/WAL/exportaciones y el [registro de revisión](docs/validation/revision-incremento.md)
