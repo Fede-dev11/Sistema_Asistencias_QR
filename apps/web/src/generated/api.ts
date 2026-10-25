@@ -359,6 +359,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Buscar espacios
+         * @description Búsqueda paginada por código (normalizado) o nombre. Disponible para DOCENTE, ENCARGADO y ADMINISTRADOR.
+         */
+        get: operations["searchSpaces"];
+        put?: never;
+        /**
+         * Crear espacio
+         * @description Crea un espacio compartido. El código se normaliza (mayúsculas, sin espacios ni guiones); si ya existe responde 409 ESPACIO_CODIGO_EXISTE con el espacio_id existente. Latitud y longitud van juntas o ninguna.
+         */
+        post: operations["createSpace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Editar espacio
+         * @description Solo el creador o un ADMINISTRADOR. El código no cambia. Las sesiones ya configuradas conservan sus valores geográficos.
+         */
+        patch: operations["updateSpace"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -385,6 +429,11 @@ export interface components {
             mensaje: string;
             /** Format: uuid */
             attempt_id?: string;
+            /**
+             * Format: uuid
+             * @description Espacio existente en ESPACIO_CODIGO_EXISTE.
+             */
+            espacio_id?: string;
             correlation_id?: string;
         };
         /** @enum {string} */
@@ -407,6 +456,31 @@ export interface components {
             precision_defecto_m: number;
             editable: boolean;
         };
+        SpacePage: {
+            items: components["schemas"]["Space"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        CreateSpaceRequest: {
+            codigo: string;
+            nombre: string;
+            tipo?: components["schemas"]["SpaceType"];
+            latitud?: number;
+            longitud?: number;
+            radio_defecto_m?: number;
+            precision_defecto_m?: number;
+        };
+        UpdateSpaceRequest: {
+            nombre?: string;
+            tipo?: components["schemas"]["SpaceType"];
+            latitud?: number;
+            longitud?: number;
+            radio_defecto_m?: number;
+            precision_defecto_m?: number;
+        };
+        /** @enum {string} */
+        SpaceType: "AULA" | "LABORATORIO" | "AUDITORIO" | "EXTERIOR" | "OTRO";
         ImportReport: {
             procesadas: number;
             creadas: number;
@@ -1527,6 +1601,95 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    searchSpaces: {
+        parameters: {
+            query?: {
+                /** @description Texto parcial del código o del nombre. */
+                q?: string;
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de espacios. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpacePage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    createSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSpaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Espacio creado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Space"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    updateSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSpaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Espacio actualizado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Space"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             429: components["responses"]["RateLimited"];
         };
     };

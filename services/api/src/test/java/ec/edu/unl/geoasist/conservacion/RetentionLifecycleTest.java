@@ -247,6 +247,22 @@ class RetentionLifecycleTest extends PostgresFixture {
         0, db.queryForObject("SELECT count(*) FROM actividades WHERE id=?", Integer.class, ids[0]));
   }
 
+  @Test
+  void sharedSpacesSurviveRetention() {
+    var ids = scenario("EVENTO", 201);
+    UUID space = UUID.randomUUID();
+    db.update(
+        "INSERT INTO espacios(id,nombre,tipo,codigo,codigo_normalizado) VALUES (?,'Aula compartida','AULA','RET1','RET1')",
+        space);
+    db.update("UPDATE sesiones SET espacio_id=? WHERE id=?", space, ids[1]);
+    expire(ids[0]);
+    runBatch();
+    assertEquals(
+        0, db.queryForObject("SELECT count(*) FROM actividades WHERE id=?", Integer.class, ids[0]));
+    assertEquals(
+        1, db.queryForObject("SELECT count(*) FROM espacios WHERE id=?", Integer.class, space));
+  }
+
   private void expire(UUID activity) {
     db.update(
         "UPDATE actividades SET estado='CERRADA',cerrada_en=?,anonimizar_en=? WHERE id=?",

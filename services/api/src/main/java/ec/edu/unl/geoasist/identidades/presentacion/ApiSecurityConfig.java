@@ -48,7 +48,7 @@ public class ApiSecurityConfig {
       throws Exception {
     CorsConfiguration cors = new CorsConfiguration();
     cors.setAllowedOrigins(List.of(origin));
-    cors.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS"));
+    cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "OPTIONS"));
     cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "Idempotency-Key"));
     cors.setExposedHeaders(List.of("Retry-After", "X-Correlation-ID"));
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
