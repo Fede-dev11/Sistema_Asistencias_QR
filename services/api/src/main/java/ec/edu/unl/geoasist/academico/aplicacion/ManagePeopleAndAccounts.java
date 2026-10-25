@@ -184,4 +184,21 @@ public class ManagePeopleAndAccounts {
     audit.write(user.accountId(), "EDITAR_CUENTA", "CUENTA", accountId, old, next);
     return repo.person(repo.personIdOfAccount(accountId)).orElseThrow();
   }
+
+  /** Contraseña temporal de 16 caracteres; se devuelve una sola vez y obliga a cambiarla. */
+  @Transactional
+  public Map<String, Object> resetPassword(UserSession user, UUID accountId) {
+    user.requireAnyRole("ADMINISTRADOR");
+    if (!repo.accountExists(accountId)) throw ApiFailure.missing();
+    String alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+    var random = new java.security.SecureRandom();
+    StringBuilder temp = new StringBuilder();
+    for (int i = 0; i < 16; i++) temp.append(alphabet.charAt(random.nextInt(alphabet.length())));
+    repo.setPassword(accountId, passwords.encode(temp.toString()));
+    repo.requirePasswordChange(accountId);
+    repo.revokeSessions(accountId, java.sql.Timestamp.from(clock.instant()));
+    audit.write(
+        user.accountId(), "RESTABLECER_PASSWORD", "CUENTA", accountId, Map.of(), Map.of("temporal", true));
+    return Map.of("password_temporal", temp.toString());
+  }
 }

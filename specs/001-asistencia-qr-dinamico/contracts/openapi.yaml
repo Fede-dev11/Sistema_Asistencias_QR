@@ -75,6 +75,67 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/RateLimited'
+  /auth/renew:
+    post:
+      operationId: renewSession
+      summary: Renovar la sesión por 8 horas rotando el secreto
+      description: Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401
+        RENOVACION_VENCIDA si pasaron más de 30 días desde el login original.
+      tags: [auth]
+      responses:
+        '200':
+          description: Sesión renovada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResult'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /me:
+    get:
+      operationId: getMe
+      summary: Perfil propio sin secretos
+      tags: [auth]
+      responses:
+        '200':
+          description: Perfil.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MeProfile'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /me/password:
+    put:
+      operationId: changeMyPassword
+      summary: Cambiar la contraseña propia
+      description: Mínimo 12 caracteres y distinta de la actual (400 PASSWORD_DEBIL). Actual incorrecta
+        (400 PASSWORD_ACTUAL_INCORRECTA) cuenta para el límite de login. Cierra las demás sesiones.
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/PasswordChange'}
+      responses:
+        '204': {description: Contraseña cambiada.}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '429': {$ref: '#/components/responses/RateLimited'}
+  /admin/accounts/{accountId}/password-reset:
+    post:
+      operationId: adminResetPassword
+      summary: Restablecer contraseña con una temporal de un solo uso (ADMINISTRADOR)
+      description: Genera 16 caracteres aleatorios mostrados una vez, revoca las sesiones de la cuenta y exige
+        cambio en el siguiente ingreso.
+      tags: [admin]
+      parameters:
+      - {name: accountId, in: path, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Contraseña temporal.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TemporaryPassword'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
   /activities:
     get:
       operationId: listActivities
@@ -1726,11 +1787,50 @@ components:
             - DIRECTOR_INSTITUCIONAL
             - DIRECTOR_CARRERA
             - ADMINISTRADOR
+        debe_cambiar_password:
+          type: boolean
+          description: true si solo puede usar PUT /me/password, GET /me y logout.
       required:
       - access_token
       - token_type
       - vence_en
       - roles
+    PasswordChange:
+      type: object
+      additionalProperties: false
+      required: [actual, nueva]
+      properties:
+        actual: {type: string, maxLength: 128}
+        nueva: {type: string, minLength: 12, maxLength: 128}
+    TemporaryPassword:
+      type: object
+      additionalProperties: false
+      required: [password_temporal]
+      properties:
+        password_temporal: {type: string, minLength: 16, maxLength: 16}
+    MeProfile:
+      type: object
+      additionalProperties: false
+      required: [cuenta_id, persona_id, nombres, correo, roles, paralelos, debe_cambiar_password]
+      properties:
+        cuenta_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        nombres: {type: string}
+        correo: {type: string}
+        roles: {type: array, items: {type: string}}
+        debe_cambiar_password: {type: boolean}
+        paralelos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [paralelo_id, codigo, carrera_id, carrera_codigo, carrera_nombre]
+            properties:
+              paralelo_id: {type: string, format: uuid}
+              codigo: {type: string}
+              carrera_id: {type: string, format: uuid}
+              carrera_codigo: {type: string}
+              carrera_nombre: {type: string}
     Activity:
       type: object
       additionalProperties: false

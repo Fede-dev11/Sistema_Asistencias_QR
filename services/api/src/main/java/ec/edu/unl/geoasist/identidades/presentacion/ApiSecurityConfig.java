@@ -94,6 +94,13 @@ public class ApiSecurityConfig {
               if (header != null) {
                 if (!header.startsWith("Bearer ")) throw ApiFailure.unauthenticated();
                 UserSession user = auth.authenticate(header.substring(7));
+                String path = req.getRequestURI();
+                if (user.mustChangePassword()
+                    && !(path.equals("/api/v1/me/password")
+                        || path.equals("/api/v1/me")
+                        || path.equals("/api/v1/auth/logout")))
+                  throw new ApiFailure(
+                      403, "CAMBIO_PASSWORD_REQUERIDO", "Debes cambiar tu contraseña para continuar.");
                 SecurityContextHolder.getContext()
                     .setAuthentication(
                         new UsernamePasswordAuthenticationToken(

@@ -39,6 +39,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Renovar la sesión por 8 horas rotando el secreto
+         * @description Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401 RENOVACION_VENCIDA si pasaron más de 30 días desde el login original.
+         */
+        post: operations["renewSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Perfil propio sin secretos */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Cambiar la contraseña propia
+         * @description Mínimo 12 caracteres y distinta de la actual (400 PASSWORD_DEBIL). Actual incorrecta (400 PASSWORD_ACTUAL_INCORRECTA) cuenta para el límite de login. Cierra las demás sesiones.
+         */
+        put: operations["changeMyPassword"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/accounts/{accountId}/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restablecer contraseña con una temporal de un solo uso (ADMINISTRADOR)
+         * @description Genera 16 caracteres aleatorios mostrados una vez, revoca las sesiones de la cuenta y exige cambio en el siguiente ingreso.
+         */
+        post: operations["adminResetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activities": {
         parameters: {
             query?: never;
@@ -715,6 +792,34 @@ export interface components {
             /** Format: date-time */
             vence_en: string;
             roles: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
+            /** @description true si solo puede usar PUT /me/password, GET /me y logout. */
+            debe_cambiar_password?: boolean;
+        };
+        PasswordChange: {
+            actual: string;
+            nueva: string;
+        };
+        TemporaryPassword: {
+            password_temporal: string;
+        };
+        MeProfile: {
+            /** Format: uuid */
+            cuenta_id: string;
+            /** Format: uuid */
+            persona_id: string;
+            nombres: string;
+            correo: string;
+            roles: string[];
+            debe_cambiar_password: boolean;
+            paralelos: {
+                /** Format: uuid */
+                paralelo_id: string;
+                codigo: string;
+                /** Format: uuid */
+                carrera_id: string;
+                carrera_codigo: string;
+                carrera_nombre: string;
+            }[];
         };
         /** @description Los eventos pueden vincular varias carreras y paralelos. El servidor calcula los ámbitos mediante estos vínculos y responsable_id; los filtros de lectura no los sustituyen. */
         Activity: {
@@ -1227,6 +1332,98 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    renewSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sesión renovada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResult"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Perfil. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeProfile"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    changeMyPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChange"];
+            };
+        };
+        responses: {
+            /** @description Contraseña cambiada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    adminResetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Contraseña temporal. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemporaryPassword"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     listActivities: {

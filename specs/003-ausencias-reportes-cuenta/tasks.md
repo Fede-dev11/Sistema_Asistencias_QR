@@ -19,7 +19,7 @@ Reutilizar `ActivityAuthorization`, `ActivityAuditWriter`, `AttendanceLocks`, `I
 
 - [ ] T003 `MIG/V015__ausencias_y_justificaciones.sql`: tablas `ausencias` y `justificaciones` exactamente como en plan.md (CHECKs, PK, índice único parcial `WHERE estado='PENDIENTE'`, trigger que impide modificar una justificación con `estado<>'PENDIENTE'`); `asistencias.forma` admite `MANUAL`, columnas `razon_manual varchar(2000)` (CHECK obligatoria si `forma='MANUAL'`) y `registrada_por uuid REFERENCES cuentas(id)`; `intentos_asistencia.canal` admite `MANUAL`
 - [ ] T004 `MIG/V016__ciclo_y_umbral.sql`: `actividades.ciclo_automatico boolean NOT NULL DEFAULT false`, `actividades.umbral_asistencia numeric(5,2) NOT NULL DEFAULT 70 CHECK(umbral_asistencia BETWEEN 0 AND 100)`, `sesiones.siguiente_intento_en timestamptz`, índices parciales `sesiones(ventana_inicio) WHERE estado='PROGRAMADA'` y `sesiones(ventana_fin) WHERE estado='ACTIVA'`, `auditoria_actividad.actor_id DROP NOT NULL`
-- [ ] T005 `MIG/V017__cuenta_y_renovacion.sql`: `cuentas.debe_cambiar_password boolean NOT NULL DEFAULT false`, `sesiones_acceso.login_original_en timestamptz` (rellenar con `creada_en`, luego NOT NULL)
+- [X] T005 `MIG/V017__cuenta_y_renovacion.sql`: `cuentas.debe_cambiar_password boolean NOT NULL DEFAULT false`, `sesiones_acceso.login_original_en timestamptz` (rellenar con `creada_en`, luego NOT NULL)
 - [ ] T006 `MIG/V018__conservacion_003.sql`: redefinir la función de anonimización (última versión en `V013__espacios_compartidos.sql`) para borrar `ausencias`/`justificaciones` de la actividad vencida y poner `razon_manual` a NULL; caso nuevo en `TEST/conservacion/RetentionLifecycleTest.java`
 - [ ] T007 Añadir al YAML los códigos de motivo nuevos de plan.md y esquemas comunes `AttendanceStats`, `AbsenceState`; `npm run validate` en `tools/contracts`
 
@@ -58,12 +58,12 @@ Reutilizar `ActivityAuthorization`, `ActivityAuditWriter`, `AttendanceLocks`, `I
 
 ## Phase 7: US5 — Cuenta propia y sesión prolongada (P2)
 
-- [ ] T025 [P] [US5] `TEST/identidades/AccountSelfServiceTest.java`: US5-1 a US5-4 y US5-7 (sin secretos en `GET /me`), contraseña débil → `PASSWORD_DEBIL`, actual incorrecta → `PASSWORD_ACTUAL_INCORRECTA` y cuenta en límite de login
-- [ ] T026 [P] [US5] `TEST/identidades/SessionRenewalTest.java` con `MutableClock`: US5-5, US5-6, secreto anterior inválido tras renovar, renovación a 29 días OK y a 30 días + 1 min → `RENOVACION_VENCIDA` (SC-006)
-- [ ] T027 [US5] `API/identidades/aplicacion/AccountSelfService.java`: perfil, cambio de contraseña (BCrypt existente, ≥12, distinta, revoca otras sesiones), restablecimiento por administrador (temporal de 16 caracteres con `SecureRandom`, `debe_cambiar_password=true`, revoca sesiones, auditoría en `auditoria_academica` de 002)
-- [ ] T028 [US5] Renovación en `API/identidades/aplicacion/AuthenticationService.java` (`renew(token)`: rota secreto, 8 h, `login_original_en` + 30 días máximo; `login` fija `login_original_en`) y `POST /auth/renew` en `AuthController.java`
-- [ ] T029 [US5] Filtro en `API/identidades/presentacion/ApiSecurityConfig.java`: cuentas con `debe_cambiar_password` solo acceden a `PUT /me/password`, `GET /me`, `/auth/logout`; resto → 403 `CAMBIO_PASSWORD_REQUERIDO`; incluir la marca en la respuesta de login
-- [ ] T030 [US5] `GET /me`, `PUT /me/password` en `API/identidades/presentacion/AccountController.java` y `POST /admin/accounts/{id}/password-reset` en `API/academico/presentacion/AdminController.java`; YAML + tipos
+- [X] T025 [P] [US5] `TEST/identidades/AccountSelfServiceTest.java`: US5-1 a US5-4 y US5-7 (sin secretos en `GET /me`), contraseña débil → `PASSWORD_DEBIL`, actual incorrecta → `PASSWORD_ACTUAL_INCORRECTA` y cuenta en límite de login
+- [X] T026 [P] [US5] `TEST/identidades/SessionRenewalTest.java` con `MutableClock`: US5-5, US5-6, secreto anterior inválido tras renovar, renovación a 29 días OK y a 30 días + 1 min → `RENOVACION_VENCIDA` (SC-006)
+- [X] T027 [US5] `API/identidades/aplicacion/AccountSelfService.java`: perfil, cambio de contraseña (BCrypt existente, ≥12, distinta, revoca otras sesiones), restablecimiento por administrador (temporal de 16 caracteres con `SecureRandom`, `debe_cambiar_password=true`, revoca sesiones, auditoría en `auditoria_academica` de 002)
+- [X] T028 [US5] Renovación en `API/identidades/aplicacion/AuthenticationService.java` (`renew(token)`: rota secreto, 8 h, `login_original_en` + 30 días máximo; `login` fija `login_original_en`) y `POST /auth/renew` en `AuthController.java`
+- [X] T029 [US5] Filtro en `API/identidades/presentacion/ApiSecurityConfig.java`: cuentas con `debe_cambiar_password` solo acceden a `PUT /me/password`, `GET /me`, `/auth/logout`; resto → 403 `CAMBIO_PASSWORD_REQUERIDO`; incluir la marca en la respuesta de login
+- [X] T030 [US5] `GET /me`, `PUT /me/password` en `API/identidades/presentacion/AccountController.java` y `POST /admin/accounts/{id}/password-reset` en `API/academico/presentacion/AdminController.java`; YAML + tipos
 
 ## Phase 8: Polish
 
