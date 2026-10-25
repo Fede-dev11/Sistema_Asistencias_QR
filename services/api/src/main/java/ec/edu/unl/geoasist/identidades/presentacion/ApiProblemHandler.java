@@ -27,6 +27,11 @@ public class ApiProblemHandler {
         .body(body(e));
   }
 
+  @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+  public ResponseEntity<Map<String, Object>> tooLarge(Exception e) {
+    return failure(new ApiFailure(413, "ARCHIVO_DEMASIADO_GRANDE", "El archivo supera 2 MB."));
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> fields(MethodArgumentNotValidException e) {
     String detail =

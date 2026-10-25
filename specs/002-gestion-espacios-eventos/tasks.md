@@ -59,22 +59,22 @@ que deben fallar antes de implementar. Pruebas de integración contra PostgreSQL
 
 ### Tests for User Story 1
 
-- [ ] T016 [P] [US1] Prueba de contrato `TEST/academico/AdminContractTest.java`: cada ruta `/admin/**` de `contracts/api.md` responde con el esquema del YAML; 403 para DOCENTE/ESTUDIANTE/DIRECTOR_*; 401 sin sesión
-- [ ] T017 [P] [US1] Prueba de integración `TEST/academico/AdminPeopleAccountsTest.java`: escenarios US1-1, US1-2 (409 cédula existe), US1-3 (`CEDULA_INVALIDA`), US1-7 (cuenta desactivada no inicia sesión y conserva asistencias); acciones auditadas
-- [ ] T018 [P] [US1] Prueba de integración `TEST/academico/CsvImportTest.java`: US1-4 (100 válidas + 3 inválidas → informe con número de fila y motivo; reimportación → `creadas: 0`), encabezado inválido → 400 sin cambios, separador `;` aceptado, >5 000 filas o >2 MB → 413, fila con correo duplicado rechazada
-- [ ] T019 [P] [US1] Prueba de integración `TEST/academico/EnrollmentTest.java`: reemplazo de matriculados y docentes de un paralelo; matricular a una persona sin rol ESTUDIANTE se rechaza; `GET /me/parallels` del docente muestra sus paralelos con número de matriculados (US1-5)
+- [X] T016 [P] [US1] Prueba de contrato `TEST/academico/AdminContractTest.java`: cada ruta `/admin/**` de `contracts/api.md` responde con el esquema del YAML; 403 para DOCENTE/ESTUDIANTE/DIRECTOR_*; 401 sin sesión
+- [X] T017 [P] [US1] Prueba de integración `TEST/academico/AdminPeopleAccountsTest.java`: escenarios US1-1, US1-2 (409 cédula existe), US1-3 (`CEDULA_INVALIDA`), US1-7 (cuenta desactivada no inicia sesión y conserva asistencias); acciones auditadas
+- [X] T018 [P] [US1] Prueba de integración `TEST/academico/CsvImportTest.java`: US1-4 (100 válidas + 3 inválidas → informe con número de fila y motivo; reimportación → `creadas: 0`), encabezado inválido → 400 sin cambios, separador `;` aceptado, >5 000 filas o >2 MB → 413, fila con correo duplicado rechazada
+- [X] T019 [P] [US1] Prueba de integración `TEST/academico/EnrollmentTest.java`: reemplazo de matriculados y docentes de un paralelo; matricular a una persona sin rol ESTUDIANTE se rechaza; `GET /me/parallels` del docente muestra sus paralelos con número de matriculados (US1-5)
 
 ### Implementation for User Story 1
 
-- [ ] T020 [P] [US1] `API/academico/persistencia/AcademicRepository.java`: consultas JDBC de personas (búsqueda paginada por cédula/nombre), cuentas, roles, carreras, paralelos, matrículas y docentes_paralelo
-- [ ] T021 [US1] `API/academico/aplicacion/ManagePeopleAndAccounts.java`: crear/editar persona (`Cedula.of`, nombres 1–200), crear cuenta (correo único, contraseña con el `PasswordEncoder` existente, roles válidos, una cuenta por persona), cambiar roles, activar/desactivar; auditar con quién/qué/cuándo (Principio V)
-- [ ] T022 [US1] `API/academico/aplicacion/ManageCareersAndParallels.java`: CRUD de carreras y paralelos (`codigo` único por carrera), reemplazo de matrículas (solo personas con rol ESTUDIANTE) y de docentes (solo cuentas con rol DOCENTE/ENCARGADO), devolviendo filas rechazadas
-- [ ] T023 [US1] `API/academico/aplicacion/CsvImport.java`: lector CSV de la librería estándar (UTF-8, comillas, separador `,`/`;` por encabezado, máx. 5 000 filas y 2 MB), tres tipos (`students` `cedula,nombres,correo`; `teachers` `cedula,nombres,correo,rol`; `enrollments` `cedula,carrera,paralelo`), una transacción, idempotente por cédula/correo/par, contraseña inicial desde configuración `geoasist.dev.import-password` (nunca del CSV), devuelve `ImportReport`
-- [ ] T024 [US1] `API/academico/presentacion/AdminController.java` y `AdminImportController.java` con las rutas `/admin/**` de `contracts/api.md`, DTOs propios (no entidades), paginación ≤100, `Idempotency-Key` en POST de alta
-- [ ] T025 [US1] `GET /me/parallels` en `API/academico/presentacion/TeacherCatalogController.java` (solo DOCENTE/ENCARGADO, sus asignaciones vigentes)
-- [ ] T026 [US1] Añadir al YAML las rutas `/admin/**` y `/me/parallels`; `npm run validate && npm run generate` en `tools/contracts` para regenerar `apps/web/src/generated` y `apps/mobile/src/generated`
-- [ ] T027 [P] [US1] Web: páginas `apps/web/src/app/admin/{personas,carreras,importar}/page.tsx` con componentes en `apps/web/src/features/admin/` (tablas paginadas, formularios con estados de carga/éxito/error, subida de CSV con informe de filas rechazadas; visible solo con rol ADMINISTRADOR)
-- [ ] T028 [P] [US1] Fixtures `docs/validation/fixtures/{estudiantes,docentes,matriculas}.csv` con cédulas válidas ficticias y 3 filas inválidas para el quickstart
+- [X] T020 [P] [US1] `API/academico/persistencia/AcademicRepository.java`: consultas JDBC de personas (búsqueda paginada por cédula/nombre), cuentas, roles, carreras, paralelos, matrículas y docentes_paralelo
+- [X] T021 [US1] `API/academico/aplicacion/ManagePeopleAndAccounts.java`: crear/editar persona (`Cedula.of`, nombres 1–200), crear cuenta (correo único, contraseña con el `PasswordEncoder` existente, roles válidos, una cuenta por persona), cambiar roles, activar/desactivar; auditar con quién/qué/cuándo (Principio V)
+- [X] T022 [US1] `API/academico/aplicacion/ManageCareersAndParallels.java`: CRUD de carreras y paralelos (`codigo` único por carrera), reemplazo de matrículas (solo personas con rol ESTUDIANTE) y de docentes (solo cuentas con rol DOCENTE/ENCARGADO), devolviendo filas rechazadas
+- [X] T023 [US1] `API/academico/aplicacion/CsvImport.java`: lector CSV de la librería estándar (UTF-8, comillas, separador `,`/`;` por encabezado, máx. 5 000 filas y 2 MB), tres tipos (`students` `cedula,nombres,correo`; `teachers` `cedula,nombres,correo,rol`; `enrollments` `cedula,carrera,paralelo`), una transacción, idempotente por cédula/correo/par, contraseña inicial desde configuración `geoasist.dev.import-password` (nunca del CSV), devuelve `ImportReport`
+- [X] T024 [US1] `API/academico/presentacion/AdminController.java` y `AdminImportController.java` con las rutas `/admin/**` de `contracts/api.md`, DTOs propios (no entidades), paginación ≤100, `Idempotency-Key` en POST de alta
+- [X] T025 [US1] `GET /me/parallels` en `API/academico/presentacion/TeacherCatalogController.java` (solo DOCENTE/ENCARGADO, sus asignaciones vigentes)
+- [X] T026 [US1] Añadir al YAML las rutas `/admin/**` y `/me/parallels`; `npm run validate && npm run generate` en `tools/contracts` para regenerar `apps/web/src/generated` y `apps/mobile/src/generated`
+- [X] T027 [P] [US1] Web: páginas `apps/web/src/app/admin/{personas,carreras,importar}/page.tsx` con componentes en `apps/web/src/features/admin/` (tablas paginadas, formularios con estados de carga/éxito/error, subida de CSV con informe de filas rechazadas; visible solo con rol ADMINISTRADOR)
+- [X] T028 [P] [US1] Fixtures `docs/validation/fixtures/{estudiantes,docentes,matriculas}.csv` con cédulas válidas ficticias y 3 filas inválidas para el quickstart
 
 **Checkpoint**: US1 operable de forma independiente.
 

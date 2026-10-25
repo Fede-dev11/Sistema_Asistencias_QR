@@ -23,6 +23,7 @@ tags:
 - name: attendance
 - name: guest-registrations
 - name: attempts
+- name: admin
 paths:
   /auth/login:
     post:
@@ -782,6 +783,409 @@ paths:
       - $ref: '#/components/parameters/activityId'
       - $ref: '#/components/parameters/Page'
       - $ref: '#/components/parameters/Size'
+  /admin/people:
+    get:
+      operationId: adminListPeople
+      summary: Listar personas (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - name: q
+        in: query
+        schema: {type: string}
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de personas.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPersonPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+    post:
+      operationId: adminCreatePerson
+      summary: Crear persona (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminPersonCreate'}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '201':
+          description: Persona creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/people/{personId}:
+    parameters:
+    - {name: personId, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      operationId: adminGetPerson
+      summary: Ver persona (ADMINISTRADOR)
+      tags: [admin]
+      responses:
+        '200':
+          description: Persona.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: adminRenamePerson
+      summary: Editar nombres de una persona (ADMINISTRADOR)
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [nombres]
+              properties:
+                nombres: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Persona actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/accounts:
+    post:
+      operationId: adminCreateAccount
+      summary: Crear cuenta de una persona (ADMINISTRADOR)
+      description: La contraseña inicial tiene mínimo 12 caracteres y no se devuelve ni se audita.
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminAccountCreate'}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '201':
+          description: Cuenta creada; devuelve la persona con su cuenta.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/accounts/{accountId}:
+    patch:
+      operationId: adminUpdateAccount
+      summary: Cambiar roles, activar o desactivar, cambiar contraseña (ADMINISTRADOR)
+      description: Desactivar revoca las sesiones y conserva el historial de asistencias. Un administrador no puede
+        desactivarse ni quitarse su propio rol (409).
+      tags: [admin]
+      parameters:
+      - {name: accountId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminAccountPatch'}
+      responses:
+        '200':
+          description: Persona con su cuenta actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/careers:
+    get:
+      operationId: adminListCareers
+      summary: Listar carreras (ADMINISTRADOR)
+      tags: [admin]
+      responses:
+        '200':
+          description: Carreras.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminCareer'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+    post:
+      operationId: adminCreateCareer
+      summary: Crear carrera (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [codigo, nombre]
+              properties:
+                codigo: {type: string, minLength: 1, maxLength: 40}
+                nombre: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '201':
+          description: Carrera creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/careers/{careerId}:
+    patch:
+      operationId: adminRenameCareer
+      summary: Editar nombre de carrera (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - {name: careerId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [nombre]
+              properties:
+                nombre: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Carrera actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/careers/{careerId}/parallels:
+    parameters:
+    - {name: careerId, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      operationId: adminListParallels
+      summary: Paralelos de una carrera (ADMINISTRADOR)
+      tags: [admin]
+      responses:
+        '200':
+          description: Paralelos con número de matriculados y docentes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminParallel'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: adminCreateParallel
+      summary: Crear paralelo (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [codigo]
+              properties:
+                codigo: {type: string, minLength: 1, maxLength: 40}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminParallel'}
+        '201':
+          description: Paralelo creado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminParallel'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/parallels/{parallelId}/enrollments:
+    put:
+      operationId: adminReplaceEnrollments
+      summary: Reemplazar matriculados de un paralelo (ADMINISTRADOR)
+      description: Lista de cédulas; solo personas con rol ESTUDIANTE. Las demás vuelven en rechazadas.
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [cedulas]
+              properties:
+                cedulas:
+                  type: array
+                  maxItems: 5000
+                  items: {type: string}
+      responses:
+        '200':
+          description: Resultado del reemplazo.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [matriculados, rechazadas]
+                properties:
+                  matriculados: {type: integer, minimum: 0}
+                  rechazadas:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminRejectedEntry'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/parallels/{parallelId}/teachers:
+    put:
+      operationId: adminReplaceTeachers
+      summary: Reemplazar docentes de un paralelo (ADMINISTRADOR)
+      description: Lista de correos de cuentas con rol DOCENTE o ENCARGADO.
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [correos]
+              properties:
+                correos:
+                  type: array
+                  maxItems: 5000
+                  items: {type: string}
+      responses:
+        '200':
+          description: Resultado del reemplazo.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [docentes, rechazadas]
+                properties:
+                  docentes: {type: integer, minimum: 0}
+                  rechazadas:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminRejectedEntry'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/imports/{kind}:
+    post:
+      operationId: adminImportCsv
+      summary: Importar CSV de estudiantes, docentes o matrículas (ADMINISTRADOR)
+      description: 'multipart/form-data, campo file, UTF-8, separador coma o punto y coma, máximo 2 MB y 5 000 filas.
+        students: cedula,nombres,correo; teachers: cedula,nombres,correo,rol; enrollments: cedula,carrera,paralelo.
+        Idempotente. Encabezado inválido: 400 sin cambios.'
+      tags: [admin]
+      parameters:
+      - name: kind
+        in: path
+        required: true
+        schema: {type: string, enum: [students, teachers, enrollments]}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '200':
+          description: Informe de importación.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ImportReport'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '413':
+          description: Archivo de más de 2 MB o de más de 5 000 filas.
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /me/parallels:
+    get:
+      operationId: listMyParallels
+      summary: Paralelos asignados al docente o encargado
+      tags: [admin]
+      responses:
+        '200':
+          description: Paralelos vigentes con número de matriculados.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/MyParallel'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
 components:
   securitySchemes:
     SessionBearer:
@@ -1129,6 +1533,7 @@ components:
             - ESTUDIANTE
             - DIRECTOR_INSTITUCIONAL
             - DIRECTOR_CARRERA
+            - ADMINISTRADOR
       required:
       - access_token
       - token_type
@@ -1730,3 +2135,95 @@ components:
       - page
       - size
       - total
+    AdminAccount:
+      type: object
+      required: [id, correo, activa, roles]
+      properties:
+        id: {type: string, format: uuid}
+        correo: {type: string}
+        activa: {type: boolean}
+        roles:
+          type: array
+          items: {type: string}
+    AdminPerson:
+      type: object
+      required: [id, cedula, nombres, tipo, cuenta]
+      properties:
+        id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        tipo: {type: string, enum: [INSTITUCIONAL, EXTERNA]}
+        cuenta:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/AdminAccount'
+    AdminPersonPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/AdminPerson'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    AdminPersonCreate:
+      type: object
+      additionalProperties: false
+      required: [cedula, nombres]
+      properties:
+        cedula: {type: string, pattern: '^[0-9]{10}$'}
+        nombres: {type: string, minLength: 1, maxLength: 200}
+    AdminAccountCreate:
+      type: object
+      additionalProperties: false
+      required: [persona_id, correo, password, roles]
+      properties:
+        persona_id: {type: string, format: uuid}
+        correo: {type: string, maxLength: 254}
+        password: {type: string, minLength: 12, maxLength: 128}
+        roles:
+          type: array
+          minItems: 1
+          items: {type: string, enum: [DOCENTE, ENCARGADO, ESTUDIANTE, DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA, ADMINISTRADOR]}
+    AdminAccountPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        roles:
+          type: array
+          minItems: 1
+          items: {type: string, enum: [DOCENTE, ENCARGADO, ESTUDIANTE, DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA, ADMINISTRADOR]}
+        activa: {type: boolean}
+        password: {type: string, minLength: 12, maxLength: 128}
+    AdminCareer:
+      type: object
+      required: [id, codigo, nombre]
+      properties:
+        id: {type: string, format: uuid}
+        codigo: {type: string}
+        nombre: {type: string}
+    AdminParallel:
+      type: object
+      required: [id, codigo, matriculados, docentes]
+      properties:
+        id: {type: string, format: uuid}
+        codigo: {type: string}
+        matriculados: {type: integer, minimum: 0}
+        docentes: {type: integer, minimum: 0}
+    AdminRejectedEntry:
+      type: object
+      required: [entrada, motivo]
+      properties:
+        entrada: {type: string}
+        motivo: {type: string}
+    MyParallel:
+      type: object
+      required: [paralelo_id, codigo, carrera_id, carrera_codigo, carrera_nombre, matriculados]
+      properties:
+        paralelo_id: {type: string, format: uuid}
+        codigo: {type: string}
+        carrera_id: {type: string, format: uuid}
+        carrera_codigo: {type: string}
+        carrera_nombre: {type: string}
+        matriculados: {type: integer, minimum: 0}
