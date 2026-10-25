@@ -35,6 +35,11 @@ public class AuthController {
     return auth.login(body.correo(), body.password());
   }
 
+  @PostMapping("/renew")
+  public Map<String, Object> renew(@AuthenticationPrincipal UserSession user) {
+    return auth.renew(user);
+  }
+
   @PostMapping("/logout")
   public ResponseEntity<Void> logout(@AuthenticationPrincipal UserSession user) {
     auth.logout(user);
