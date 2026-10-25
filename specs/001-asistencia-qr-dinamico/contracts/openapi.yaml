@@ -831,8 +831,8 @@ paths:
       summary: Resolver intento pendiente
       description: Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación
         por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría
-        con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA y actividad
-        abierta; si están cerradas devolver 409. Una aprobación no duplica asistencia. Rechazar una revisión no
+        con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA o CERRADA dentro del plazo de
+        corrección (geoasist.correccion.dias, 7); fuera de plazo 409 PLAZO_CORRECCION_VENCIDO. Aprobar tras el cierre elimina la ausencia. Una aprobación no duplica asistencia. Rechazar una revisión no
         crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su
         conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.
       tags:
@@ -869,6 +869,198 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/ReviewRequest'
+  /sessions/{sessionId}/manual-attendances:
+    post:
+      operationId: registerManualAttendance
+      summary: Registrar asistencia manual
+      description: Solo RESPONSABLE de la actividad. Estudiante autorizado vigente (422 NO_AUTORIZADO_EN_SESION). Sesión ACTIVA o CERRADA dentro de geoasist.correccion.dias (7) días; después 409 PLAZO_CORRECCION_VENCIDO. Duplicado 409 ASISTENCIA_DUPLICADA. Elimina la ausencia, resuelve como rechazado un intento pendiente del estudiante y audita. No aplica la regla de dispositivo.
+      tags:
+      - corrections
+      responses:
+        '201':
+          description: Asistencia MANUAL creada (o repetida con la misma clave).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualAttendanceResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {$ref: '#/components/parameters/sessionId'}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualAttendanceRequest'
+  /sessions/{sessionId}/absences/{personId}/justify:
+    post:
+      operationId: justifyAbsence
+      summary: Justificar una ausencia
+      description: Solo RESPONSABLE, mismo plazo de corrección. Crea una justificación origen RESPONSABLE aprobada y la ausencia pasa a JUSTIFICADA. 409 SIN_AUSENCIA si no hay ausencia; 409 JUSTIFICACION_PENDIENTE_EXISTE si hay una solicitud pendiente.
+      tags:
+      - corrections
+      responses:
+        '201':
+          description: Justificación registrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JustificationSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {$ref: '#/components/parameters/sessionId'}
+      - {name: personId, in: path, required: true, schema: {type: string, format: uuid}}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustifyAbsenceRequest'
+  /me/absences/{sessionId}/justification-requests:
+    post:
+      operationId: requestJustification
+      summary: Solicitar justificación de la propia ausencia
+      description: Solo ESTUDIANTE con ausencia propia en la sesión, dentro del plazo de corrección. Una solicitud pendiente por ausencia (409 JUSTIFICACION_PENDIENTE_EXISTE); sin ausencia 409 SIN_AUSENCIA. El motivo no se copia a la auditoría ni al CSV.
+      tags:
+      - corrections
+      responses:
+        '201':
+          description: Solicitud pendiente creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JustificationSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {$ref: '#/components/parameters/sessionId'}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustificationRequestBody'
+  /activities/{activityId}/justification-requests:
+    get:
+      operationId: listJustificationRequests
+      summary: Bandeja de justificaciones
+      description: Responsable y directores según el ámbito de consulta. Incluye el motivo, que solo se muestra a quien puede leer la actividad.
+      tags:
+      - corrections
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JustificationPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {$ref: '#/components/parameters/activityId'}
+      - {name: estado, in: query, schema: {type: string, enum: [PENDIENTE, APROBADA, RECHAZADA]}}
+      - {$ref: '#/components/parameters/Page'}
+      - {$ref: '#/components/parameters/Size'}
+  /justification-requests/{requestId}/decision:
+    post:
+      operationId: decideJustification
+      summary: Decidir una solicitud de justificación
+      description: Solo RESPONSABLE de la actividad. Razón obligatoria; la decisión es inmutable (409 si ya fue decidida). APROBAR pasa la ausencia a JUSTIFICADA.
+      tags:
+      - corrections
+      responses:
+        '200':
+          description: Decisión registrada o repetida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JustificationSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {name: requestId, in: path, required: true, schema: {type: string, format: uuid}}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustificationDecisionRequest'
   /activities/{activityId}/audit:
     get:
       operationId: listActivityAudit
@@ -2747,6 +2939,15 @@ components:
         mensaje:
           type: string
           description: Motivo comprensible del resultado mostrado.
+        forma:
+          type: string
+          nullable: true
+          enum: [CREDENCIALES, INVITADO_LISTADO, REVISION, AUTORREGISTRO, MANUAL]
+          description: Forma de la asistencia confirmada; null sin asistencia.
+        razon_manual:
+          type: string
+          nullable: true
+          description: Razón del responsable cuando forma es MANUAL.
       required:
       - asistencia_id
       - persona_id
@@ -2757,6 +2958,8 @@ components:
       - attempt_id
       - code
       - mensaje
+      - forma
+      - razon_manual
       description: Una fila por persona identificada en la sesión. Prevalece su asistencia confirmada; si no existe,
         mostrar su último intento identificado pendiente o rechazado. Nunca exponer intentos sin persona identificada
         ni cédulas desconocidas. El filtro estado se aplica después de esta proyección.
@@ -2823,6 +3026,80 @@ components:
       - asistencia_id
       - decision
       - revisada_en
+    ManualAttendanceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        persona_id: {type: string, format: uuid}
+        razon: {type: string, minLength: 1, maxLength: 2000}
+      required: [persona_id, razon]
+    ManualAttendanceResult:
+      type: object
+      additionalProperties: false
+      properties:
+        asistencia_id: {type: string, format: uuid}
+        attempt_id: {type: string, format: uuid}
+        session_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        forma: {type: string, enum: [MANUAL]}
+        registrada_en: {type: string, format: date-time}
+      required: [asistencia_id, attempt_id, session_id, persona_id, forma, registrada_en]
+    JustifyAbsenceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        razon: {type: string, minLength: 1, maxLength: 2000}
+      required: [razon]
+    JustificationRequestBody:
+      type: object
+      additionalProperties: false
+      properties:
+        motivo: {type: string, minLength: 1, maxLength: 2000}
+      required: [motivo]
+    JustificationDecisionRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        decision: {type: string, enum: [APROBAR, RECHAZAR]}
+        razon: {type: string, minLength: 1, maxLength: 2000}
+      required: [decision, razon]
+    JustificationSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        id: {type: string, format: uuid}
+        sesion_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        estado: {type: string, enum: [PENDIENTE, APROBADA, RECHAZADA]}
+        instante: {type: string, format: date-time}
+      required: [id, sesion_id, persona_id, estado, instante]
+    Justification:
+      type: object
+      additionalProperties: false
+      properties:
+        id: {type: string, format: uuid}
+        sesion_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        origen: {type: string, enum: [ESTUDIANTE, RESPONSABLE]}
+        motivo: {type: string}
+        estado: {type: string, enum: [PENDIENTE, APROBADA, RECHAZADA]}
+        razon_decision: {type: string, nullable: true}
+        solicitada_en: {type: string, format: date-time}
+        decidida_en: {type: string, format: date-time, nullable: true}
+      required: [id, sesion_id, persona_id, cedula, nombres, origen, motivo, estado, razon_decision, solicitada_en, decidida_en]
+    JustificationPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Justification'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+      required: [items, page, size, total]
     AuditValues:
       type: object
       additionalProperties: false

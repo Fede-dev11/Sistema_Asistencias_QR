@@ -415,9 +415,109 @@ export interface paths {
         put?: never;
         /**
          * Resolver intento pendiente
-         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA y actividad abierta; si están cerradas devolver 409. Una aprobación no duplica asistencia. Rechazar una revisión no crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.
+         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA o CERRADA dentro del plazo de corrección (geoasist.correccion.dias, 7); fuera de plazo 409 PLAZO_CORRECCION_VENCIDO. Aprobar tras el cierre elimina la ausencia. Una aprobación no duplica asistencia. Rechazar una revisión no crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.
          */
         post: operations["reviewAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{sessionId}/manual-attendances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar asistencia manual
+         * @description Solo RESPONSABLE de la actividad. Estudiante autorizado vigente (422 NO_AUTORIZADO_EN_SESION). Sesión ACTIVA o CERRADA dentro de geoasist.correccion.dias (7) días; después 409 PLAZO_CORRECCION_VENCIDO. Duplicado 409 ASISTENCIA_DUPLICADA. Elimina la ausencia, resuelve como rechazado un intento pendiente del estudiante y audita. No aplica la regla de dispositivo.
+         */
+        post: operations["registerManualAttendance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{sessionId}/absences/{personId}/justify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Justificar una ausencia
+         * @description Solo RESPONSABLE, mismo plazo de corrección. Crea una justificación origen RESPONSABLE aprobada y la ausencia pasa a JUSTIFICADA. 409 SIN_AUSENCIA si no hay ausencia; 409 JUSTIFICACION_PENDIENTE_EXISTE si hay una solicitud pendiente.
+         */
+        post: operations["justifyAbsence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/absences/{sessionId}/justification-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar justificación de la propia ausencia
+         * @description Solo ESTUDIANTE con ausencia propia en la sesión, dentro del plazo de corrección. Una solicitud pendiente por ausencia (409 JUSTIFICACION_PENDIENTE_EXISTE); sin ausencia 409 SIN_AUSENCIA. El motivo no se copia a la auditoría ni al CSV.
+         */
+        post: operations["requestJustification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/justification-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bandeja de justificaciones
+         * @description Responsable y directores según el ámbito de consulta. Incluye el motivo, que solo se muestra a quien puede leer la actividad.
+         */
+        get: operations["listJustificationRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/justification-requests/{requestId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decidir una solicitud de justificación
+         * @description Solo RESPONSABLE de la actividad. Razón obligatoria; la decisión es inmutable (409 si ya fue decidida). APROBAR pasa la ausencia a JUSTIFICADA.
+         */
+        post: operations["decideJustification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1239,6 +1339,13 @@ export interface components {
             code: string;
             /** @description Motivo comprensible del resultado mostrado. */
             mensaje: string;
+            /**
+             * @description Forma de la asistencia confirmada; null sin asistencia.
+             * @enum {string|null}
+             */
+            forma: "CREDENCIALES" | "INVITADO_LISTADO" | "REVISION" | "AUTORREGISTRO" | "MANUAL" | null;
+            /** @description Razón del responsable cuando forma es MANUAL. */
+            razon_manual: string | null;
         };
         AttendancePage: {
             items: components["schemas"]["AttendanceRow"][];
@@ -1260,6 +1367,74 @@ export interface components {
             decision: "APROBAR" | "RECHAZAR";
             /** Format: date-time */
             revisada_en: string;
+        };
+        ManualAttendanceRequest: {
+            /** Format: uuid */
+            persona_id: string;
+            razon: string;
+        };
+        ManualAttendanceResult: {
+            /** Format: uuid */
+            asistencia_id: string;
+            /** Format: uuid */
+            attempt_id: string;
+            /** Format: uuid */
+            session_id: string;
+            /** Format: uuid */
+            persona_id: string;
+            /** @enum {string} */
+            forma: "MANUAL";
+            /** Format: date-time */
+            registrada_en: string;
+        };
+        JustifyAbsenceRequest: {
+            razon: string;
+        };
+        JustificationRequestBody: {
+            motivo: string;
+        };
+        JustificationDecisionRequest: {
+            /** @enum {string} */
+            decision: "APROBAR" | "RECHAZAR";
+            razon: string;
+        };
+        JustificationSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sesion_id: string;
+            /** Format: uuid */
+            persona_id: string;
+            /** @enum {string} */
+            estado: "PENDIENTE" | "APROBADA" | "RECHAZADA";
+            /** Format: date-time */
+            instante: string;
+        };
+        Justification: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sesion_id: string;
+            /** Format: uuid */
+            persona_id: string;
+            cedula: string;
+            nombres: string;
+            /** @enum {string} */
+            origen: "ESTUDIANTE" | "RESPONSABLE";
+            motivo: string;
+            /** @enum {string} */
+            estado: "PENDIENTE" | "APROBADA" | "RECHAZADA";
+            razon_decision: string | null;
+            /** Format: date-time */
+            solicitada_en: string;
+            /** Format: date-time */
+            decidida_en: string | null;
+        };
+        JustificationPage: {
+            items: components["schemas"]["Justification"][];
+            page: number;
+            size: number;
+            total: number;
         };
         /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. */
         AuditValues: {
@@ -2534,6 +2709,189 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReviewResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    registerManualAttendance: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualAttendanceRequest"];
+            };
+        };
+        responses: {
+            /** @description Asistencia MANUAL creada (o repetida con la misma clave). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualAttendanceResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    justifyAbsence: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+                personId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JustifyAbsenceRequest"];
+            };
+        };
+        responses: {
+            /** @description Justificación registrada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JustificationSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    requestJustification: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JustificationRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Solicitud pendiente creada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JustificationSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listJustificationRequests: {
+        parameters: {
+            query?: {
+                estado?: "PENDIENTE" | "APROBADA" | "RECHAZADA";
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JustificationPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    decideJustification: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JustificationDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description Decisión registrada o repetida. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JustificationSummary"];
                 };
             };
             400: components["responses"]["BadRequest"];
