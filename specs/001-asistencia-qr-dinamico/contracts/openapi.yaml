@@ -1376,10 +1376,6 @@ components:
       - capacidad_disponible
       - modo_efectivo
       - evidencia_campo_verificada
-    DeviceId:
-      type: string
-      format: uuid
-      description: Identificador de instalación generado por la app; el servidor conserva solo su HMAC.
     Location:
       type: object
       additionalProperties: false

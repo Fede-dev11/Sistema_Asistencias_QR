@@ -516,11 +516,6 @@ export interface components {
             modo_efectivo: "DESACTIVADA" | "PILOTO_REVISION" | "VALIDACION_AUTOMATICA";
             evidencia_campo_verificada: boolean;
         };
-        /**
-         * Format: uuid
-         * @description Identificador de instalación generado por la app; el servidor conserva solo su HMAC.
-         */
-        DeviceId: string;
         Location: {
             latitud: number;
             longitud: number;
