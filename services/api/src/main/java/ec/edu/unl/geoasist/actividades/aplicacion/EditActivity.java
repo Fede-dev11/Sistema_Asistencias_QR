@@ -13,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EditActivity {
-  public record Changes(String nombre, UUID espacio_id, String metodo_verificacion) {}
+  public record Changes(String nombre, UUID espacio_id, String metodo_verificacion,
+      Boolean ciclo_automatico, java.math.BigDecimal umbral_asistencia) {}
 
   private final JdbcTemplate db;
   private final Clock clock;
@@ -47,7 +48,7 @@ public class EditActivity {
     locks.allSessions(id);
     if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
     return db.queryForMap(
-        "SELECT nombre,espacio_id,metodo_verificacion FROM actividades WHERE id=?", id);
+        "SELECT nombre,espacio_id,metodo_verificacion,ciclo_automatico,umbral_asistencia FROM actividades WHERE id=?", id);
   }
 
   /** Cambia los valores por defecto de la actividad; las sesiones ya creadas no se tocan. */
@@ -62,11 +63,23 @@ public class EditActivity {
             ? (String) before.get("metodo_verificacion")
             : c.metodo_verificacion();
     rules.check(space, method);
+    boolean cycle =
+        c.ciclo_automatico() == null
+            ? (Boolean) before.get("ciclo_automatico")
+            : c.ciclo_automatico();
+    var threshold =
+        c.umbral_asistencia() == null
+            ? (java.math.BigDecimal) before.get("umbral_asistencia")
+            : c.umbral_asistencia();
+    if (threshold.signum() < 0 || threshold.compareTo(java.math.BigDecimal.valueOf(100)) > 0)
+      throw ApiFailure.invalid();
     db.update(
-        "UPDATE actividades SET nombre=?,espacio_id=?,metodo_verificacion=? WHERE id=?",
+        "UPDATE actividades SET nombre=?,espacio_id=?,metodo_verificacion=?,ciclo_automatico=?,umbral_asistencia=? WHERE id=?",
         name,
         space,
         method,
+        cycle,
+        threshold,
         id);
     audit.write(
         id,
@@ -77,8 +90,20 @@ public class EditActivity {
             "nombre",
             before.get("nombre"),
             "metodo_verificacion",
-            before.get("metodo_verificacion")),
-        Map.of("nombre", name, "metodo_verificacion", method));
+            before.get("metodo_verificacion"),
+            "ciclo_automatico",
+            before.get("ciclo_automatico"),
+            "umbral_asistencia",
+            before.get("umbral_asistencia")),
+        Map.of(
+            "nombre",
+            name,
+            "metodo_verificacion",
+            method,
+            "ciclo_automatico",
+            cycle,
+            "umbral_asistencia",
+            threshold));
     return queries.get(user, id);
   }
 

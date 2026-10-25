@@ -1094,6 +1094,8 @@ export interface components {
             responsable_id: string;
             carrera_ids: string[];
             paralelo_ids: string[];
+            ciclo_automatico: boolean;
+            umbral_asistencia: number;
         };
         ActivityPage: {
             items: components["schemas"]["Activity"][];
@@ -1268,14 +1270,22 @@ export interface components {
             configuracion_invitados?: components["schemas"]["GuestSettings"];
             configuracion_geografica?: components["schemas"]["GeolocationSettings"];
             cantidad_invitados?: number;
+            /** Format: uuid */
+            sesion_id?: string;
+            codigo?: string;
+            ciclo_automatico?: boolean;
+            umbral_asistencia?: number;
         };
         AuditRow: {
             /** Format: uuid */
             id: string;
             /** Format: uuid */
             activity_id: string;
-            /** Format: uuid */
-            responsable_id: string;
+            /**
+             * Format: uuid
+             * @description Nulo cuando la acción la ejecuta el sistema (acciones SISTEMA_*).
+             */
+            responsable_id: string | null;
             accion: string;
             /** Format: date-time */
             ocurrida_en: string;
@@ -1287,6 +1297,11 @@ export interface components {
                 configuracion_invitados?: components["schemas"]["GuestSettings"];
                 configuracion_geografica?: components["schemas"]["GeolocationSettings"];
                 cantidad_invitados?: number;
+                /** Format: uuid */
+                sesion_id?: string;
+                codigo?: string;
+                ciclo_automatico?: boolean;
+                umbral_asistencia?: number;
             } | null;
             /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. */
             nuevo: {
@@ -1295,6 +1310,11 @@ export interface components {
                 configuracion_invitados?: components["schemas"]["GuestSettings"];
                 configuracion_geografica?: components["schemas"]["GeolocationSettings"];
                 cantidad_invitados?: number;
+                /** Format: uuid */
+                sesion_id?: string;
+                codigo?: string;
+                ciclo_automatico?: boolean;
+                umbral_asistencia?: number;
             } | null;
         };
         AuditPage: {
@@ -1396,6 +1416,8 @@ export interface components {
             espacio_id?: string;
             /** @enum {string} */
             metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            ciclo_automatico?: boolean;
+            umbral_asistencia?: number;
         };
         SessionSummary: {
             /** Format: uuid */

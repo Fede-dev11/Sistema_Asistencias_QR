@@ -46,6 +46,9 @@ public class FindVisibleActivities {
             "SELECT paralelo_id FROM actividad_paralelos WHERE actividad_id=? ORDER BY paralelo_id",
             UUID.class,
             a.id()));
+    out.putAll(
+        db.queryForMap(
+            "SELECT ciclo_automatico,umbral_asistencia FROM actividades WHERE id=?", a.id()));
     return out;
   }
 

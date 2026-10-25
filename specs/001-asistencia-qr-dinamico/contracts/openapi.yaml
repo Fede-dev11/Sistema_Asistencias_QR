@@ -2367,6 +2367,8 @@ components:
           items:
             type: string
             format: uuid
+        ciclo_automatico: {type: boolean}
+        umbral_asistencia: {type: number, minimum: 0, maximum: 100}
       required:
       - id
       - nombre
@@ -2377,6 +2379,8 @@ components:
       - responsable_id
       - carrera_ids
       - paralelo_ids
+      - ciclo_automatico
+      - umbral_asistencia
       description: Los eventos pueden vincular varias carreras y paralelos. El servidor calcula los ámbitos mediante
         estos vínculos y responsable_id; los filtros de lectura no los sustituyen.
     ActivityPage:
@@ -2838,6 +2842,10 @@ components:
         cantidad_invitados:
           type: integer
           minimum: 0
+        sesion_id: {type: string, format: uuid}
+        codigo: {type: string}
+        ciclo_automatico: {type: boolean}
+        umbral_asistencia: {type: number, minimum: 0, maximum: 100}
       description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o
         copias completas de listados.
     AuditRow:
@@ -2853,6 +2861,8 @@ components:
         responsable_id:
           type: string
           format: uuid
+          nullable: true
+          description: Nulo cuando la acción la ejecuta el sistema (acciones SISTEMA_*).
         accion:
           type: string
         ocurrida_en:
@@ -2875,6 +2885,10 @@ components:
             cantidad_invitados:
               type: integer
               minimum: 0
+            sesion_id: {type: string, format: uuid}
+            codigo: {type: string}
+            ciclo_automatico: {type: boolean}
+            umbral_asistencia: {type: number, minimum: 0, maximum: 100}
           description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas
             o copias completas de listados.
           nullable: true
@@ -2893,6 +2907,10 @@ components:
             cantidad_invitados:
               type: integer
               minimum: 0
+            sesion_id: {type: string, format: uuid}
+            codigo: {type: string}
+            ciclo_automatico: {type: boolean}
+            umbral_asistencia: {type: number, minimum: 0, maximum: 100}
           description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas
             o copias completas de listados.
           nullable: true
@@ -3052,6 +3070,8 @@ components:
         nombre: {type: string, minLength: 1, maxLength: 200}
         espacio_id: {type: string, format: uuid}
         metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        ciclo_automatico: {type: boolean}
+        umbral_asistencia: {type: number, minimum: 0, maximum: 100}
     SessionSummary:
       type: object
       required: [id, estado, inicio, fin]

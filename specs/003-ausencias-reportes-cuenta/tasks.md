@@ -51,10 +51,10 @@ Reutilizar `ActivityAuthorization`, `ActivityAuditWriter`, `AttendanceLocks`, `I
 
 ## Phase 6: US4 — Ciclo automático (P2)
 
-- [ ] T021 [P] [US4] `TEST/sesiones/SessionCycleTest.java` con `MutableClock`: US4-1 a US4-4 y US4-6; ausencias generadas al cierre automático; `PATCH /activities/{id}` con `ciclo_automatico` y `umbral_asistencia` (validación 0–100)
-- [ ] T022 [P] [US4] `TEST/sesiones/SessionCycleConcurrencyTest.java`: dos ejecuciones simultáneas de `tick()` sobre 20 sesiones → cada sesión transiciona una vez (SC-005)
-- [ ] T023 [US4] `API/sesiones/aplicacion/SessionCycle.java` (`tick()`: selecciona con `FOR UPDATE SKIP LOCKED` sesiones PROGRAMADA de actividades con ciclo automático y `ventana_inicio <= ahora` y `(siguiente_intento_en IS NULL OR <= ahora)`; ACTIVA con ciclo y `ventana_fin <= ahora`; ACTIVA cualquiera con `ventana_fin + 2 h <= ahora`; cada transición en su transacción reutilizando `SessionLifecycle` en modo sistema; fallo → auditoría `SISTEMA_INICIO_FALLIDO` + `siguiente_intento_en = ahora + 60 s`) y `SessionCycleScheduler.java` (`@Scheduled(fixedDelay = 60000)`, desactivable con propiedad como `QrRotationScheduler`)
-- [ ] T024 [US4] Permitir actor sistema en `API/actividades/aplicacion/ActivityAuditWriter.java` (`actor_id` NULL, acción `SISTEMA_*`) y mostrarlo en `AuditQueryController`; ampliar `PATCH /activities/{id}` (de 002 US3) con `ciclo_automatico` y `umbral_asistencia`; YAML + tipos
+- [X] T021 [P] [US4] `TEST/sesiones/SessionCycleTest.java` con `MutableClock`: US4-1 a US4-4 y US4-6; ausencias generadas al cierre automático; `PATCH /activities/{id}` con `ciclo_automatico` y `umbral_asistencia` (validación 0–100)
+- [X] T022 [P] [US4] `TEST/sesiones/SessionCycleConcurrencyTest.java`: dos ejecuciones simultáneas de `tick()` sobre 20 sesiones → cada sesión transiciona una vez (SC-005)
+- [X] T023 [US4] `API/sesiones/aplicacion/SessionCycle.java` (`tick()`: selecciona con `FOR UPDATE SKIP LOCKED` sesiones PROGRAMADA de actividades con ciclo automático y `ventana_inicio <= ahora` y `(siguiente_intento_en IS NULL OR <= ahora)`; ACTIVA con ciclo y `ventana_fin <= ahora`; ACTIVA cualquiera con `ventana_fin + 2 h <= ahora`; cada transición en su transacción reutilizando `SessionLifecycle` en modo sistema; fallo → auditoría `SISTEMA_INICIO_FALLIDO` + `siguiente_intento_en = ahora + 60 s`) y `SessionCycleScheduler.java` (`@Scheduled(fixedDelay = 60000)`, desactivable con propiedad como `QrRotationScheduler`)
+- [X] T024 [US4] Permitir actor sistema en `API/actividades/aplicacion/ActivityAuditWriter.java` (`actor_id` NULL, acción `SISTEMA_*`) y mostrarlo en `AuditQueryController`; ampliar `PATCH /activities/{id}` (de 002 US3) con `ciclo_automatico` y `umbral_asistencia`; YAML + tipos
 
 ## Phase 7: US5 — Cuenta propia y sesión prolongada (P2)
 
