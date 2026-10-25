@@ -41,6 +41,6 @@ public class ActivitySessionController {
             service.create(
                 user,
                 activityId,
-                new ManageScheduledSessions.Changes(body.inicio(), body.fin(), body.espacio_id())));
+                new ManageScheduledSessions.Changes(body.inicio(), body.fin(), body.espacio_id(), null)));
   }
 }

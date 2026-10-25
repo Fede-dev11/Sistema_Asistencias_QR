@@ -14,8 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ManageScheduledSessions {
-  /** Campos nulos no cambian; metodo_verificacion se añade con US5. */
-  public record Changes(Instant inicio, Instant fin, UUID espacio_id) {}
+  /** Campos nulos no cambian. */
+  public record Changes(
+      Instant inicio, Instant fin, UUID espacio_id, String metodo_verificacion) {}
 
   private final JdbcTemplate db;
   private final ActivityRepository activities;
@@ -114,13 +115,20 @@ public class ManageScheduledSessions {
     Instant end = c.fin() == null ? (Instant) row.get("fin") : c.fin();
     UUID space = c.espacio_id() == null ? (UUID) row.get("espacio_id") : c.espacio_id();
     if (!end.isAfter(start)) throw ApiFailure.invalid();
-    rules.check(space, (String) row.get("metodo_verificacion"));
+    String before = (String) row.get("metodo_verificacion");
+    String method = c.metodo_verificacion() == null ? before : c.metodo_verificacion();
+    rules.check(space, method);
     db.update(
-        "UPDATE sesiones SET ventana_inicio=?,ventana_fin=?,espacio_id=? WHERE id=?",
+        "UPDATE sesiones SET ventana_inicio=?,ventana_fin=?,espacio_id=?,metodo_verificacion=? WHERE id=?",
         Timestamp.from(start),
         Timestamp.from(end),
         space,
+        method,
         session);
+    if (!method.equals(before) && !method.contains("GPS"))
+      db.update(
+          "UPDATE configuracion_geografica SET habilitada=false,radio_m=NULL,precision_max_m=NULL,antiguedad_max_s=NULL,modo='OFF',evidencia_id=NULL WHERE sesion_id=?",
+          session);
     audit.write(
         (UUID) row.get("activity_id"),
         user.accountId(),
@@ -132,8 +140,18 @@ public class ManageScheduledSessions {
             "inicio",
             row.get("inicio").toString(),
             "fin",
-            row.get("fin").toString()),
-        Map.of("sesion_id", session, "inicio", start.toString(), "fin", end.toString()));
+            row.get("fin").toString(),
+            "metodo_verificacion",
+            before),
+        Map.of(
+            "sesion_id",
+            session,
+            "inicio",
+            start.toString(),
+            "fin",
+            end.toString(),
+            "metodo_verificacion",
+            method));
     return find(session);
   }
 

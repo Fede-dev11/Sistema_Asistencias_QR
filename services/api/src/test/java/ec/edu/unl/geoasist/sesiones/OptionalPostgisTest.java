@@ -68,6 +68,20 @@ class OptionalPostgisTest {
 
     String owner = token("encargado@example.test");
     String student = token("estudiante@example.test");
+    var inherited =
+        json.readTree(
+            api.perform(
+                    put("/api/v1/sessions/" + session + "/geolocation")
+                        .header("Authorization", "Bearer " + owner)
+                        .contentType("application/json")
+                        .content("{\"habilitada\":true}"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+    assertEquals(20.0, inherited.get("configuracion").get("radio_m").asDouble());
+    assertEquals(30.0, inherited.get("configuracion").get("precision_max_m").asDouble());
+    assertEquals(60, inherited.get("configuracion").get("antiguedad_max_s").asInt());
     String settings =
         api.perform(
                 put("/api/v1/sessions/" + session + "/geolocation")

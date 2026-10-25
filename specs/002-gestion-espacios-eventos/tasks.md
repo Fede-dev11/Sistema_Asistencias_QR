@@ -193,20 +193,20 @@ que deben fallar antes de implementar. Pruebas de integración contra PostgreSQL
 
 ### Tests for User Story 5
 
-- [ ] T069 [P] [US5] Prueba `TEST/sesiones/VerificationMethodTest.java`: US5-1, US5-2 (herencia y ajuste), US5-6 (`ESPACIO_SIN_UBICACION`), US5-8 (método/tolerancia fijos tras iniciar), iniciar con `*_GPS` sin configuración habilitada → 409
-- [ ] T070 [P] [US5] Prueba `TEST/asistencia/MethodAttendanceTest.java`: US5-3 (`SOLO_GPS` sin QR, dentro/fuera/imprecisa con repetir y revisión de 001), US5-4 (`QR_REQUERIDO`), US5-5 (`NINGUNO` acepta solo con sesión ACTIVA; CERRADA → motivo de 001), `qr_token` en método sin QR → `METODO_NO_ADMITE_QR`; inicio de invitado por `sesion_id` solo en métodos sin QR
-- [ ] T071 [P] [US5] Prueba `TEST/asistencia/ActiveSessionsTest.java`: US5-7 — `GET /me/active-sessions` devuelve clases donde está autorizado (vigente), eventos abiertos y eventos cerrados (cuenta), con `metodo_verificacion` y `requiere_ubicacion`; nunca sesiones PROGRAMADA/CERRADA/CANCELADA
+- [X] T069 [P] [US5] Prueba `TEST/sesiones/VerificationMethodTest.java`: US5-1, US5-2 (herencia y ajuste), US5-6 (`ESPACIO_SIN_UBICACION`), US5-8 (método/tolerancia fijos tras iniciar), iniciar con `*_GPS` sin configuración habilitada → 409
+- [X] T070 [P] [US5] Prueba `TEST/asistencia/MethodAttendanceTest.java`: US5-3 (`SOLO_GPS` sin QR, dentro/fuera/imprecisa con repetir y revisión de 001), US5-4 (`QR_REQUERIDO`), US5-5 (`NINGUNO` acepta solo con sesión ACTIVA; CERRADA → motivo de 001), `qr_token` en método sin QR → `METODO_NO_ADMITE_QR`; inicio de invitado por `sesion_id` solo en métodos sin QR
+- [X] T071 [P] [US5] Prueba `TEST/asistencia/ActiveSessionsTest.java`: US5-7 — `GET /me/active-sessions` devuelve clases donde está autorizado (vigente), eventos abiertos y eventos cerrados (cuenta), con `metodo_verificacion` y `requiere_ubicacion`; nunca sesiones PROGRAMADA/CERRADA/CANCELADA
 
 ### Implementation for User Story 5
 
-- [ ] T072 [US5] `PATCH /sessions/{id}` acepta `metodo_verificacion` (T044); validar espacio con coordenadas para `*_GPS`; al pasar a método sin GPS deshabilitar `configuracion_geografica`
-- [ ] T073 [US5] `API/sesiones/aplicacion/ConfigureSessionGeolocation.java`: `radius`/`maximumPrecision` opcionales → heredar `radio_defecto_m`/`precision_defecto_m` del espacio; `maximumAgeSeconds` por defecto 60; mantener el cálculo de modo `REVIEW_ONLY`/`AUTO` por evidencia de 001
-- [ ] T074 [US5] `API/sesiones/aplicacion/SessionLifecycle.java`: al iniciar, comprobar coherencia método ↔ configuración geográfica ↔ coordenadas y no emitir QR (`QrRotationScheduler`/`IssueSessionQr`) para `SOLO_GPS`/`NINGUNO`; `GET /sessions/{id}/qr` → 409 en esos métodos
-- [ ] T075 [US5] `API/asistencia/aplicacion/RecordAuthenticatedAttendance.java` y `StartGuestRegistration.java`: resolver la sesión por `qr_token` o por `sesion_id` según el método (exactamente uno), aplicar QR solo si el método lo incluye y GPS solo si lo incluye; `AttendanceInputs` con `qr_token` opcional y `sesion_id` opcional
-- [ ] T076 [US5] `GET /me/active-sessions` en `API/asistencia/presentacion/ActiveSessionsController.java` con consulta paginada en `API/asistencia/persistencia/`
-- [ ] T077 [US5] YAML (`qr_token` opcional, `sesion_id`, `metodo_verificacion` en sesión/actividad, `/me/active-sessions`, `GeolocationRequest` con campos opcionales) + tipos regenerados
-- [ ] T078 [P] [US5] Web: selector de método en la lista de sesiones y en los formularios de actividad, con advertencia visible para `NINGUNO` ("no comprueba presencia") y valores heredados del espacio editables
-- [ ] T079 [P] [US5] Móvil: `apps/mobile/src/features/sessions/ActiveSessionsScreen.tsx` que lista `/me/active-sessions`; según método abre cámara (QR), pide ubicación en el momento de uso (GPS) o envía directo (`NINGUNO`); prueba de pantalla
+- [X] T072 [US5] `PATCH /sessions/{id}` acepta `metodo_verificacion` (T044); validar espacio con coordenadas para `*_GPS`; al pasar a método sin GPS deshabilitar `configuracion_geografica`
+- [X] T073 [US5] `API/sesiones/aplicacion/ConfigureSessionGeolocation.java`: `radius`/`maximumPrecision` opcionales → heredar `radio_defecto_m`/`precision_defecto_m` del espacio; `maximumAgeSeconds` por defecto 60; mantener el cálculo de modo `REVIEW_ONLY`/`AUTO` por evidencia de 001
+- [X] T074 [US5] `API/sesiones/aplicacion/SessionLifecycle.java`: al iniciar, comprobar coherencia método ↔ configuración geográfica ↔ coordenadas y no emitir QR (`QrRotationScheduler`/`IssueSessionQr`) para `SOLO_GPS`/`NINGUNO`; `GET /sessions/{id}/qr` → 409 en esos métodos
+- [X] T075 [US5] `API/asistencia/aplicacion/RecordAuthenticatedAttendance.java` y `StartGuestRegistration.java`: resolver la sesión por `qr_token` o por `sesion_id` según el método (exactamente uno), aplicar QR solo si el método lo incluye y GPS solo si lo incluye; `AttendanceInputs` con `qr_token` opcional y `sesion_id` opcional
+- [X] T076 [US5] `GET /me/active-sessions` en `API/asistencia/presentacion/ActiveSessionsController.java` con consulta paginada en `API/asistencia/persistencia/`
+- [X] T077 [US5] YAML (`qr_token` opcional, `sesion_id`, `metodo_verificacion` en sesión/actividad, `/me/active-sessions`, `GeolocationRequest` con campos opcionales) + tipos regenerados
+- [X] T078 [P] [US5] Web: selector de método en la lista de sesiones y en los formularios de actividad, con advertencia visible para `NINGUNO` ("no comprueba presencia") y valores heredados del espacio editables
+- [X] T079 [P] [US5] Móvil: `apps/mobile/src/features/sessions/ActiveSessionsScreen.tsx` que lista `/me/active-sessions`; según método abre cámara (QR), pide ubicación en el momento de uso (GPS) o envía directo (`NINGUNO`); prueba de pantalla
 
 **Checkpoint**: todas las historias completas.
 

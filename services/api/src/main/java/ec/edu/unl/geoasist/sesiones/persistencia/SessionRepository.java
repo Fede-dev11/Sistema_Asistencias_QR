@@ -46,6 +46,14 @@ public class SessionRepository {
         .orElseThrow(ApiFailure::missing);
   }
 
+  public String method(UUID id) {
+    return db.queryForObject("SELECT metodo_verificacion FROM sesiones WHERE id=?", String.class, id);
+  }
+
+  public static boolean usesQr(String method) {
+    return method.equals("SOLO_QR") || method.equals("QR_Y_GPS");
+  }
+
   public static Map<String, Object> dto(Session s) {
     Map<String, Object> result = new LinkedHashMap<>();
     result.put("id", s.id());
