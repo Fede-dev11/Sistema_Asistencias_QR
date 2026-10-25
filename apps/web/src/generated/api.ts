@@ -52,7 +52,11 @@ export interface paths {
          */
         get: operations["listActivities"];
         put?: never;
-        post?: never;
+        /**
+         * Crear una clase (con horario recurrente opcional)
+         * @description DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). La modalidad EVENTO aún no se acepta aquí.
+         */
+        post: operations["createActivity"];
         delete?: never;
         options?: never;
         head?: never;
@@ -76,7 +80,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Editar nombre, espacio o método por defecto
+         * @description Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.
+         */
+        patch: operations["updateActivity"];
         trace?: never;
     };
     "/activities/{activityId}/close": {
@@ -613,6 +621,174 @@ export interface paths {
         patch: operations["updateSpace"];
         trace?: never;
     };
+    "/activities/{activityId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancelar actividad
+         * @description Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
+         */
+        post: operations["cancelActivity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reemplazar el horario recurrente
+         * @description Solo RESPONSABLE de una clase ABIERTA. Borra y regenera únicamente las sesiones PROGRAMADA futuras del horario sin intentos ni tokens QR; conserva las demás.
+         */
+        put: operations["replaceSchedule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lista autorizada
+         * @description Estudiantes autorizados (vigentes o quitados), paginada.
+         */
+        get: operations["listAuthorizedStudents"];
+        put?: never;
+        /**
+         * Añadir estudiante por cédula
+         * @description La cédula debe pertenecer a una persona con cuenta ESTUDIANTE; reactiva a quien fue quitado.
+         */
+        post: operations["addAuthorizedStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/students/{personId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Quitar estudiante de la lista autorizada
+         * @description Marca vigente=false; las asistencias existentes no se tocan y la sincronización no lo reincorpora.
+         */
+        delete: operations["removeAuthorizedStudent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/students/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sincronizar con los paralelos
+         * @description Añade los matriculados vigentes de los paralelos de la clase sin reincorporar a quienes fueron quitados.
+         */
+        post: operations["syncAuthorizedStudents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sesiones de la actividad
+         * @description Paginado por inicio de ventana.
+         */
+        get: operations["listActivitySessions"];
+        put?: never;
+        /**
+         * Crear una sesión suelta
+         * @description Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.
+         */
+        post: operations["createLooseSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Editar hora o espacio de una sesión programada
+         * @description Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+         */
+        patch: operations["updateScheduledSession"];
+        trace?: never;
+    };
+    "/sessions/{sessionId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancelar una sesión programada
+         * @description Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+         */
+        post: operations["cancelScheduledSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -724,7 +900,7 @@ export interface components {
             /** @enum {string} */
             tipo: "CLASE" | "EVENTO";
             /** @enum {string} */
-            estado: "ABIERTA" | "CERRADA";
+            estado: "ABIERTA" | "CERRADA" | "CANCELADA";
             /** Format: date-time */
             cerrada_en: string | null;
             /** Format: date-time */
@@ -1007,6 +1183,131 @@ export interface components {
             carrera_nombre: string;
             matriculados: number;
         };
+        CreateActivityRequest: {
+            /** @enum {string} */
+            modalidad: "CLASE";
+            nombre: string;
+            /** Format: uuid */
+            espacio_id: string;
+            /** @enum {string} */
+            metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            paralelo_ids: string[];
+            horario?: components["schemas"]["Schedule"];
+        };
+        Schedule: {
+            dias: number[];
+            /** @example 08:00 */
+            hora_inicio: string;
+            /** @example 10:00 */
+            hora_fin: string;
+            /** Format: date */
+            desde: string;
+            /** Format: date */
+            hasta: string;
+        };
+        UpdateActivityRequest: {
+            nombre?: string;
+            /** Format: uuid */
+            espacio_id?: string;
+            /** @enum {string} */
+            metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+        };
+        SessionSummary: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            estado: "PROGRAMADA" | "ACTIVA" | "CERRADA" | "CANCELADA";
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+        };
+        CreatedActivity: {
+            /** Format: uuid */
+            id: string;
+            nombre: string;
+            /** @enum {string} */
+            tipo: "CLASE" | "EVENTO";
+            /** @enum {string} */
+            estado: "ABIERTA" | "CERRADA" | "CANCELADA";
+            /** Format: uuid */
+            espacio_id: string;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            estudiantes_autorizados: number;
+            paralelo_ids?: string[];
+            carrera_ids?: string[];
+            sesiones: components["schemas"]["SessionSummary"][];
+        };
+        ScheduleReplaced: {
+            /** Format: uuid */
+            activity_id?: string;
+            eliminadas: number;
+            generadas: number;
+        };
+        AddStudentRequest: {
+            cedula: string;
+        };
+        AuthorizedStudent: {
+            /** Format: uuid */
+            persona_id: string;
+            cedula?: string;
+            nombres?: string;
+            vigente: boolean;
+            /** Format: uuid */
+            activity_id?: string;
+        };
+        AuthorizedStudentPage: {
+            items: components["schemas"]["AuthorizedStudent"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        SyncResult: {
+            /** Format: uuid */
+            activity_id?: string;
+            agregados: number;
+        };
+        CreateSessionRequest: {
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+            /** Format: uuid */
+            espacio_id?: string;
+        };
+        UpdateSessionRequest: {
+            /** Format: date-time */
+            inicio?: string;
+            /** Format: date-time */
+            fin?: string;
+            /** Format: uuid */
+            espacio_id?: string;
+        };
+        ScheduledSession: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            activity_id: string;
+            /** @enum {string} */
+            estado: "PROGRAMADA" | "ACTIVA" | "CERRADA" | "CANCELADA";
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+            /** Format: uuid */
+            espacio_id?: string | null;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            /** Format: uuid */
+            horario_id?: string | null;
+        };
+        SessionPage: {
+            items: components["schemas"]["ScheduledSession"][];
+            page: number;
+            size: number;
+            total: number;
+        };
     };
     responses: {
         /** @description Datos mal formados o parámetros inválidos. */
@@ -1268,6 +1569,35 @@ export interface operations {
             429: components["responses"]["RateLimited"];
         };
     };
+    createActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateActivityRequest"];
+            };
+        };
+        responses: {
+            /** @description Actividad creada con sus sesiones generadas. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedActivity"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
     getActivity: {
         parameters: {
             query?: never;
@@ -1294,6 +1624,38 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    updateActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateActivityRequest"];
+            };
+        };
+        responses: {
+            /** @description Actividad actualizada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
         };
     };
@@ -2469,6 +2831,305 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    cancelActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Actividad cancelada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    replaceSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Schedule"];
+            };
+        };
+        responses: {
+            /** @description Horario reemplazado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleReplaced"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listAuthorizedStudents: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de estudiantes. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedStudentPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    addAuthorizedStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddStudentRequest"];
+            };
+        };
+        responses: {
+            /** @description Estudiante autorizado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedStudent"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    removeAuthorizedStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+                personId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estudiante quitado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    syncAuthorizedStudents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estudiantes añadidos. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listActivitySessions: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de sesiones. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    createLooseSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Sesión creada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledSession"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    updateScheduledSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Sesión actualizada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledSession"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    cancelScheduledSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sesión cancelada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledSession"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
         };
     };

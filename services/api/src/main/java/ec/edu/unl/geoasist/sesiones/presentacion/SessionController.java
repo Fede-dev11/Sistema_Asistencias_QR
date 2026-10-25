@@ -1,6 +1,7 @@
 package ec.edu.unl.geoasist.sesiones.presentacion;
 
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
+import ec.edu.unl.geoasist.sesiones.aplicacion.ManageScheduledSessions;
 import ec.edu.unl.geoasist.sesiones.aplicacion.SessionLifecycle;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
@@ -10,10 +11,31 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/sessions/{sessionId}")
 public class SessionController {
-  private final SessionLifecycle service;
+  public record Patch(java.time.Instant inicio, java.time.Instant fin, UUID espacio_id) {}
 
-  public SessionController(SessionLifecycle service) {
+  private final SessionLifecycle service;
+  private final ManageScheduledSessions scheduled;
+
+  public SessionController(SessionLifecycle service, ManageScheduledSessions scheduled) {
     this.service = service;
+    this.scheduled = scheduled;
+  }
+
+  @PatchMapping
+  public Map<String, Object> edit(
+      @AuthenticationPrincipal UserSession user,
+      @PathVariable UUID sessionId,
+      @RequestBody Patch body) {
+    return scheduled.edit(
+        user,
+        sessionId,
+        new ManageScheduledSessions.Changes(body.inicio(), body.fin(), body.espacio_id()));
+  }
+
+  @PostMapping("/cancel")
+  public Map<String, Object> cancel(
+      @AuthenticationPrincipal UserSession user, @PathVariable UUID sessionId) {
+    return scheduled.cancel(user, sessionId);
   }
 
   @PostMapping("/start")
