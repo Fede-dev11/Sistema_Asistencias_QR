@@ -77,13 +77,15 @@ public class AcademicRepository {
   }
 
   public Optional<UUID> accountByEmail(String email) {
-    return db.queryForList("SELECT id FROM cuentas WHERE identificador=?", UUID.class, email)
+    return db
+        .queryForList("SELECT id FROM cuentas WHERE identificador=?", UUID.class, email)
         .stream()
         .findFirst();
   }
 
   public Optional<UUID> personOfEmail(String email) {
-    return db.queryForList("SELECT persona_id FROM cuentas WHERE identificador=?", UUID.class, email)
+    return db
+        .queryForList("SELECT persona_id FROM cuentas WHERE identificador=?", UUID.class, email)
         .stream()
         .findFirst();
   }
@@ -108,8 +110,7 @@ public class AcademicRepository {
   }
 
   public boolean addRole(UUID account, String role) {
-    return db.update(
-            "INSERT INTO roles_cuenta VALUES (?,?) ON CONFLICT DO NOTHING", account, role)
+    return db.update("INSERT INTO roles_cuenta VALUES (?,?) ON CONFLICT DO NOTHING", account, role)
         > 0;
   }
 
@@ -175,7 +176,8 @@ public class AcademicRepository {
   }
 
   public Optional<UUID> parallelByCode(UUID career, String code) {
-    return db.queryForList(
+    return db
+        .queryForList(
             "SELECT id FROM paralelos WHERE carrera_id=? AND codigo=?", UUID.class, career, code)
         .stream()
         .findFirst();
@@ -197,10 +199,10 @@ public class AcademicRepository {
             "INSERT INTO matriculas VALUES (?,?,true) ON CONFLICT DO NOTHING", person, parallel)
         > 0) return 1;
     return db.update(
-            "UPDATE matriculas SET vigente=true WHERE persona_id=? AND paralelo_id=? AND NOT vigente",
-            person,
-            parallel)
-        > 0
+                "UPDATE matriculas SET vigente=true WHERE persona_id=? AND paralelo_id=? AND NOT vigente",
+                person,
+                parallel)
+            > 0
         ? 2
         : 0;
   }

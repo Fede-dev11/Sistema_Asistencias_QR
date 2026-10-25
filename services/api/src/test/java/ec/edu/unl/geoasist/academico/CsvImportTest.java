@@ -14,7 +14,13 @@ class CsvImportTest extends AdminSupport {
   void importsValidRowsReportsInvalidOnesAndIsIdempotent() throws Exception {
     String a = admin();
     StringBuilder csv = new StringBuilder("cedula,nombres,correo\n");
-    for (int i = 0; i < 100; i++) csv.append(fictionalId()).append(",\"Apellido, Nombre ").append(i).append("\",").append(mail()).append("\n");
+    for (int i = 0; i < 100; i++)
+      csv.append(fictionalId())
+          .append(",\"Apellido, Nombre ")
+          .append(i)
+          .append("\",")
+          .append(mail())
+          .append("\n");
     String dup = mail();
     csv.append("0100000018,Cédula mala,").append(mail()).append("\n"); // fila 102
     csv.append(fictionalId()).append(",Correo malo,no-es-correo\n"); // fila 103
@@ -44,10 +50,28 @@ class CsvImportTest extends AdminSupport {
   void semicolonSeparatorAndTeachersAreAccepted() throws Exception {
     String a = admin();
     String m = mail();
-    var r = importCsv(a, "teachers", "cedula;nombres;correo;rol\n" + fictionalId() + ";Docente Uno;" + m + ";ENCARGADO\n" + fictionalId() + ";Docente Dos;" + mail() + ";DIRECTOR_INSTITUCIONAL\n", 200);
+    var r =
+        importCsv(
+            a,
+            "teachers",
+            "cedula;nombres;correo;rol\n"
+                + fictionalId()
+                + ";Docente Uno;"
+                + m
+                + ";ENCARGADO\n"
+                + fictionalId()
+                + ";Docente Dos;"
+                + mail()
+                + ";DIRECTOR_INSTITUCIONAL\n",
+            200);
     assertEquals(1, r.get("creadas").asInt());
     assertEquals(1, r.get("rechazadas").size());
-    assertEquals(List.of("ENCARGADO"), db.queryForList("SELECT rol FROM roles_cuenta r JOIN cuentas c ON c.id=r.cuenta_id WHERE c.identificador=?", String.class, m));
+    assertEquals(
+        List.of("ENCARGADO"),
+        db.queryForList(
+            "SELECT rol FROM roles_cuenta r JOIN cuentas c ON c.id=r.cuenta_id WHERE c.identificador=?",
+            String.class,
+            m));
   }
 
   @Test
@@ -67,8 +91,16 @@ class CsvImportTest extends AdminSupport {
   void enrollmentImportReportsUnknownReferences() throws Exception {
     String a = admin();
     String cedula = fictionalId();
-    importCsv(a, "students", "cedula,nombres,correo\n" + cedula + ",Matriculable," + mail() + "\n", 200);
-    String csv = "cedula,carrera,paralelo\n" + cedula + ",CARRERA-1,A\n" + cedula + ",NOEXISTE,A\n" + fictionalId() + ",CARRERA-1,A\n";
+    importCsv(
+        a, "students", "cedula,nombres,correo\n" + cedula + ",Matriculable," + mail() + "\n", 200);
+    String csv =
+        "cedula,carrera,paralelo\n"
+            + cedula
+            + ",CARRERA-1,A\n"
+            + cedula
+            + ",NOEXISTE,A\n"
+            + fictionalId()
+            + ",CARRERA-1,A\n";
     var r = importCsv(a, "enrollments", csv, 200);
     assertEquals(1, r.get("creadas").asInt());
     assertEquals(2, r.get("rechazadas").size());

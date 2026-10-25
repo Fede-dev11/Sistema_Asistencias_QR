@@ -115,8 +115,12 @@ public class CsvImport {
     if (expected == null) throw ApiFailure.invalid();
     var rows = parse(data);
     if (rows.isEmpty()
-        || !rows.getFirst().stream().map(h -> h.strip().toLowerCase(Locale.ROOT)).toList().equals(expected))
-      throw new ApiFailure(400, "ENCABEZADO_INVALIDO", "El encabezado debe ser " + String.join(",", expected) + ".");
+        || !rows.getFirst().stream()
+            .map(h -> h.strip().toLowerCase(Locale.ROOT))
+            .toList()
+            .equals(expected))
+      throw new ApiFailure(
+          400, "ENCABEZADO_INVALIDO", "El encabezado debe ser " + String.join(",", expected) + ".");
     if (!kind.equals("enrollments") && password.length() < 12)
       throw new ApiFailure(409, "CONFIGURACION_INCOMPLETA", "Falta geoasist.dev.import-password.");
     Counter c = new Counter();
@@ -144,10 +148,14 @@ public class CsvImport {
         null,
         Map.of(),
         Map.of(
-            "procesadas", report.procesadas(),
-            "creadas", c.created,
-            "actualizadas", c.updated,
-            "rechazadas", c.rejected.size()));
+            "procesadas",
+            report.procesadas(),
+            "creadas",
+            c.created,
+            "actualizadas",
+            c.updated,
+            "rechazadas",
+            c.rejected.size()));
     return report;
   }
 
@@ -169,11 +177,11 @@ public class CsvImport {
     } catch (ApiFailure e) {
       throw reject("Nombres o correo inválidos.");
     }
-    if (!Set.of("ESTUDIANTE", "DOCENTE", "ENCARGADO").contains(role))
-      throw reject("Rol inválido.");
+    if (!Set.of("ESTUDIANTE", "DOCENTE", "ENCARGADO").contains(role)) throw reject("Rol inválido.");
     var byMail = repo.personOfEmail(mail);
     var existing = repo.personByCedula(cedula);
-    if (existing.isEmpty() && byMail.isPresent()) throw reject("El correo ya pertenece a otra persona.");
+    if (existing.isEmpty() && byMail.isPresent())
+      throw reject("El correo ya pertenece a otra persona.");
     boolean changed = false;
     UUID person;
     if (existing.isEmpty()) {
@@ -214,9 +222,11 @@ public class CsvImport {
       throw reject(e.code().equals("CEDULA_INVALIDA") ? "Cédula inválida." : e.getMessage());
     }
     if (!repo.hasRole(person, "ESTUDIANTE")) throw reject("La persona no tiene rol ESTUDIANTE.");
-    var career = repo.careerByCode(r.get(1).strip()).orElseThrow(() -> reject("No existe la carrera."));
+    var career =
+        repo.careerByCode(r.get(1).strip()).orElseThrow(() -> reject("No existe la carrera."));
     var parallel =
-        repo.parallelByCode(career, r.get(2).strip()).orElseThrow(() -> reject("No existe el paralelo."));
+        repo.parallelByCode(career, r.get(2).strip())
+            .orElseThrow(() -> reject("No existe el paralelo."));
     switch (repo.enroll(person, parallel)) {
       case 1 -> c.created++;
       case 2 -> c.updated++;

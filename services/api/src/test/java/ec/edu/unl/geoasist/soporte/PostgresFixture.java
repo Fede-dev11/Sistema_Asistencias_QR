@@ -178,7 +178,8 @@ public abstract class PostgresFixture {
   }
 
   protected org.springframework.test.web.servlet.ResultActions guestSubmit(
-      String secret, String cedula, String nombres, java.util.UUID key, java.util.UUID deviceId) throws Exception {
+      String secret, String cedula, String nombres, java.util.UUID key, java.util.UUID deviceId)
+      throws Exception {
     var body = new java.util.LinkedHashMap<String, Object>();
     body.put("registro_invitado_token", secret);
     body.put("cedula", cedula);
@@ -189,8 +190,7 @@ public abstract class PostgresFixture {
                 "/api/v1/guest-registrations/submit")
             .header("Idempotency-Key", key.toString())
             .contentType("application/json")
-            .content(
-                json.writeValueAsString(body)));
+            .content(json.writeValueAsString(body)));
   }
 
   private static final java.util.concurrent.atomic.AtomicLong FICTIONAL_IDS =

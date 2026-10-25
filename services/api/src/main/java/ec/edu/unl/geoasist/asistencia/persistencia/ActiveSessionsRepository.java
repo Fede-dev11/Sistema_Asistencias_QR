@@ -24,7 +24,8 @@ public class ActiveSessionsRepository {
 
   public Map<String, Object> list(UUID account, UUID person, Instant now, int page, int size) {
     var at = Timestamp.from(now);
-    Long total = db.queryForObject("SELECT count(*)" + FROM, Long.class, at, at, person, account, person);
+    Long total =
+        db.queryForObject("SELECT count(*)" + FROM, Long.class, at, at, person, account, person);
     var items =
         db.query(
             "SELECT s.id,a.id,a.nombre,a.modalidad,e.id,e.nombre,s.metodo_verificacion,s.ventana_inicio,s.ventana_fin"
@@ -40,7 +41,8 @@ public class ActiveSessionsRepository {
                       "nombre", r.getString(3),
                       "modalidad", r.getString(4)));
               UUID space = r.getObject(5, UUID.class);
-              m.put("espacio", space == null ? null : Map.of("id", space, "nombre", r.getString(6)));
+              m.put(
+                  "espacio", space == null ? null : Map.of("id", space, "nombre", r.getString(6)));
               String method = r.getString(7);
               m.put("metodo_verificacion", method);
               m.put("requiere_ubicacion", method.contains("GPS"));

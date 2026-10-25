@@ -11,7 +11,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/sessions/{sessionId}")
 public class SessionController {
-  public record Patch(java.time.Instant inicio, java.time.Instant fin, UUID espacio_id, String metodo_verificacion) {}
+  public record Patch(
+      java.time.Instant inicio,
+      java.time.Instant fin,
+      UUID espacio_id,
+      String metodo_verificacion) {}
 
   private final SessionLifecycle service;
   private final ManageScheduledSessions scheduled;
@@ -29,7 +33,8 @@ public class SessionController {
     return scheduled.edit(
         user,
         sessionId,
-        new ManageScheduledSessions.Changes(body.inicio(), body.fin(), body.espacio_id(), body.metodo_verificacion()));
+        new ManageScheduledSessions.Changes(
+            body.inicio(), body.fin(), body.espacio_id(), body.metodo_verificacion()));
   }
 
   @PostMapping("/cancel")

@@ -25,18 +25,27 @@ class DeviceConcurrencyTest extends PostgresFixture {
         List<Future<Integer>> results = new ArrayList<>();
         for (int i = 0; i < ids.length; i++) {
           int index = i;
-          results.add(pool.submit(() -> {
-            ready.await();
-            return guestSubmit(starts[index], ids[index], UUID.randomUUID(), device)
-                .andReturn().getResponse().getStatus();
-          }));
+          results.add(
+              pool.submit(
+                  () -> {
+                    ready.await();
+                    return guestSubmit(starts[index], ids[index], UUID.randomUUID(), device)
+                        .andReturn()
+                        .getResponse()
+                        .getStatus();
+                  }));
         }
         ready.countDown();
         int accepted = 0;
-        for (Future<Integer> result : results) if (result.get(60, TimeUnit.SECONDS) == 201) accepted++;
+        for (Future<Integer> result : results)
+          if (result.get(60, TimeUnit.SECONDS) == 201) accepted++;
         assertEquals(1, accepted);
-        assertEquals(1, db.queryForObject(
-            "SELECT count(*) FROM asistencias WHERE sesion_id=?", Integer.class, event.session()));
+        assertEquals(
+            1,
+            db.queryForObject(
+                "SELECT count(*) FROM asistencias WHERE sesion_id=?",
+                Integer.class,
+                event.session()));
       }
     } finally {
       pool.shutdownNow();

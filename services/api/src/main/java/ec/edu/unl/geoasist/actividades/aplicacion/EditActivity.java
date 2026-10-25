@@ -13,7 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EditActivity {
-  public record Changes(String nombre, UUID espacio_id, String metodo_verificacion, String acceso) {}
+  public record Changes(
+      String nombre, UUID espacio_id, String metodo_verificacion, String acceso) {}
 
   private final JdbcTemplate db;
   private final Clock clock;
@@ -66,8 +67,11 @@ public class EditActivity {
     if (c.acceso() != null && !("CERRADO".equals(c.acceso()) || "ABIERTO".equals(c.acceso())))
       throw ApiFailure.invalid();
     if (c.acceso() != null && !Objects.equals(c.acceso(), before.get("acceso"))) {
-      Integer started = db.queryForObject(
-          "SELECT count(*) FROM sesiones WHERE actividad_id=? AND estado<>'PROGRAMADA'", Integer.class, id);
+      Integer started =
+          db.queryForObject(
+              "SELECT count(*) FROM sesiones WHERE actividad_id=? AND estado<>'PROGRAMADA'",
+              Integer.class,
+              id);
       if (started != null && started > 0) throw ApiFailure.conflict();
     }
     db.update(

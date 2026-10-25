@@ -77,7 +77,9 @@ public class ConfigureSessionGeolocation {
               command.maximumPrecision() != null
                   ? command.maximumPrecision()
                   : ((Number) defaults.getFirst().get("precision_defecto_m")).doubleValue(),
-              command.maximumAgeSeconds() == null ? Integer.valueOf(60) : command.maximumAgeSeconds());
+              command.maximumAgeSeconds() == null
+                  ? Integer.valueOf(60)
+                  : command.maximumAgeSeconds());
     }
     validate(command);
     UUID evidence = null;

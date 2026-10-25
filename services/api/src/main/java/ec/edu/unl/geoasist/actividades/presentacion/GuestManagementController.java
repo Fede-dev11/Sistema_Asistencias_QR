@@ -22,8 +22,7 @@ public class GuestManagementController {
   public record Settings(
       @NotNull Boolean habilitado, @NotNull @Min(41) Integer tolerancia_invitado_segundos) {}
 
-  public record Entry(
-      @NotBlank String cedula, @NotBlank String nombres) {
+  public record Entry(@NotBlank String cedula, @NotBlank String nombres) {
     public Entry {
       cedula = cedula == null ? null : cedula.strip();
       nombres = nombres == null ? null : nombres.strip();

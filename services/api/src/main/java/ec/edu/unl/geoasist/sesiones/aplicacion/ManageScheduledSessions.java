@@ -17,8 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ManageScheduledSessions {
   /** Campos nulos no cambian. */
-  public record Changes(
-      Instant inicio, Instant fin, UUID espacio_id, String metodo_verificacion) {}
+  public record Changes(Instant inicio, Instant fin, UUID espacio_id, String metodo_verificacion) {}
 
   private final JdbcTemplate db;
   private final ActivityRepository activities;
@@ -82,7 +81,12 @@ public class ManageScheduledSessions {
 
   @Transactional
   public Receipt create(UserSession user, UUID activityId, UUID key, Changes c) {
-    return replay.run("create-activity-session", user.accountId().toString(), key, activityId, c,
+    return replay.run(
+        "create-activity-session",
+        user.accountId().toString(),
+        key,
+        activityId,
+        c,
         () -> new Receipt(201, createOnce(user, activityId, c)));
   }
 

@@ -22,7 +22,12 @@ public class AcademicAudit {
 
   @Transactional(propagation = Propagation.MANDATORY)
   public void write(
-      UUID actor, String action, String entity, UUID entityId, Map<String, ?> before, Map<String, ?> after) {
+      UUID actor,
+      String action,
+      String entity,
+      UUID entityId,
+      Map<String, ?> before,
+      Map<String, ?> after) {
     db.update(
         "INSERT INTO auditoria_academica VALUES (?,?,?,?,?,?,?,?::jsonb,?::jsonb)",
         UUID.randomUUID(),

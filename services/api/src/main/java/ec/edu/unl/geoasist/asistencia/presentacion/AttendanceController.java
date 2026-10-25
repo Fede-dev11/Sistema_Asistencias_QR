@@ -34,8 +34,7 @@ public class AttendanceController {
     UUID session = null;
     try {
       if (body.sesion_id() == null && body.qr_token() == null) throw ApiFailure.invalid();
-      session =
-          body.sesion_id() != null ? body.sesion_id() : qr.lookup(body.qr_token()).session();
+      session = body.sesion_id() != null ? body.sesion_id() : qr.lookup(body.qr_token()).session();
     } catch (ApiFailure e) {
       limits.account(user.personId(), null);
       throw e;

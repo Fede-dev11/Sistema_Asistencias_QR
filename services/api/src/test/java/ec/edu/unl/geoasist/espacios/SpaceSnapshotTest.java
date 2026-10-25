@@ -31,7 +31,11 @@ class SpaceSnapshotTest extends PostgresFixture {
         Timestamp.from(clock.instant().minusSeconds(3600)),
         Timestamp.from(clock.instant().minusSeconds(7100)),
         Timestamp.from(clock.instant().minusSeconds(3700)));
-    db.update("UPDATE sesiones SET espacio_id=?,estado='ACTIVA',iniciada_en=? WHERE id=?", space, Timestamp.from(clock.instant()), ids[1]);
+    db.update(
+        "UPDATE sesiones SET espacio_id=?,estado='ACTIVA',iniciada_en=? WHERE id=?",
+        space,
+        Timestamp.from(clock.instant()),
+        ids[1]);
     for (UUID s : new UUID[] {closed, ids[1]})
       db.update(
           "INSERT INTO configuracion_geografica(sesion_id,habilitada,radio_m,precision_max_m,antiguedad_max_s,modo,configurada_por,configurada_en) VALUES (?,true,20,30,60,'REVIEW_ONLY',?,?)",

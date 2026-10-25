@@ -47,7 +47,8 @@ public class SessionRepository {
   }
 
   public String method(UUID id) {
-    return db.queryForObject("SELECT metodo_verificacion FROM sesiones WHERE id=?", String.class, id);
+    return db.queryForObject(
+        "SELECT metodo_verificacion FROM sesiones WHERE id=?", String.class, id);
   }
 
   public static boolean usesQr(String method) {

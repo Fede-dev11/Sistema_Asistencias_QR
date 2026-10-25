@@ -48,7 +48,13 @@ public class ManageCareersAndParallels {
           if (repo.careerByCode(c).isPresent())
             throw new ApiFailure(409, "CARRERA_EXISTE", "Ya existe una carrera con ese código.");
           UUID id = repo.insertCareer(c, n);
-          audit.write(user.accountId(), "CREAR_CARRERA", "CARRERA", id, Map.of(), Map.of("codigo", c, "nombre", n));
+          audit.write(
+              user.accountId(),
+              "CREAR_CARRERA",
+              "CARRERA",
+              id,
+              Map.of(),
+              Map.of("codigo", c, "nombre", n));
           return new Receipt(201, repo.career(id).orElseThrow());
         });
   }
@@ -60,7 +66,12 @@ public class ManageCareersAndParallels {
     String n = ManagePeopleAndAccounts.name(nombre);
     repo.renameCareer(id, n);
     audit.write(
-        user.accountId(), "EDITAR_CARRERA", "CARRERA", id, Map.of("nombre", before.get("nombre")), Map.of("nombre", n));
+        user.accountId(),
+        "EDITAR_CARRERA",
+        "CARRERA",
+        id,
+        Map.of("nombre", before.get("nombre")),
+        Map.of("nombre", n));
     return repo.career(id).orElseThrow();
   }
 
@@ -85,9 +96,14 @@ public class ManageCareersAndParallels {
           if (repo.parallelByCode(career, c).isPresent())
             throw new ApiFailure(409, "PARALELO_EXISTE", "Ya existe ese paralelo en la carrera.");
           UUID id = repo.insertParallel(career, c);
-          audit.write(user.accountId(), "CREAR_PARALELO", "PARALELO", id, Map.of(), Map.of("carrera_id", career, "codigo", c));
-          return new Receipt(
-              201, Map.of("id", id, "codigo", c, "matriculados", 0, "docentes", 0));
+          audit.write(
+              user.accountId(),
+              "CREAR_PARALELO",
+              "PARALELO",
+              id,
+              Map.of(),
+              Map.of("carrera_id", career, "codigo", c));
+          return new Receipt(201, Map.of("id", id, "codigo", c, "matriculados", 0, "docentes", 0));
         });
   }
 
@@ -97,7 +113,8 @@ public class ManageCareersAndParallels {
 
   /** Reemplaza los matriculados vigentes; devuelve las cédulas rechazadas con su motivo. */
   @Transactional
-  public Map<String, Object> replaceEnrollments(UserSession user, UUID parallel, List<String> cedulas) {
+  public Map<String, Object> replaceEnrollments(
+      UserSession user, UUID parallel, List<String> cedulas) {
     user.requireAnyRole("ADMINISTRADOR");
     if (!repo.parallelExists(parallel)) throw ApiFailure.missing();
     if (cedulas == null || cedulas.size() > MAX_LIST) throw ApiFailure.invalid();
@@ -128,7 +145,8 @@ public class ManageCareersAndParallels {
 
   /** Reemplaza los docentes asignados (por correo; cuentas activas DOCENTE o ENCARGADO). */
   @Transactional
-  public Map<String, Object> replaceTeachers(UserSession user, UUID parallel, List<String> correos) {
+  public Map<String, Object> replaceTeachers(
+      UserSession user, UUID parallel, List<String> correos) {
     user.requireAnyRole("ADMINISTRADOR");
     if (!repo.parallelExists(parallel)) throw ApiFailure.missing();
     if (correos == null || correos.size() > MAX_LIST) throw ApiFailure.invalid();

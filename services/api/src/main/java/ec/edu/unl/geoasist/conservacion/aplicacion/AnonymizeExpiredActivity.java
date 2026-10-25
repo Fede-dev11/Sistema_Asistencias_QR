@@ -28,7 +28,6 @@ public class AnonymizeExpiredActivity {
         "UPDATE asistencias x SET dispositivo_hash=NULL FROM sesiones s JOIN actividades a ON a.id=s.actividad_id WHERE x.sesion_id=s.id AND a.anonimizar_en<=?",
         cutoff);
     return Objects.requireNonNull(
-        db.queryForObject(
-            "SELECT anonimizar_vencidas(?,100)", Integer.class, cutoff));
+        db.queryForObject("SELECT anonimizar_vencidas(?,100)", Integer.class, cutoff));
   }
 }

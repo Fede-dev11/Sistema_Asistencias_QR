@@ -8,7 +8,8 @@ import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class ActiveSessionsTest extends ClassSupport {
-  private String session(String teacher, String name, String method, boolean start) throws Exception {
+  private String session(String teacher, String name, String method, boolean start)
+      throws Exception {
     var body = new LinkedHashMap<String, Object>();
     body.put("modalidad", "CLASE");
     body.put("nombre", name);
@@ -23,7 +24,8 @@ class ActiveSessionsTest extends ClassSupport {
             .get("id")
             .asText();
     if (start) {
-      if (method.contains("GPS")) ec.edu.unl.geoasist.sesiones.VerificationMethodTest.enableGps(db, id);
+      if (method.contains("GPS"))
+        ec.edu.unl.geoasist.sesiones.VerificationMethodTest.enableGps(db, id);
       ok(send("POST", "/api/v1/sessions/" + id + "/start", teacher, null), 200);
     }
     return id;
@@ -53,7 +55,8 @@ class ActiveSessionsTest extends ClassSupport {
     assertFalse(byId.get(none).get("requiere_ubicacion").asBoolean());
 
     // El docente no está autorizado como estudiante en esas clases.
-    assertEquals(0, ok(send("GET", "/api/v1/me/active-sessions", teacher, null), 200).get("total").asInt());
+    assertEquals(
+        0, ok(send("GET", "/api/v1/me/active-sessions", teacher, null), 200).get("total").asInt());
     ok(send("GET", "/api/v1/me/active-sessions?size=0", student, null), 400);
   }
 

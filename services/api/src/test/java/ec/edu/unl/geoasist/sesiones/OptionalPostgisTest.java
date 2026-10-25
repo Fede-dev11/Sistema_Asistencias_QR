@@ -65,7 +65,9 @@ class OptionalPostgisTest {
         space,
         "Espacio ficticio PostGIS");
     db.update("UPDATE sesiones SET espacio_id=? WHERE id=?", space, session);
-    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=(SELECT actividad_id FROM sesiones WHERE id=?)", session);
+    db.update(
+        "UPDATE actividades SET acceso='ABIERTO' WHERE id=(SELECT actividad_id FROM sesiones WHERE id=?)",
+        session);
 
     String owner = token("encargado@example.test");
     String student = token("estudiante@example.test");

@@ -95,7 +95,10 @@ public class SpaceRepository {
 
   public List<Row> search(String codeLike, String nameLike, int size, long offset) {
     return db.query(
-        "SELECT " + COLUMNS + " FROM espacios" + MATCH
+        "SELECT "
+            + COLUMNS
+            + " FROM espacios"
+            + MATCH
             + " ORDER BY codigo_normalizado,id LIMIT ? OFFSET ?",
         SpaceRepository::row,
         codeLike,

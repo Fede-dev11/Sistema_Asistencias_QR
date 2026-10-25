@@ -64,8 +64,13 @@ public class ManageAuthorizedStudents {
 
   @Transactional
   public Receipt add(UserSession user, UUID id, UUID key, String cedula) {
-    return replay.run("add-activity-student", user.accountId().toString(), key, id,
-        Map.of("cedula", cedula), () -> new Receipt(201, addOnce(user, id, cedula)));
+    return replay.run(
+        "add-activity-student",
+        user.accountId().toString(),
+        key,
+        id,
+        Map.of("cedula", cedula),
+        () -> new Receipt(201, addOnce(user, id, cedula)));
   }
 
   private Map<String, Object> addOnce(UserSession user, UUID id, String cedula) {
