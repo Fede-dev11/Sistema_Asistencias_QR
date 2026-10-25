@@ -12,6 +12,11 @@ public record UserSession(UUID sessionId, UUID accountId, UUID personId, Set<Str
     return roles.contains(role);
   }
 
+  public void requireAnyRole(String... allowed) {
+    for (String role : allowed) if (has(role)) return;
+    throw ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure.forbidden();
+  }
+
   public boolean responsibleRole() {
     return has("DOCENTE") || has("ENCARGADO");
   }

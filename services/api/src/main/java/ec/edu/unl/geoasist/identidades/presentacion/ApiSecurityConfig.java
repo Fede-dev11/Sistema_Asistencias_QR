@@ -66,6 +66,8 @@ public class ApiSecurityConfig {
                     "/api/v1/guest-registrations",
                     "/api/v1/guest-registrations/submit")
                 .permitAll()
+                .requestMatchers("/api/v1/admin/**")
+                .hasAuthority("ADMINISTRADOR")
                 .anyRequest()
                 .authenticated());
     http.exceptionHandling(

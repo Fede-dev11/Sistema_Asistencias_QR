@@ -978,7 +978,7 @@ components:
           format: uri-reference
         code:
           type: string
-          description: Código estable para el cliente; no contiene cédulas ni secretos.
+          description: Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO.
           example: SESION_CERRADA
         mensaje:
           type: string
@@ -994,6 +994,100 @@ components:
       - status
       - code
       - mensaje
+    VerificationMethod:
+      type: string
+      enum:
+      - QR_Y_GPS
+      - SOLO_QR
+      - SOLO_GPS
+      - NINGUNO
+    DeviceId:
+      type: string
+      format: uuid
+      description: Identificador de instalación generado por la app; el servidor solo guarda su HMAC.
+    Space:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+          maxLength: 40
+        nombre:
+          type: string
+          maxLength: 200
+        tipo:
+          type: string
+          enum:
+          - AULA
+          - LABORATORIO
+          - AUDITORIO
+          - EXTERIOR
+          - OTRO
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        editable:
+          type: boolean
+      required:
+      - id
+      - codigo
+      - nombre
+      - tipo
+      - radio_defecto_m
+      - precision_defecto_m
+      - editable
+    ImportReport:
+      type: object
+      additionalProperties: false
+      properties:
+        procesadas:
+          type: integer
+          minimum: 0
+        creadas:
+          type: integer
+          minimum: 0
+        actualizadas:
+          type: integer
+          minimum: 0
+        sin_cambios:
+          type: integer
+          minimum: 0
+        rechazadas:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              fila:
+                type: integer
+                minimum: 1
+              motivo:
+                type: string
+            required:
+            - fila
+            - motivo
+      required:
+      - procesadas
+      - creadas
+      - actualizadas
+      - sin_cambios
+      - rechazadas
     LoginRequest:
       type: object
       additionalProperties: false

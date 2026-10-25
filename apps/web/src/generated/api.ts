@@ -377,7 +377,7 @@ export interface components {
             /** Format: uri-reference */
             instance?: string;
             /**
-             * @description Código estable para el cliente; no contiene cédulas ni secretos.
+             * @description Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO.
              * @example SESION_CERRADA
              */
             code: string;
@@ -386,6 +386,36 @@ export interface components {
             /** Format: uuid */
             attempt_id?: string;
             correlation_id?: string;
+        };
+        /** @enum {string} */
+        VerificationMethod: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+        /**
+         * Format: uuid
+         * @description Identificador de instalación generado por la app; el servidor solo guarda su HMAC.
+         */
+        DeviceId: string;
+        Space: {
+            /** Format: uuid */
+            id: string;
+            codigo: string;
+            nombre: string;
+            /** @enum {string} */
+            tipo: "AULA" | "LABORATORIO" | "AUDITORIO" | "EXTERIOR" | "OTRO";
+            latitud?: number;
+            longitud?: number;
+            radio_defecto_m: number;
+            precision_defecto_m: number;
+            editable: boolean;
+        };
+        ImportReport: {
+            procesadas: number;
+            creadas: number;
+            actualizadas: number;
+            sin_cambios: number;
+            rechazadas: {
+                fila: number;
+                motivo: string;
+            }[];
         };
         LoginRequest: {
             /** Format: email */

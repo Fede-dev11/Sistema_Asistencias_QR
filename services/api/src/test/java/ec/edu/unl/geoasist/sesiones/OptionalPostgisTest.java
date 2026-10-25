@@ -55,13 +55,13 @@ class OptionalPostgisTest {
     assertEquals(
         1,
         db.queryForObject(
-            "SELECT count(*) FROM flyway_geo_schema_history WHERE success AND version='001'",
+            "SELECT count(*) FROM flyway_geo_schema_history WHERE success AND version='002'",
             Integer.class));
 
     UUID session = ScenarioFixtures.id(402);
     UUID space = UUID.randomUUID();
     db.update(
-        "INSERT INTO espacios(id,nombre,tipo,centro) VALUES (?,?,'AULA',ST_SetSRID(ST_MakePoint(-79.2026,-4.0328),4326)::geography)",
+        "INSERT INTO espacios(id,nombre,tipo,latitud,longitud) VALUES (?,?,'AULA',-4.0328,-79.2026)",
         space,
         "Espacio ficticio PostGIS");
     db.update("UPDATE sesiones SET espacio_id=? WHERE id=?", space, session);

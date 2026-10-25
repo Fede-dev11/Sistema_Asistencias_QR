@@ -52,7 +52,7 @@ public class GuestRegistrationController {
     return AttendanceController.response(
         submit.submit(
             body.registro_invitado_token(),
-            body.cedula(),
+            ec.edu.unl.geoasist.compartido.dominio.Cedula.of(body.cedula()).value(),
             body.dispositivo_id(),
             body.ubicacion() == null ? null : body.ubicacion().measurement(),
             key,
