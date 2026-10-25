@@ -29,6 +29,10 @@ class ArchitectureDependencyTest {
         }
       }
     }
+    for (String module : List.of("academico", "espacios"))
+      assertFalse(
+          graph.getOrDefault(module, Set.of()).contains("asistencia"),
+          module + " no debe depender de asistencia");
     Set<String> finished = new HashSet<>();
     for (String node : graph.keySet()) visit(node, graph, new LinkedHashSet<>(), finished);
   }

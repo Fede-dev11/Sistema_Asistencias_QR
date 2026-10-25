@@ -32,6 +32,14 @@ public class ReplaceGuestList {
     this.audit = audit;
   }
 
+  private static boolean validCedula(String cedula) {
+    try {
+      return ec.edu.unl.geoasist.compartido.dominio.Cedula.of(cedula).value().equals(cedula);
+    } catch (ApiFailure e) {
+      return false;
+    }
+  }
+
   @Transactional
   public Map<String, Object> replace(UserSession user, UUID id, List<Entry> entries) {
     scope.write(user, id);
@@ -46,7 +54,7 @@ public class ReplaceGuestList {
       Entry e = entries.get(i);
       if (e == null
           || e.cedula() == null
-          || !e.cedula().matches("[0-9]{10}")
+          || !validCedula(e.cedula())
           || e.nombres() == null
           || e.nombres().isBlank()
           || e.nombres().codePointCount(0, e.nombres().length()) > 200

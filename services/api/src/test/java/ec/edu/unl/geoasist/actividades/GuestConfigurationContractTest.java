@@ -52,7 +52,7 @@ class GuestConfigurationContractTest extends PostgresFixture {
                 .header("Authorization", "Bearer " + owner)
                 .contentType("application/json")
                 .content(
-                    "{\"invitados\":[{\"cedula\":\" 0012345678 \",\"nombres\":\"Invitado ficticio\"}]}"))
+                    "{\"invitados\":[{\"cedula\":\" 0123456782 \",\"nombres\":\"Invitado ficticio\"}]}"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("total").value(1));
     api.perform(
@@ -60,7 +60,7 @@ class GuestConfigurationContractTest extends PostgresFixture {
                 .header("Authorization", "Bearer " + owner)
                 .contentType("application/json")
                 .content(
-                    "{\"invitados\":[{\"cedula\":\"0012345678\",\"nombres\":\"Primero\"},{\"cedula\":\"0012345678\",\"nombres\":\"Duplicado\"}]}"))
+                    "{\"invitados\":[{\"cedula\":\"0123456782\",\"nombres\":\"Primero\"},{\"cedula\":\"0123456782\",\"nombres\":\"Duplicado\"}]}"))
         .andExpect(status().isBadRequest());
     api.perform(
             put(path)
@@ -74,7 +74,7 @@ class GuestConfigurationContractTest extends PostgresFixture {
         db.queryForObject(
             "SELECT count(*) FROM invitados_evento WHERE actividad_id=?", Integer.class, ids[0]));
     assertEquals(
-        "0012345678",
+        "0123456782",
         db.queryForObject(
             "SELECT p.cedula_normalizada FROM personas p JOIN invitados_evento i ON i.persona_id=p.id WHERE i.actividad_id=?",
             String.class,

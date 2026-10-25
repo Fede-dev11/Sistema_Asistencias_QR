@@ -40,7 +40,7 @@ public final class AttendanceInputs {
 
   public record GuestSubmit(
       @NotBlank @Size(min = 32, max = 512) String registro_invitado_token,
-      @NotBlank @Pattern(regexp = "[0-9]{10}") String cedula,
+      @NotBlank String cedula,
       @Valid Location ubicacion) {
     public GuestSubmit {
       cedula = cedula == null ? null : cedula.strip();

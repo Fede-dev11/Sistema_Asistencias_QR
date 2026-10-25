@@ -177,9 +177,15 @@ public abstract class PostgresFixture {
   }
 
   private static final java.util.concurrent.atomic.AtomicLong FICTIONAL_IDS =
-      new java.util.concurrent.atomic.AtomicLong(500000000);
+      new java.util.concurrent.atomic.AtomicLong(500000);
 
   protected String fictionalId() {
-    return "%010d".formatted(FICTIONAL_IDS.incrementAndGet());
+    String base = "010%06d".formatted(FICTIONAL_IDS.incrementAndGet());
+    int sum = 0;
+    for (int i = 0; i < 9; i++) {
+      int d = (base.charAt(i) - '0') * (i % 2 == 0 ? 2 : 1);
+      sum += d > 9 ? d - 9 : d;
+    }
+    return base + (10 - sum % 10) % 10;
   }
 }
