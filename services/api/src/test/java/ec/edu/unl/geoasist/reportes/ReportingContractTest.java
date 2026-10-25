@@ -66,7 +66,7 @@ class ReportingContractTest extends PostgresFixture {
             .getContentAsString();
     assertTrue(
         csv.startsWith(
-            "asistencia_id,persona_id,cedula,nombres,estado,registrada_en,attempt_id,code,mensaje\n"));
+            "asistencia_id,persona_id,cedula,nombres,estado,registrada_en,attempt_id,code,mensaje,forma,razon_manual\n"));
     assertTrue(csv.contains("'=PELIGRO"));
 
     var audit =

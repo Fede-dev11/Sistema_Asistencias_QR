@@ -38,11 +38,11 @@ Reutilizar `ActivityAuthorization`, `ActivityAuditWriter`, `AttendanceLocks`, `I
 
 **Independent Test**: manual con razón, justificación por responsable, solicitud de estudiante rechazada; auditoría completa.
 
-- [ ] T014 [P] [US2] `TEST/asistencia/ManualAttendanceTest.java`: US2-1, US2-2, US2-3 (8 días tras cierre con `MutableClock` → `PLAZO_CORRECCION_VENCIDO`), US2-7, US2-8 (listado y CSV con forma MANUAL), pendiente de revisión resuelto como rechazado "registro manual" (edge case), idempotencia
-- [ ] T015 [P] [US2] `TEST/asistencia/JustificationTest.java`: US2-4, US2-5 (una pendiente por ausencia → `JUSTIFICACION_PENDIENTE_EXISTE`; sin ausencia → `SIN_AUSENCIA`), US2-6 (decisión inmutable), US2-7, auditoría con razón (SC-004), motivo no presente en CSV
-- [ ] T016 [US2] `API/asistencia/aplicacion/ManualAttendance.java`: responsable, estudiante autorizado vigente (`NO_AUTORIZADO_EN_SESION`), sesión ACTIVA o CERRADA con `cerrada_en` ≥ ahora − 7 días (propiedad `geoasist.correccion.dias`, defecto 7), bajo `AttendanceLocks.session`; crea intento canal MANUAL + asistencia forma MANUAL con `razon_manual` y `registrada_por`; borra ausencia; resuelve pendiente de revisión; audita
-- [ ] T017 [US2] `API/asistencia/aplicacion/Justifications.java`: justificar por responsable (crea justificación origen RESPONSABLE APROBADA y pasa ausencia a JUSTIFICADA), solicitud del estudiante (propia ausencia, mismo plazo), decisión (APROBAR → JUSTIFICADA); todo auditado
-- [ ] T018 [US2] Controladores en `API/asistencia/presentacion/`: rutas de manual, justify, solicitudes y decisión de plan.md; incluir forma/razón manual en `API/reportes/persistencia/AttendanceReadRepository.java` y `ExportAttendancesCsv.java` (sin motivo de justificación); YAML + tipos
+- [X] T014 [P] [US2] `TEST/asistencia/ManualAttendanceTest.java`: US2-1, US2-2, US2-3 (8 días tras cierre con `MutableClock` → `PLAZO_CORRECCION_VENCIDO`), US2-7, US2-8 (listado y CSV con forma MANUAL), pendiente de revisión resuelto como rechazado "registro manual" (edge case), idempotencia
+- [X] T015 [P] [US2] `TEST/asistencia/JustificationTest.java`: US2-4, US2-5 (una pendiente por ausencia → `JUSTIFICACION_PENDIENTE_EXISTE`; sin ausencia → `SIN_AUSENCIA`), US2-6 (decisión inmutable), US2-7, auditoría con razón (SC-004), motivo no presente en CSV
+- [X] T016 [US2] `API/asistencia/aplicacion/ManualAttendance.java`: responsable, estudiante autorizado vigente (`NO_AUTORIZADO_EN_SESION`), sesión ACTIVA o CERRADA con `cerrada_en` ≥ ahora − 7 días (propiedad `geoasist.correccion.dias`, defecto 7), bajo `AttendanceLocks.session`; crea intento canal MANUAL + asistencia forma MANUAL con `razon_manual` y `registrada_por`; borra ausencia; resuelve pendiente de revisión; audita
+- [X] T017 [US2] `API/asistencia/aplicacion/Justifications.java`: justificar por responsable (crea justificación origen RESPONSABLE APROBADA y pasa ausencia a JUSTIFICADA), solicitud del estudiante (propia ausencia, mismo plazo), decisión (APROBAR → JUSTIFICADA); todo auditado
+- [X] T018 [US2] Controladores en `API/asistencia/presentacion/`: rutas de manual, justify, solicitudes y decisión de plan.md; incluir forma/razón manual en `API/reportes/persistencia/AttendanceReadRepository.java` y `ExportAttendancesCsv.java` (sin motivo de justificación); YAML + tipos
 
 ## Phase 5: US3 — Historial del participante (P2)
 
