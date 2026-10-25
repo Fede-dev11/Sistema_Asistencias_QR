@@ -61,6 +61,7 @@ public class AttendanceRecording {
       Instant received,
       UUID start) {
     String deviceHash = deviceHash(deviceId);
+    geography.validatePayload(session, location);
     var existing = attempts.existing(session, person.id());
     if (existing.isPresent()) {
       attempts.record(session, person, AttendanceOutcome.duplicate(), deviceHash, channel, received, start);
@@ -69,7 +70,6 @@ public class AttendanceRecording {
     }
     if (attempts.existingDevice(session, deviceHash).isPresent())
       return reject(session, person, deviceId, deviceConflict(), channel, received, start);
-    geography.validatePayload(session, location);
     AttendanceOutcome outcome =
         geography.evaluate(
             session, location, attempts.consecutiveUncertainty(session, person.id()), received);

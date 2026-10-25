@@ -48,8 +48,9 @@ public class ApiProblemHandler {
   })
   public ResponseEntity<Map<String, Object>> invalid(Exception e) {
     if (e instanceof HttpMessageNotReadableException
-        && e.getMessage() != null
-        && e.getMessage().contains("dispositivo_id")) return deviceRequired();
+        && e.getCause() instanceof tools.jackson.core.JacksonException m
+        && m.getPath().stream().anyMatch(r -> "dispositivo_id".equals(r.getPropertyName())))
+      return deviceRequired();
     return failure(ApiFailure.invalid());
   }
 

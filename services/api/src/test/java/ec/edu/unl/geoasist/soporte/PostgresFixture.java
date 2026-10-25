@@ -166,7 +166,9 @@ public abstract class PostgresFixture {
 
   protected org.springframework.test.web.servlet.ResultActions guestSubmit(
       String secret, String cedula, java.util.UUID key) throws Exception {
-    return guestSubmit(secret, cedula, key, java.util.UUID.randomUUID());
+    // Dispositivo estable por clave: un reintento idempotente conserva el mismo cuerpo canonico.
+    return guestSubmit(
+        secret, cedula, key, java.util.UUID.nameUUIDFromBytes(key.toString().getBytes()));
   }
 
   protected org.springframework.test.web.servlet.ResultActions guestSubmit(
