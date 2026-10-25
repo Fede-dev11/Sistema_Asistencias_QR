@@ -1282,6 +1282,10 @@ components:
       - capacidad_disponible
       - modo_efectivo
       - evidencia_campo_verificada
+    DeviceId:
+      type: string
+      format: uuid
+      description: Identificador de instalación generado por la app; el servidor conserva solo su HMAC.
     Location:
       type: object
       additionalProperties: false
@@ -1316,10 +1320,13 @@ components:
           description: 'Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente
             y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento
             tras leerlo.'
+        dispositivo_id:
+          $ref: '#/components/schemas/DeviceId'
         ubicacion:
           $ref: '#/components/schemas/Location'
       required:
       - qr_token
+      - dispositivo_id
     AttendanceReceipt:
       type: object
       additionalProperties: false
@@ -1415,11 +1422,14 @@ components:
         cedula:
           type: string
           pattern: ^[0-9]{10}$
+        dispositivo_id:
+          $ref: '#/components/schemas/DeviceId'
         ubicacion:
           $ref: '#/components/schemas/Location'
       required:
       - registro_invitado_token
       - cedula
+      - dispositivo_id
     AttendanceRow:
       type: object
       additionalProperties: false

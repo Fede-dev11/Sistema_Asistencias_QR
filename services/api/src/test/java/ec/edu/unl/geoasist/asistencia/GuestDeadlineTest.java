@@ -89,7 +89,7 @@ class GuestDeadlineTest extends PostgresFixture {
                 .header("Authorization", "Bearer " + student)
                 .header("Idempotency-Key", UUID.randomUUID().toString())
                 .contentType("application/json")
-                .content(json.writeValueAsString(Map.of("qr_token", event.qr()))))
+                .content(json.writeValueAsString(Map.of("qr_token", event.qr(), "dispositivo_id", UUID.randomUUID()))))
         .andExpect(status().isCreated());
     clock.set(initial.plusSeconds(40));
     api.perform(
@@ -97,7 +97,7 @@ class GuestDeadlineTest extends PostgresFixture {
                 .header("Authorization", "Bearer " + student)
                 .header("Idempotency-Key", UUID.randomUUID().toString())
                 .contentType("application/json")
-                .content(json.writeValueAsString(Map.of("qr_token", event.qr()))))
+                .content(json.writeValueAsString(Map.of("qr_token", event.qr(), "dispositivo_id", UUID.randomUUID()))))
         .andExpect(status().isUnprocessableEntity())
         .andExpect(jsonPath("code").value("TOKEN_VENCIDO"));
   }

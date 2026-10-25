@@ -43,6 +43,7 @@ public class AttendanceController {
         service.record(
             user,
             body.qr_token(),
+            body.dispositivo_id(),
             body.ubicacion() == null ? null : body.ubicacion().measurement(),
             key,
             body,

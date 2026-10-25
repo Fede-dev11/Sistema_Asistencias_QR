@@ -53,6 +53,7 @@ public class GuestRegistrationController {
         submit.submit(
             body.registro_invitado_token(),
             body.cedula(),
+            body.dispositivo_id(),
             body.ubicacion() == null ? null : body.ubicacion().measurement(),
             key,
             body,

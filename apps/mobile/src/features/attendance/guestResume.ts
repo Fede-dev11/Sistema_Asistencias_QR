@@ -8,6 +8,7 @@ export type GuestResume = {
   inicioEn: string;
   venceEn: string;
   idempotencyKey: string;
+  deviceId: string;
 };
 
 const KEY = 'geoasist-guest-resume';
@@ -17,7 +18,7 @@ function valid(value: unknown): value is GuestResume {
   if (typeof value !== 'object' || value === null) return false;
   const item = value as Record<string, unknown>;
   return (
-    Object.keys(item).sort().join(',') === 'idempotencyKey,inicioEn,token,venceEn' &&
+    Object.keys(item).sort().join(',') === 'deviceId,idempotencyKey,inicioEn,token,venceEn' &&
     typeof item.token === 'string' &&
     item.token.length >= 32 &&
     item.token.length <= 512 &&
@@ -27,16 +28,18 @@ function valid(value: unknown): value is GuestResume {
     Number.isFinite(Date.parse(item.venceEn)) &&
     Date.parse(item.venceEn) > Date.parse(item.inicioEn) &&
     typeof item.idempotencyKey === 'string' &&
-    UUID.test(item.idempotencyKey)
+    UUID.test(item.idempotencyKey) &&
+    typeof item.deviceId === 'string' && UUID.test(item.deviceId)
   );
 }
 
-export function createGuestResume(start: GuestStart): GuestResume {
+export function createGuestResume(start: GuestStart, deviceId: string): GuestResume {
   return {
     token: start.registro_invitado_token,
     inicioEn: start.inicio_en,
     venceEn: start.vence_en,
     idempotencyKey: randomUUID(),
+    deviceId,
   };
 }
 

@@ -53,6 +53,7 @@ public class SubmitGuestAttendance {
   public Receipt submit(
       String secret,
       String cedula,
+      UUID deviceId,
       GeoMeasurement location,
       UUID key,
       Object canonical,
@@ -90,7 +91,7 @@ public class SubmitGuestAttendance {
             "FORMULARIO_CONSUMIDO",
             "Este formulario ya está vinculado a otra persona. Escanea nuevamente.");
     } catch (ApiFailure e) {
-      return recording.reject(start.session(), null, e, "INVITADO_LISTADO", received, start.id());
+      return recording.reject(start.session(), null, deviceId, e, "INVITADO_LISTADO", received, start.id());
     }
     AttendanceEligibility.Person authorized = person;
     return replay.run(
@@ -106,6 +107,7 @@ public class SubmitGuestAttendance {
                 recording.record(
                     start.session(),
                     authorized,
+                    deviceId,
                     location,
                     "INVITADO_LISTADO",
                     received,
@@ -118,7 +120,7 @@ public class SubmitGuestAttendance {
             return receipt;
           } catch (ApiFailure e) {
             return recording.reject(
-                start.session(), authorized, e, "INVITADO_LISTADO", received, start.id());
+                start.session(), authorized, deviceId, e, "INVITADO_LISTADO", received, start.id());
           }
         });
   }

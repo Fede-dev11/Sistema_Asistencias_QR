@@ -43,7 +43,7 @@ test('la capacidad invitada usa almacenamiento seguro separado y sin PII', async
     registro_invitado_token: 't'.repeat(64),
     inicio_en: '2026-10-20T01:00:00Z',
     vence_en: '2026-10-20T01:02:00Z',
-  });
+  }, '11111111-1111-4111-8111-111111111111');
   await saveGuestResume(resume);
   expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
     'geoasist-guest-resume',
@@ -61,6 +61,7 @@ test('recarga recupera el formulario sin otra apertura y no solicita ubicación 
       inicioEn: '2026-10-20T01:00:00Z',
       venceEn: '2026-10-20T01:02:00Z',
       idempotencyKey: '11111111-1111-4111-8111-111111111111',
+      deviceId: '11111111-1111-4111-8111-111111111111',
     }),
   );
   const ui = await render(<AttendanceScreen session={null} />);
@@ -76,6 +77,7 @@ test('pérdida de red conserva la misma carga y clave para el reintento', async 
       inicioEn: '2026-10-20T01:00:00Z',
       venceEn: '2026-10-20T01:02:00Z',
       idempotencyKey: '11111111-1111-4111-8111-111111111111',
+      deviceId: '11111111-1111-4111-8111-111111111111',
     }),
   );
   jest
