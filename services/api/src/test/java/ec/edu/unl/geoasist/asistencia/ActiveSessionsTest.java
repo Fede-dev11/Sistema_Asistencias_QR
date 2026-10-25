@@ -56,4 +56,40 @@ class ActiveSessionsTest extends ClassSupport {
     assertEquals(0, ok(send("GET", "/api/v1/me/active-sessions", teacher, null), 200).get("total").asInt());
     ok(send("GET", "/api/v1/me/active-sessions?size=0", student, null), 400);
   }
+
+  @Test
+  void closedEventsAreListedOnlyForActiveGuestsAndOpenEventsForEveryone() throws Exception {
+    clock.set(IN_CLASS);
+    String student = token(ScenarioFixtures.STUDENT);
+    String teacher = token(ScenarioFixtures.TEACHER);
+    String studentId =
+        db.queryForObject(
+            "SELECT p.cedula_normalizada FROM personas p JOIN cuentas c ON c.persona_id=p.id WHERE c.identificador=?",
+            String.class,
+            ScenarioFixtures.STUDENT);
+    var onList = guests(120, studentId);
+    var offList = guests(120, fictionalId()); // cerrado, sin la persona
+    var open = guests(120, fictionalId());
+    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", open.activity());
+
+    var forStudent = idsOf(ok(send("GET", "/api/v1/me/active-sessions", student, null), 200));
+    assertTrue(forStudent.contains(onList.session().toString()));
+    assertTrue(forStudent.contains(open.session().toString()));
+    assertFalse(forStudent.contains(offList.session().toString()));
+    var forTeacher = idsOf(ok(send("GET", "/api/v1/me/active-sessions", teacher, null), 200));
+    assertTrue(forTeacher.contains(open.session().toString()));
+    assertFalse(forTeacher.contains(onList.session().toString()));
+    assertFalse(forTeacher.contains(offList.session().toString()));
+
+    db.update("UPDATE invitados_evento SET activo=false WHERE actividad_id=?", onList.activity());
+    var after = idsOf(ok(send("GET", "/api/v1/me/active-sessions", student, null), 200));
+    assertTrue(after.contains(open.session().toString()));
+    assertFalse(after.contains(onList.session().toString()));
+  }
+
+  private static Set<String> idsOf(tools.jackson.databind.JsonNode page) {
+    var ids = new HashSet<String>();
+    page.get("items").forEach(i -> ids.add(i.get("sesion_id").asText()));
+    return ids;
+  }
 }

@@ -1,3 +1,5 @@
 *.pdf binary
 *.jar binary
 *.cmd text eol=crlf whitespace=cr-at-eol
+
+apps/*/src/generated/api.ts text eol=lf

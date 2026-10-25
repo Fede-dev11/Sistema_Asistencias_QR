@@ -23,7 +23,7 @@ public class GuestManagementController {
       @NotNull Boolean habilitado, @NotNull @Min(41) Integer tolerancia_invitado_segundos) {}
 
   public record Entry(
-      @NotBlank @Pattern(regexp = "[0-9]{10}") String cedula, @NotBlank String nombres) {
+      @NotBlank String cedula, @NotBlank String nombres) {
     public Entry {
       cedula = cedula == null ? null : cedula.strip();
       nombres = nombres == null ? null : nombres.strip();

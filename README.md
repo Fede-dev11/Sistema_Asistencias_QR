@@ -34,6 +34,10 @@ ficticias: `docente@example.test`, `encargado@example.test`, `estudiante@example
 `director@example.test` y `director-carrera@example.test`; la contraseña proviene de
 `DEV_SEED_PASSWORD`, nunca del repositorio.
 
+Administrador de desarrollo: `admin@dev.geoasist.local` (misma contraseña local). Importación CSV
+de estudiantes: `POST /api/v1/admin/imports/students`; las cuentas creadas usan la contraseña de
+`geoasist.dev.import-password` (por defecto `geoasist.dev-seed-password`), solo en perfil `dev`.
+
 Comprobaciones: `./mvnw -B spotless:check verify` dentro de `services/api`; `npm run lint`,
 `npm run typecheck`, `npm test` y `npm run build` en cada cliente; `npm run validate` y
 `npm run check` en `tools/contracts`; `bash infra/tests/retention-restore.sh` desde la raíz.

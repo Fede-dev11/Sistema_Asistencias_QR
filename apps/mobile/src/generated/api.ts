@@ -1133,13 +1133,23 @@ export interface components {
             /** Format: date-time */
             revisada_en: string;
         };
-        /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. */
+        /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. Las claves listadas son las habituales; la fila puede incluir otras claves propias de la acción auditada. */
         AuditValues: {
             estado?: string;
             decision?: string;
             configuracion_invitados?: components["schemas"]["GuestSettings"];
             configuracion_geografica?: components["schemas"]["GeolocationSettings"];
             cantidad_invitados?: number;
+            sesion_id?: string;
+            persona_id?: string;
+            forma?: string;
+            nombre?: string;
+            metodo_verificacion?: string;
+            codigo?: string;
+            ciclo_automatico?: boolean;
+            umbral_asistencia?: number;
+        } & {
+            [key: string]: unknown;
         };
         AuditRow: {
             /** Format: uuid */

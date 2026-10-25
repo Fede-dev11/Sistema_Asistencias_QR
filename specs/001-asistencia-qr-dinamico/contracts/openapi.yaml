@@ -2673,7 +2673,7 @@ components:
       - revisada_en
     AuditValues:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       properties:
         estado:
           type: string
@@ -2686,8 +2686,25 @@ components:
         cantidad_invitados:
           type: integer
           minimum: 0
+        sesion_id:
+          type: string
+        persona_id:
+          type: string
+        forma:
+          type: string
+        nombre:
+          type: string
+        metodo_verificacion:
+          type: string
+        codigo:
+          type: string
+        ciclo_automatico:
+          type: boolean
+        umbral_asistencia:
+          type: number
       description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o
-        copias completas de listados.
+        copias completas de listados. Las claves listadas son las habituales; la fila puede incluir otras
+        claves propias de la acción auditada.
     AuditRow:
       type: object
       additionalProperties: false

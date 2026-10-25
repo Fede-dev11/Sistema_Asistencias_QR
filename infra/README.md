@@ -14,3 +14,5 @@ Semillas de 002 (solo `dev`): administrador `admin@dev.geoasist.local` (persona 
 Los listados de invitados se precargan mediante la operación contractual; no se publican ni se habilitan por defecto. Para capturar QR o elegir sesión en este incremento se utiliza el ID de sesión sembrado: todavía no existe un endpoint de descubrimiento de sesiones.
 
 No borrar volúmenes de Docker para reiniciar pruebas: Testcontainers usa una base independiente efímera. `.env` nunca se incluye en backups compartidos ni en Git.
+
+Importación CSV (002, solo `dev`): `POST /api/v1/admin/imports/students` como administrador; requiere `geoasist.dev.import-password` (o `geoasist.dev-seed-password`), de lo contrario responde 409 `CONFIGURACION_INCOMPLETA`.

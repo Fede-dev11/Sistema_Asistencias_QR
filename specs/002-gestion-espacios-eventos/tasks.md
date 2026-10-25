@@ -26,7 +26,7 @@ que deben fallar antes de implementar. Pruebas de integración contra PostgreSQL
 
 ## Phase 1: Setup
 
-- [ ] T001 Crear la rama `feature/002-gestion-espacios-eventos` desde `develop` (no trabajar en `main`, Principio XIV) y confirmar que `.specify/feature.json` apunta a `specs/002-gestion-espacios-eventos`
+- [X] T001 Crear la rama `feature/002-gestion-espacios-eventos` desde `develop` (no trabajar en `main`, Principio XIV) y confirmar que `.specify/feature.json` apunta a `specs/002-gestion-espacios-eventos`
 - [X] T002 [P] Crear los paquetes vacíos con `package-info.java` para `API/academico/{presentacion,aplicacion,persistencia}` y `API/espacios/{presentacion,aplicacion,persistencia}` y registrarlos en las reglas de dependencias de `TEST/soporte/ArchitectureDependencyTest.java` (academico y espacios no dependen de asistencia)
 - [X] T003 [P] Redactar `docs/adr/0004-metodos-sin-qr-y-autorregistro.md` (estado: Propuesto) con la desviación del Principio VI de `plan.md` Complexity Tracking, limitaciones y alternativas; sin declarar aprobación
 - [X] T004 [P] Redactar `docs/adr/0005-mapa-web.md` (Propuesto) eligiendo Leaflet + teselas OpenStreetMap para elegir coordenadas en web, con versión fija y atribución de OSM
@@ -214,11 +214,11 @@ que deben fallar antes de implementar. Pruebas de integración contra PostgreSQL
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T080 [P] Actualizar `specs/001-asistencia-qr-dinamico/spec.md` Assumptions: la gestión de datos semilla pasa a 002, y referencia a FR-023..FR-026 de 002 para dispositivo y canal móvil (Principio XIII: coherencia)
-- [ ] T081 [P] Actualizar `README.md` e `infra/README.md`: cuenta admin dev, importación CSV, configuración `geoasist.dev.import-password`
-- [ ] T082 Añadir a `.github/workflows/ci.yml` las nuevas suites y la comprobación `npm run check` del contrato
-- [ ] T083 Ejecutar `quickstart.md` de punta a punta y registrar resultados reales (sin inventar) en `docs/validation/revision-incremento-002.md`, incluido SC-001, SC-002 y SC-005 medidos
-- [ ] T084 Ejecutar `/speckit-analyze` y resolver inconsistencias entre spec, plan y tasks; abrir PR hacia `develop` declarando el uso de IA y las desviaciones del ADR 0004 pendientes de revisión de otro integrante
+- [X] T080 [P] Actualizar `specs/001-asistencia-qr-dinamico/spec.md` Assumptions: la gestión de datos semilla pasa a 002, y referencia a FR-023..FR-026 de 002 para dispositivo y canal móvil (Principio XIII: coherencia)
+- [X] T081 [P] Actualizar `README.md` e `infra/README.md`: cuenta admin dev, importación CSV, configuración `geoasist.dev.import-password`
+- [X] T082 Añadir a `.github/workflows/ci.yml` las nuevas suites y la comprobación `npm run check` del contrato
+- [X] T083 Ejecutar `quickstart.md` de punta a punta y registrar resultados reales (sin inventar) en `docs/validation/revision-incremento-002.md`, incluido SC-001, SC-002 y SC-005 medidos
+- [X] T084 Ejecutar `/speckit-analyze` y resolver inconsistencias entre spec, plan y tasks; abrir PR hacia `develop` declarando el uso de IA y las desviaciones del ADR 0004 pendientes de revisión de otro integrante
 
 ---
 
