@@ -13,26 +13,26 @@ Reutilizar `ActivityAuthorization`, `ActivityAuditWriter`, `AttendanceLocks`, `I
 ## Phase 1: Setup
 
 - [ ] T001 Crear la rama `feature/003-ausencias-reportes-cuenta` desde `feature/002-gestion-espacios-eventos` y apuntar `.specify/feature.json` a `specs/003-ausencias-reportes-cuenta`
-- [ ] T002 [P] Crear `API/estadisticas/{presentacion,aplicacion,persistencia}/package-info.java` y registrar en `TEST/soporte/ArchitectureDependencyTest.java` que `estadisticas` solo lee (no depende de `presentacion` de otros módulos)
+- [X] T002 [P] Crear `API/estadisticas/{presentacion,aplicacion,persistencia}/package-info.java` y registrar en `TEST/soporte/ArchitectureDependencyTest.java` que `estadisticas` solo lee (no depende de `presentacion` de otros módulos)
 
 ## Phase 2: Foundational
 
-- [ ] T003 `MIG/V015__ausencias_y_justificaciones.sql`: tablas `ausencias` y `justificaciones` exactamente como en plan.md (CHECKs, PK, índice único parcial `WHERE estado='PENDIENTE'`, trigger que impide modificar una justificación con `estado<>'PENDIENTE'`); `asistencias.forma` admite `MANUAL`, columnas `razon_manual varchar(2000)` (CHECK obligatoria si `forma='MANUAL'`) y `registrada_por uuid REFERENCES cuentas(id)`; `intentos_asistencia.canal` admite `MANUAL`
-- [ ] T004 `MIG/V016__ciclo_y_umbral.sql`: `actividades.ciclo_automatico boolean NOT NULL DEFAULT false`, `actividades.umbral_asistencia numeric(5,2) NOT NULL DEFAULT 70 CHECK(umbral_asistencia BETWEEN 0 AND 100)`, `sesiones.siguiente_intento_en timestamptz`, índices parciales `sesiones(ventana_inicio) WHERE estado='PROGRAMADA'` y `sesiones(ventana_fin) WHERE estado='ACTIVA'`, `auditoria_actividad.actor_id DROP NOT NULL`
+- [X] T003 `MIG/V015__ausencias_y_justificaciones.sql`: tablas `ausencias` y `justificaciones` exactamente como en plan.md (CHECKs, PK, índice único parcial `WHERE estado='PENDIENTE'`, trigger que impide modificar una justificación con `estado<>'PENDIENTE'`); `asistencias.forma` admite `MANUAL`, columnas `razon_manual varchar(2000)` (CHECK obligatoria si `forma='MANUAL'`) y `registrada_por uuid REFERENCES cuentas(id)`; `intentos_asistencia.canal` admite `MANUAL`
+- [X] T004 `MIG/V016__ciclo_y_umbral.sql`: `actividades.ciclo_automatico boolean NOT NULL DEFAULT false`, `actividades.umbral_asistencia numeric(5,2) NOT NULL DEFAULT 70 CHECK(umbral_asistencia BETWEEN 0 AND 100)`, `sesiones.siguiente_intento_en timestamptz`, índices parciales `sesiones(ventana_inicio) WHERE estado='PROGRAMADA'` y `sesiones(ventana_fin) WHERE estado='ACTIVA'`, `auditoria_actividad.actor_id DROP NOT NULL`
 - [X] T005 `MIG/V017__cuenta_y_renovacion.sql`: `cuentas.debe_cambiar_password boolean NOT NULL DEFAULT false`, `sesiones_acceso.login_original_en timestamptz` (rellenar con `creada_en`, luego NOT NULL)
-- [ ] T006 `MIG/V018__conservacion_003.sql`: redefinir la función de anonimización (última versión en `V013__espacios_compartidos.sql`) para borrar `ausencias`/`justificaciones` de la actividad vencida y poner `razon_manual` a NULL; caso nuevo en `TEST/conservacion/RetentionLifecycleTest.java`
-- [ ] T007 Añadir al YAML los códigos de motivo nuevos de plan.md y esquemas comunes `AttendanceStats`, `AbsenceState`; `npm run validate` en `tools/contracts`
+- [X] T006 `MIG/V018__conservacion_003.sql`: redefinir la función de anonimización (última versión en `V013__espacios_compartidos.sql`) para borrar `ausencias`/`justificaciones` de la actividad vencida y poner `razon_manual` a NULL; caso nuevo en `TEST/conservacion/RetentionLifecycleTest.java`
+- [X] T007 Añadir al YAML los códigos de motivo nuevos de plan.md y esquemas comunes `AttendanceStats`, `AbsenceState`; `npm run validate` en `tools/contracts`
 
 ## Phase 3: US1 — Faltas al cerrar y estadísticas (P1) 🎯 MVP
 
 **Independent Test**: 3 estudiantes × 4 sesiones cerradas → ausencias, porcentajes y `bajo_umbral` exactos.
 
-- [ ] T008 [P] [US1] `TEST/asistencia/AbsenceRecordingTest.java`: escenarios US1-1, US1-2, US1-3, US1-7; cierre manual, cierre de actividad y cierre concurrente (dos cierres a la vez → ausencias una sola vez, SC-001)
-- [ ] T009 [P] [US1] `TEST/estadisticas/AttendanceStatsTest.java`: caso 3 × 10 con resultados esperados fijos (SC-002), US1-4, US1-5, "sin datos" sin sesiones cerradas, ámbitos US1-6 (docente propio, director de carrera, institucional; 403 fuera de ámbito, SC-007)
-- [ ] T010 [US1] `API/asistencia/aplicacion/RecordAbsences.java`: `record(sessionId)` inserta en `ausencias` los `estudiantes_autorizados` vigentes de actividades CLASE sin fila en `asistencias` (`INSERT ... SELECT ... ON CONFLICT DO NOTHING`), dentro de la transacción del llamador
-- [ ] T011 [US1] Invocar `RecordAbsences` desde `API/sesiones/aplicacion/SessionLifecycle.java` (cierre) y `API/actividades/aplicacion/CloseActivity.java` (cierre de sesiones abiertas); eliminar la ausencia al aprobar en `API/asistencia/aplicacion/ResolveAttendanceReview.java` (US1-2)
-- [ ] T012 [US1] `API/estadisticas/persistencia/StatsRepository.java` (consultas agregadas por estudiante/actividad, paralelo y carrera con rango de fechas sobre `ventana_inicio`) y `API/estadisticas/aplicacion/AttendanceStats.java` (porcentaje con 2 decimales, `bajo_umbral` con `umbral_asistencia`, "sin datos" = null)
-- [ ] T013 [US1] `API/estadisticas/presentacion/StatsController.java`: `GET /activities/{id}/stats`, `GET /stats/parallels`, `GET /stats/careers`, `GET /sessions/{id}/absences`, aplicando el ámbito de 001 (reutilizar la autorización de `reportes`); YAML + `npm run generate`
+- [X] T008 [P] [US1] `TEST/asistencia/AbsenceRecordingTest.java`: escenarios US1-1, US1-2, US1-3, US1-7; cierre manual, cierre de actividad y cierre concurrente (dos cierres a la vez → ausencias una sola vez, SC-001)
+- [X] T009 [P] [US1] `TEST/estadisticas/AttendanceStatsTest.java`: caso 3 × 10 con resultados esperados fijos (SC-002), US1-4, US1-5, "sin datos" sin sesiones cerradas, ámbitos US1-6 (docente propio, director de carrera, institucional; 403 fuera de ámbito, SC-007)
+- [X] T010 [US1] `API/asistencia/aplicacion/RecordAbsences.java`: `record(sessionId)` inserta en `ausencias` los `estudiantes_autorizados` vigentes de actividades CLASE sin fila en `asistencias` (`INSERT ... SELECT ... ON CONFLICT DO NOTHING`), dentro de la transacción del llamador
+- [X] T011 [US1] Invocar `RecordAbsences` desde `API/sesiones/aplicacion/SessionLifecycle.java` (cierre) y `API/actividades/aplicacion/CloseActivity.java` (cierre de sesiones abiertas); eliminar la ausencia al aprobar en `API/asistencia/aplicacion/ResolveAttendanceReview.java` (US1-2)
+- [X] T012 [US1] `API/estadisticas/persistencia/StatsRepository.java` (consultas agregadas por estudiante/actividad, paralelo y carrera con rango de fechas sobre `ventana_inicio`) y `API/estadisticas/aplicacion/AttendanceStats.java` (porcentaje con 2 decimales, `bajo_umbral` con `umbral_asistencia`, "sin datos" = null)
+- [X] T013 [US1] `API/estadisticas/presentacion/StatsController.java`: `GET /activities/{id}/stats`, `GET /stats/parallels`, `GET /stats/careers`, `GET /sessions/{id}/absences`, aplicando el ámbito de 001 (reutilizar la autorización de `reportes`); YAML + `npm run generate`
 
 ## Phase 4: US2 — Asistencia manual y justificaciones (P1)
 

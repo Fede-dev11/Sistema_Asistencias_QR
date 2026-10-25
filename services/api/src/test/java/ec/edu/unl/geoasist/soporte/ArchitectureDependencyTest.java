@@ -23,6 +23,13 @@ class ArchitectureDependencyTest {
         var edges = graph.computeIfAbsent(owner, k -> new TreeSet<>());
         var refs = reference.matcher(source);
         while (refs.find()) if (!refs.group(1).equals(owner)) edges.add(refs.group(1));
+        // estadisticas solo lee: no usa la capa de presentación de otros módulos.
+        if (owner.equals("estadisticas"))
+          assertFalse(
+              Pattern.compile("geoasist[.](?!estadisticas)[a-z]+[.]presentacion")
+                  .matcher(source)
+                  .find(),
+              file.toString());
         if (file.toString().contains("/dominio/")) {
           assertFalse(source.contains("jakarta.persistence"), file.toString());
           assertFalse(source.contains("org.springframework.web"), file.toString());

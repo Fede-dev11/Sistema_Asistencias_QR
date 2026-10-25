@@ -866,6 +866,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/activities/{activityId}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estadísticas de asistencia por estudiante de una clase
+         * @description Solo sesiones CERRADAS. Responsable, DIRECTOR_INSTITUCIONAL y DIRECTOR_CARRERA de su carrera (mismo ámbito que la consulta de asistencias). porcentaje es null (sin datos) sin sesiones computables. 409 si la actividad no es una CLASE.
+         */
+        get: operations["getActivityStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stats/parallels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estadísticas por paralelo en un periodo
+         * @description Responsable (sus clases), DIRECTOR_CARRERA (carreras que dirige) y DIRECTOR_INSTITUCIONAL (todas). Cuenta las asistencias y ausencias de los estudiantes matriculados vigentes del paralelo. 403 si careerId no está en el ámbito.
+         */
+        get: operations["getParallelStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stats/careers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estadísticas por carrera en un periodo
+         * @description Mismo ámbito que las estadísticas por paralelo.
+         */
+        get: operations["getCareerStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{sessionId}/absences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ausencias registradas al cerrar una sesión
+         * @description Responsable y directores según el ámbito de consulta. Lista vigente al momento del cierre.
+         */
+        get: operations["listSessionAbsences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -884,7 +964,7 @@ export interface components {
             /** Format: uri-reference */
             instance?: string;
             /**
-             * @description Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO.
+             * @description Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO. 003 añade PLAZO_CORRECCION_VENCIDO, NO_AUTORIZADO_EN_SESION, JUSTIFICACION_PENDIENTE_EXISTE, SIN_AUSENCIA, PASSWORD_ACTUAL_INCORRECTA, PASSWORD_DEBIL, CAMBIO_PASSWORD_REQUERIDO y RENOVACION_VENCIDA.
              * @example SESION_CERRADA
              */
             code: string;
@@ -1409,6 +1489,64 @@ export interface components {
         };
         SessionPage: {
             items: components["schemas"]["ScheduledSession"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        /** @enum {string} */
+        AbsenceState: "AUSENTE" | "JUSTIFICADA";
+        AttendanceStats: {
+            sesiones_computables: number;
+            asistencias: number;
+            /** @description Incluye las justificadas. */
+            ausencias: number;
+            ausencias_justificadas: number;
+            /** @description asistencias / computables con 2 decimales; null = sin datos. */
+            porcentaje: number | null;
+            /** @description Solo por estudiante. */
+            bajo_umbral?: boolean;
+        };
+        StudentStats: components["schemas"]["AttendanceStats"] & {
+            /** Format: uuid */
+            persona_id: string;
+            cedula: string;
+            nombres: string;
+        };
+        ActivityStatsPage: {
+            umbral_asistencia: number;
+            resumen: components["schemas"]["AttendanceStats"];
+            items: components["schemas"]["StudentStats"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        GroupStats: components["schemas"]["AttendanceStats"] & {
+            /**
+             * Format: uuid
+             * @description Solo en estadísticas por paralelo.
+             */
+            paralelo_id?: string;
+            /** Format: uuid */
+            carrera_id?: string;
+            /** @description Código de la carrera. */
+            carrera: string;
+            /** @description Código del paralelo. */
+            paralelo?: string;
+            /** @description Nombre de la carrera. */
+            nombre?: string;
+        };
+        StatsGroupList: {
+            items: components["schemas"]["GroupStats"][];
+        };
+        Absence: {
+            /** Format: uuid */
+            persona_id: string;
+            cedula: string;
+            nombres: string;
+            estado: components["schemas"]["AbsenceState"];
+        };
+        AbsencePage: {
+            items: components["schemas"]["Absence"][];
             page: number;
             size: number;
             total: number;
@@ -3327,6 +3465,135 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getActivityStats: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityStatsPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getParallelStats: {
+        parameters: {
+            query?: {
+                careerId?: string;
+                /** @description Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión. */
+                desde?: string;
+                /** @description Fin del periodo (exclusivo); debe ser posterior a desde. */
+                hasta?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatsGroupList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getCareerStats: {
+        parameters: {
+            query?: {
+                /** @description Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión. */
+                desde?: string;
+                /** @description Fin del periodo (exclusivo); debe ser posterior a desde. */
+                hasta?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatsGroupList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listSessionAbsences: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AbsencePage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
             429: components["responses"]["RateLimited"];
         };
     };

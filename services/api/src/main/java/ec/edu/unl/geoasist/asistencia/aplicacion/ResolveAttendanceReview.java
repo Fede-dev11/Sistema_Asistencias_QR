@@ -118,6 +118,7 @@ public class ResolveAttendanceReview {
         existing = attempts.existing(pending.session(), pending.person());
       }
       attendanceId = existing.orElseThrow(ApiFailure::conflict).id();
+      db.update("DELETE FROM ausencias WHERE sesion_id=? AND persona_id=?", pending.session(), pending.person());
       if (pending.guestStart() != null)
         guestStarts.consume(pending.guestStart(), person.id(), attendanceId, reviewedAt);
     }

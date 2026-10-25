@@ -1711,6 +1711,133 @@ paths:
           $ref: '#/components/responses/RateLimited'
       parameters:
       - $ref: '#/components/parameters/sessionId'
+  /activities/{activityId}/stats:
+    get:
+      operationId: getActivityStats
+      summary: Estadísticas de asistencia por estudiante de una clase
+      description: Solo sesiones CERRADAS. Responsable, DIRECTOR_INSTITUCIONAL y DIRECTOR_CARRERA de su carrera (mismo ámbito que la consulta de asistencias). porcentaje es null (sin datos) sin sesiones computables. 409 si la actividad no es una CLASE.
+      tags:
+      - stats
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityStatsPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+  /stats/parallels:
+    get:
+      operationId: getParallelStats
+      summary: Estadísticas por paralelo en un periodo
+      description: Responsable (sus clases), DIRECTOR_CARRERA (carreras que dirige) y DIRECTOR_INSTITUCIONAL (todas). Cuenta las asistencias y ausencias de los estudiantes matriculados vigentes del paralelo. 403 si careerId no está en el ámbito.
+      tags:
+      - stats
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsGroupList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {name: careerId, in: query, schema: {type: string, format: uuid}}
+      - {name: desde, in: query, schema: {type: string, format: date-time}, description: Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión.}
+      - {name: hasta, in: query, schema: {type: string, format: date-time}, description: Fin del periodo (exclusivo); debe ser posterior a desde.}
+  /stats/careers:
+    get:
+      operationId: getCareerStats
+      summary: Estadísticas por carrera en un periodo
+      description: Mismo ámbito que las estadísticas por paralelo.
+      tags:
+      - stats
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsGroupList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {name: desde, in: query, schema: {type: string, format: date-time}, description: Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión.}
+      - {name: hasta, in: query, schema: {type: string, format: date-time}, description: Fin del periodo (exclusivo); debe ser posterior a desde.}
+  /sessions/{sessionId}/absences:
+    get:
+      operationId: listSessionAbsences
+      summary: Ausencias registradas al cerrar una sesión
+      description: Responsable y directores según el ámbito de consulta. Lista vigente al momento del cierre.
+      tags:
+      - stats
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsencePage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
 components:
   securitySchemes:
     SessionBearer:
@@ -1907,7 +2034,7 @@ components:
           format: uri-reference
         code:
           type: string
-          description: Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO.
+          description: Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO. 003 añade PLAZO_CORRECCION_VENCIDO, NO_AUTORIZADO_EN_SESION, JUSTIFICACION_PENDIENTE_EXISTE, SIN_AUSENCIA, PASSWORD_ACTUAL_INCORRECTA, PASSWORD_DEBIL, CAMBIO_PASSWORD_REQUERIDO y RENOVACION_VENCIDA.
           example: SESION_CERRADA
         mensaje:
           type: string
@@ -3022,6 +3149,74 @@ components:
         items:
           type: array
           items: {$ref: '#/components/schemas/ScheduledSession'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    AbsenceState: {type: string, enum: [AUSENTE, JUSTIFICADA]}
+    AttendanceStats:
+      type: object
+      required: [sesiones_computables, asistencias, ausencias, ausencias_justificadas, porcentaje]
+      properties:
+        sesiones_computables: {type: integer, minimum: 0}
+        asistencias: {type: integer, minimum: 0}
+        ausencias: {type: integer, minimum: 0, description: Incluye las justificadas.}
+        ausencias_justificadas: {type: integer, minimum: 0}
+        porcentaje: {type: number, nullable: true, minimum: 0, maximum: 100, description: 'asistencias / computables con 2 decimales; null = sin datos.'}
+        bajo_umbral: {type: boolean, description: Solo por estudiante.}
+    StudentStats:
+      allOf:
+      - $ref: '#/components/schemas/AttendanceStats'
+      - type: object
+        required: [persona_id, cedula, nombres, bajo_umbral]
+        properties:
+          persona_id: {type: string, format: uuid}
+          cedula: {type: string}
+          nombres: {type: string}
+    ActivityStatsPage:
+      type: object
+      required: [umbral_asistencia, resumen, items, page, size, total]
+      properties:
+        umbral_asistencia: {type: number, minimum: 0, maximum: 100}
+        resumen: {$ref: '#/components/schemas/AttendanceStats'}
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/StudentStats'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    GroupStats:
+      allOf:
+      - $ref: '#/components/schemas/AttendanceStats'
+      - type: object
+        required: [carrera]
+        properties:
+          paralelo_id: {type: string, format: uuid, description: Solo en estadísticas por paralelo.}
+          carrera_id: {type: string, format: uuid}
+          carrera: {type: string, description: Código de la carrera.}
+          paralelo: {type: string, description: Código del paralelo.}
+          nombre: {type: string, description: Nombre de la carrera.}
+    StatsGroupList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/GroupStats'}
+    Absence:
+      type: object
+      required: [persona_id, cedula, nombres, estado]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        estado: {$ref: '#/components/schemas/AbsenceState'}
+    AbsencePage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Absence'}
         page: {type: integer, minimum: 0}
         size: {type: integer, minimum: 1, maximum: 100}
         total: {type: integer, minimum: 0}
