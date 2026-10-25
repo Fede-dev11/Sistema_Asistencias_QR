@@ -946,6 +946,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/attendances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Historial propio por sesión cerrada
+         * @description Solo datos de la persona autenticada. Sesiones cerradas con su resultado y el estado de su última solicitud de justificación; las actividades anonimizadas no aparecen.
+         */
+        get: operations["listMyAttendances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Porcentajes propios por actividad de clase */
+        get: operations["getMyStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1550,6 +1587,34 @@ export interface components {
             page: number;
             size: number;
             total: number;
+        };
+        MyAttendance: {
+            /** Format: uuid */
+            sesion_id: string;
+            /** Format: uuid */
+            actividad_id: string;
+            actividad: string;
+            /** Format: date-time */
+            inicio: string;
+            /** @enum {string} */
+            resultado: "ASISTIO" | "AUSENTE" | "JUSTIFICADA" | "PENDIENTE_REVISION";
+            /** @enum {string|null} */
+            justificacion: "PENDIENTE" | "APROBADA" | "RECHAZADA" | null;
+        };
+        MyAttendancePage: {
+            items: components["schemas"]["MyAttendance"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        MyActivityStats: components["schemas"]["AttendanceStats"] & {
+            /** Format: uuid */
+            actividad_id: string;
+            actividad: string;
+            umbral_asistencia: number;
+        };
+        MyStatsList: {
+            items: components["schemas"]["MyActivityStats"][];
         };
     };
     responses: {
@@ -3595,6 +3660,52 @@ export interface operations {
             409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    listMyAttendances: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyAttendancePage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getMyStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyStatsList"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
         };
     };
 }

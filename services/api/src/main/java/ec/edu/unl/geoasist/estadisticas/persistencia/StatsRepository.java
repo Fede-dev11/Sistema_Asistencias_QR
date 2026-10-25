@@ -204,4 +204,54 @@ public class StatsRepository {
     return db.queryForObject(
         "SELECT count(*) FROM ausencias WHERE sesion_id=?", Long.class, session);
   }
+
+  public record Mine(UUID session, UUID activity, String name, Instant start, String result, String justification) {}
+
+  public record MyActivity(UUID activity, String name, java.math.BigDecimal threshold, Counts counts) {}
+
+  /** Historial propio por sesión cerrada; la actividad anonimizada ya no existe y desaparece sola. */
+  public List<Mine> mine(UUID person, int limit, long offset) {
+    return db.query(
+        "SELECT s.id,a.id,a.nombre,s.ventana_inicio,"
+            + "CASE WHEN t.id IS NOT NULL THEN 'ASISTIO' WHEN pend.x THEN 'PENDIENTE_REVISION'"
+            + " WHEN u.estado='JUSTIFICADA' THEN 'JUSTIFICADA' ELSE 'AUSENTE' END,j.estado"
+            + MINE_JOIN
+            + " ORDER BY s.ventana_inicio DESC,s.id LIMIT ? OFFSET ?",
+        (r, n) ->
+            new Mine(
+                r.getObject(1, UUID.class),
+                r.getObject(2, UUID.class),
+                r.getString(3),
+                r.getTimestamp(4).toInstant(),
+                r.getString(5),
+                r.getString(6)),
+        person, person, person, person, limit, offset);
+  }
+
+  public long countMine(UUID person) {
+    return db.queryForObject(
+        "SELECT count(*)" + MINE_JOIN, Long.class, person, person, person, person);
+  }
+
+  private static final String MINE_JOIN =
+      " FROM sesiones s JOIN actividades a ON a.id=s.actividad_id"
+          + " LEFT JOIN asistencias t ON t.sesion_id=s.id AND t.persona_id=?"
+          + " LEFT JOIN ausencias u ON u.sesion_id=s.id AND u.persona_id=?"
+          + " LEFT JOIN LATERAL (SELECT estado FROM justificaciones WHERE sesion_id=s.id AND persona_id=?"
+          + " ORDER BY solicitada_en DESC LIMIT 1) j ON true"
+          + " CROSS JOIN LATERAL (SELECT EXISTS(SELECT 1 FROM intentos_asistencia i WHERE i.sesion_id=s.id"
+          + " AND i.persona_id=? AND i.resultado='PENDIENTE_REVISION') AS x) pend"
+          + " WHERE s.estado='CERRADA' AND (t.id IS NOT NULL OR u.sesion_id IS NOT NULL OR pend.x)";
+
+  /** Conteos propios por actividad de clase (misma regla que el resto de estadísticas). */
+  public List<MyActivity> myActivities(UUID person) {
+    return db.query(
+        "SELECT a.id,a.nombre,a.umbral_asistencia," + COUNTS + " FROM (" + ROWS.formatted("")
+            + ") r JOIN actividades a ON a.id=r.actividad_id AND a.modalidad='CLASE'"
+            + " WHERE r.persona_id=? GROUP BY a.id ORDER BY a.nombre,a.id",
+        (r, n) ->
+            new MyActivity(
+                r.getObject(1, UUID.class), r.getString(2), r.getBigDecimal(3), counts(r, 4)),
+        person);
+  }
 }

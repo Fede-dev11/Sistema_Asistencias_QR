@@ -140,4 +140,37 @@ public class AttendanceStats {
     return Map.of(
         "items", items, "page", page, "size", size, "total", stats.countAbsences(session));
   }
+
+  /** Historial propio: la persona sale de la sesión, nunca de la petición. */
+  @Transactional(readOnly = true)
+  public Map<String, Object> myHistory(UserSession user, int page, int size) {
+    page(page, size);
+    var items = new ArrayList<Map<String, Object>>();
+    for (var h : stats.mine(user.personId(), size, (long) page * size)) {
+      var m = new LinkedHashMap<String, Object>();
+      m.put("sesion_id", h.session());
+      m.put("actividad_id", h.activity());
+      m.put("actividad", h.name());
+      m.put("inicio", h.start());
+      m.put("resultado", h.result());
+      m.put("justificacion", h.justification());
+      items.add(m);
+    }
+    return Map.of(
+        "items", items, "page", page, "size", size, "total", stats.countMine(user.personId()));
+  }
+
+  @Transactional(readOnly = true)
+  public Map<String, Object> myStats(UserSession user) {
+    var items = new ArrayList<Map<String, Object>>();
+    for (var a : stats.myActivities(user.personId())) {
+      var m = new LinkedHashMap<String, Object>();
+      m.put("actividad_id", a.activity());
+      m.put("actividad", a.name());
+      m.put("umbral_asistencia", a.threshold());
+      m.putAll(dto(a.counts(), a.threshold()));
+      items.add(m);
+    }
+    return Map.of("items", items);
+  }
 }
