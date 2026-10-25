@@ -9,6 +9,7 @@ export type GuestResume = {
   venceEn: string;
   idempotencyKey: string;
   deviceId: string;
+  openEvent: boolean;
 };
 
 const KEY = 'geoasist-guest-resume';
@@ -18,7 +19,7 @@ function valid(value: unknown): value is GuestResume {
   if (typeof value !== 'object' || value === null) return false;
   const item = value as Record<string, unknown>;
   return (
-    Object.keys(item).sort().join(',') === 'deviceId,idempotencyKey,inicioEn,token,venceEn' &&
+    Object.keys(item).sort().join(',') === 'deviceId,idempotencyKey,inicioEn,openEvent,token,venceEn' &&
     typeof item.token === 'string' &&
     item.token.length >= 32 &&
     item.token.length <= 512 &&
@@ -29,7 +30,7 @@ function valid(value: unknown): value is GuestResume {
     Date.parse(item.venceEn) > Date.parse(item.inicioEn) &&
     typeof item.idempotencyKey === 'string' &&
     UUID.test(item.idempotencyKey) &&
-    typeof item.deviceId === 'string' && UUID.test(item.deviceId)
+    typeof item.deviceId === 'string' && UUID.test(item.deviceId) && typeof item.openEvent === 'boolean'
   );
 }
 
@@ -40,6 +41,7 @@ export function createGuestResume(start: GuestStart, deviceId: string): GuestRes
     venceEn: start.vence_en,
     idempotencyKey: randomUUID(),
     deviceId,
+    openEvent: start.evento_abierto,
   };
 }
 

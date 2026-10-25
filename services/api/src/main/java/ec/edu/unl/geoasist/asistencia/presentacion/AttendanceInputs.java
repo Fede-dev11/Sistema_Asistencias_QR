@@ -25,7 +25,8 @@ public final class AttendanceInputs {
   }
 
   public record AccountAttempt(
-      @NotBlank @Size(min = 32, max = 512) String qr_token,
+      @Size(min = 32, max = 512) String qr_token,
+      UUID sesion_id,
       @NotNull UUID dispositivo_id,
       @Valid Location ubicacion) {
     @Override
@@ -34,7 +35,7 @@ public final class AttendanceInputs {
     }
   }
 
-  public record GuestStart(@NotBlank @Size(min = 32, max = 512) String qr_token) {
+  public record GuestStart(@Size(min = 32, max = 512) String qr_token, UUID sesion_id) {
     @Override
     public String toString() {
       return "GuestStart[secreto omitido]";
@@ -44,10 +45,12 @@ public final class AttendanceInputs {
   public record GuestSubmit(
       @NotBlank @Size(min = 32, max = 512) String registro_invitado_token,
       @NotBlank String cedula,
+      @Size(min = 1, max = 200) String nombres,
       @NotNull UUID dispositivo_id,
       @Valid Location ubicacion) {
     public GuestSubmit {
       cedula = cedula == null ? null : cedula.strip();
+      nombres = nombres == null ? null : nombres.strip();
     }
 
     @Override

@@ -4,6 +4,7 @@ import ec.edu.unl.geoasist.actividades.aplicacion.ActivityAuditWriter;
 import ec.edu.unl.geoasist.actividades.aplicacion.SpaceMethodRules;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
 import ec.edu.unl.geoasist.compartido.aplicacion.RecordAbsences;
+import ec.edu.unl.geoasist.sesiones.persistencia.SessionRepository;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.util.Map;
@@ -35,6 +36,7 @@ public class SessionCycle {
   private final ActivityAuditWriter audit;
   private final RecordAbsences absences;
   private final SpaceMethodRules rules;
+  private final SessionRepository sessions;
 
   public SessionCycle(
       JdbcTemplate db,
@@ -42,13 +44,15 @@ public class SessionCycle {
       PlatformTransactionManager transactions,
       ActivityAuditWriter audit,
       RecordAbsences absences,
-      SpaceMethodRules rules) {
+      SpaceMethodRules rules,
+      SessionRepository sessions) {
     this.db = db;
     this.clock = clock;
     this.tx = new TransactionTemplate(transactions);
     this.audit = audit;
     this.absences = absences;
     this.rules = rules;
+    this.sessions = sessions;
   }
 
   /** Procesa todo lo vencido; seguro ante ejecuciones simultáneas (SKIP LOCKED). */
@@ -69,6 +73,7 @@ public class SessionCycle {
     UUID activity = (UUID) row.get("actividad_id");
     try {
       rules.check((UUID) row.get("espacio_id"), (String) row.get("metodo_verificacion"));
+      sessions.requireGpsConfigured(id);
     } catch (ApiFailure e) {
       db.update(
           "UPDATE sesiones SET siguiente_intento_en=? WHERE id=?",

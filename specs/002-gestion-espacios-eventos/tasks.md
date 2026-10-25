@@ -139,19 +139,19 @@ que deben fallar antes de implementar. Pruebas de integración contra PostgreSQL
 
 ### Tests for User Story 4
 
-- [ ] T048 [P] [US4] Prueba `TEST/actividades/CreateEventTest.java`: US4-1 (evento cerrado con sesión programada y configuración de invitados con `tolerancia_invitado_segundos` por defecto 120), US4-8 (editar/cancelar antes de iniciar; `acceso` inmutable tras iniciar la primera sesión)
-- [ ] T049 [P] [US4] Prueba `TEST/asistencia/OpenEventTest.java`: US4-2 (cuenta sin lista → ACEPTADO), US4-3 (autorregistro → forma `AUTORREGISTRO`, persona `EXTERNA` creada sin cuenta), US4-4 (`USAR_CREDENCIALES`), US4-5 (cédula inválida / nombres vacíos), US4-6 (persona externa existente: `nombres_registro` = escrito, `personas.nombres` sin cambio), US4-7 (evento cerrado sigue exigiendo listado y rechaza `nombres` en el envío)
+- [X] T048 [P] [US4] Prueba `TEST/actividades/CreateEventTest.java`: US4-1 (evento cerrado con sesión programada y configuración de invitados con `tolerancia_invitado_segundos` por defecto 120), US4-8 (editar/cancelar antes de iniciar; `acceso` inmutable tras iniciar la primera sesión)
+- [X] T049 [P] [US4] Prueba `TEST/asistencia/OpenEventTest.java`: US4-2 (cuenta sin lista → ACEPTADO), US4-3 (autorregistro → forma `AUTORREGISTRO`, persona `EXTERNA` creada sin cuenta), US4-4 (`USAR_CREDENCIALES`), US4-5 (cédula inválida / nombres vacíos), US4-6 (persona externa existente: `nombres_registro` = escrito, `personas.nombres` sin cambio), US4-7 (evento cerrado sigue exigiendo listado y rechaza `nombres` en el envío)
 
 ### Implementation for User Story 4
 
-- [ ] T050 [US4] Rama EVENTO de `API/actividades/aplicacion/CreateActivity.java`: rol DOCENTE o ENCARGADO, `acceso`, espacio, `inicio`/`fin` → una sesión; crear `configuracion_invitados` (`habilitado=true`, tolerancia enviada o 120, >40); carreras opcionales
-- [ ] T051 [US4] Validar en `API/actividades/aplicacion/EditActivity.java` que `acceso` no cambie si alguna sesión salió de `PROGRAMADA`; en `ReplaceGuestList.java` rechazar listado para eventos `ABIERTO` (409)
-- [ ] T052 [US4] `API/asistencia/aplicacion/AttendanceEligibility.java`: en `account()` permitir cualquier cuenta activa si `acceso='ABIERTO'` (comportamiento actual de EVENTO), y añadir `selfRegistered(activity, cedula, nombres)` que: exige `acceso='ABIERTO'`; si la cédula tiene cuenta → `USAR_CREDENCIALES`; si no existe persona la crea `tipo='EXTERNA'`; devuelve `Person` con los nombres escritos
-- [ ] T053 [US4] `API/asistencia/aplicacion/SubmitGuestAttendance.java` y `API/asistencia/presentacion/AttendanceInputs.java` (`GuestSubmit.nombres` opcional 1–200): evento ABIERTO → `selfRegistered` y forma/canal `AUTORREGISTRO`; evento CERRADO → flujo de 001 y `nombres` presente → 400
-- [ ] T054 [US4] `GET /events/open/{sessionId}` (datos públicos mínimos solo si la sesión es de un evento ABIERTO y ACTIVA) en `API/asistencia/presentacion/GuestRegistrationController.java`; YAML (`GuestSubmitRequest.nombres`) + tipos
-- [ ] T055 [US4] Incluir personas `EXTERNA` autorregistradas en la anonimización de `API/conservacion/aplicacion/AnonymizeExpiredActivity.java` igual que invitados de listado, con caso en `TEST/conservacion/RetentionLifecycleTest.java`
-- [ ] T056 [P] [US4] Web: `apps/web/src/features/activities/CreateEventForm.tsx` (tipo de acceso, `SpacePicker`, fecha/hora, tolerancia; listado de invitados existente solo si CERRADO)
-- [ ] T057 [P] [US4] Móvil: en `apps/mobile/src/features/attendance/AttendanceScreen.tsx` mostrar el campo nombres en el formulario de invitado cuando el evento es ABIERTO y enviar `nombres`; prueba en `AttendanceScreen.test.tsx`
+- [X] T050 [US4] Rama EVENTO de `API/actividades/aplicacion/CreateActivity.java`: rol DOCENTE o ENCARGADO, `acceso`, espacio, `inicio`/`fin` → una sesión; crear `configuracion_invitados` (`habilitado=true`, tolerancia enviada o 120, >40); carreras opcionales
+- [X] T051 [US4] Validar en `API/actividades/aplicacion/EditActivity.java` que `acceso` no cambie si alguna sesión salió de `PROGRAMADA`; en `ReplaceGuestList.java` rechazar listado para eventos `ABIERTO` (409)
+- [X] T052 [US4] `API/asistencia/aplicacion/AttendanceEligibility.java`: en `account()` permitir cualquier cuenta activa si `acceso='ABIERTO'` (comportamiento actual de EVENTO), y añadir `selfRegistered(activity, cedula, nombres)` que: exige `acceso='ABIERTO'`; si la cédula tiene cuenta → `USAR_CREDENCIALES`; si no existe persona la crea `tipo='EXTERNA'`; devuelve `Person` con los nombres escritos
+- [X] T053 [US4] `API/asistencia/aplicacion/SubmitGuestAttendance.java` y `API/asistencia/presentacion/AttendanceInputs.java` (`GuestSubmit.nombres` opcional 1–200): evento ABIERTO → `selfRegistered` y forma/canal `AUTORREGISTRO`; evento CERRADO → flujo de 001 y `nombres` presente → 400
+- [X] T054 [US4] `GET /events/open/{sessionId}` (datos públicos mínimos solo si la sesión es de un evento ABIERTO y ACTIVA) en `API/asistencia/presentacion/GuestRegistrationController.java`; YAML (`GuestSubmitRequest.nombres`) + tipos
+- [X] T055 [US4] Incluir personas `EXTERNA` autorregistradas en la anonimización de `API/conservacion/aplicacion/AnonymizeExpiredActivity.java` igual que invitados de listado, con caso en `TEST/conservacion/RetentionLifecycleTest.java`
+- [X] T056 [P] [US4] Web: `apps/web/src/features/activities/CreateEventForm.tsx` (tipo de acceso, `SpacePicker`, fecha/hora, tolerancia; listado de invitados existente solo si CERRADO)
+- [X] T057 [P] [US4] Móvil: en `apps/mobile/src/features/attendance/AttendanceScreen.tsx` mostrar el campo nombres en el formulario de invitado cuando el evento es ABIERTO y enviar `nombres`; prueba en `AttendanceScreen.test.tsx`
 
 **Checkpoint**: eventos cerrados y abiertos creados y operados sin semilla.
 
@@ -193,20 +193,20 @@ que deben fallar antes de implementar. Pruebas de integración contra PostgreSQL
 
 ### Tests for User Story 5
 
-- [ ] T069 [P] [US5] Prueba `TEST/sesiones/VerificationMethodTest.java`: US5-1, US5-2 (herencia y ajuste), US5-6 (`ESPACIO_SIN_UBICACION`), US5-8 (método/tolerancia fijos tras iniciar), iniciar con `*_GPS` sin configuración habilitada → 409
-- [ ] T070 [P] [US5] Prueba `TEST/asistencia/MethodAttendanceTest.java`: US5-3 (`SOLO_GPS` sin QR, dentro/fuera/imprecisa con repetir y revisión de 001), US5-4 (`QR_REQUERIDO`), US5-5 (`NINGUNO` acepta solo con sesión ACTIVA; CERRADA → motivo de 001), `qr_token` en método sin QR → `METODO_NO_ADMITE_QR`; inicio de invitado por `sesion_id` solo en métodos sin QR
-- [ ] T071 [P] [US5] Prueba `TEST/asistencia/ActiveSessionsTest.java`: US5-7 — `GET /me/active-sessions` devuelve clases donde está autorizado (vigente), eventos abiertos y eventos cerrados (cuenta), con `metodo_verificacion` y `requiere_ubicacion`; nunca sesiones PROGRAMADA/CERRADA/CANCELADA
+- [X] T069 [P] [US5] Prueba `TEST/sesiones/VerificationMethodTest.java`: US5-1, US5-2 (herencia y ajuste), US5-6 (`ESPACIO_SIN_UBICACION`), US5-8 (método/tolerancia fijos tras iniciar), iniciar con `*_GPS` sin configuración habilitada → 409
+- [X] T070 [P] [US5] Prueba `TEST/asistencia/MethodAttendanceTest.java`: US5-3 (`SOLO_GPS` sin QR, dentro/fuera/imprecisa con repetir y revisión de 001), US5-4 (`QR_REQUERIDO`), US5-5 (`NINGUNO` acepta solo con sesión ACTIVA; CERRADA → motivo de 001), `qr_token` en método sin QR → `METODO_NO_ADMITE_QR`; inicio de invitado por `sesion_id` solo en métodos sin QR
+- [X] T071 [P] [US5] Prueba `TEST/asistencia/ActiveSessionsTest.java`: US5-7 — `GET /me/active-sessions` devuelve clases donde está autorizado (vigente), eventos abiertos y eventos cerrados (cuenta), con `metodo_verificacion` y `requiere_ubicacion`; nunca sesiones PROGRAMADA/CERRADA/CANCELADA
 
 ### Implementation for User Story 5
 
-- [ ] T072 [US5] `PATCH /sessions/{id}` acepta `metodo_verificacion` (T044); validar espacio con coordenadas para `*_GPS`; al pasar a método sin GPS deshabilitar `configuracion_geografica`
-- [ ] T073 [US5] `API/sesiones/aplicacion/ConfigureSessionGeolocation.java`: `radius`/`maximumPrecision` opcionales → heredar `radio_defecto_m`/`precision_defecto_m` del espacio; `maximumAgeSeconds` por defecto 60; mantener el cálculo de modo `REVIEW_ONLY`/`AUTO` por evidencia de 001
-- [ ] T074 [US5] `API/sesiones/aplicacion/SessionLifecycle.java`: al iniciar, comprobar coherencia método ↔ configuración geográfica ↔ coordenadas y no emitir QR (`QrRotationScheduler`/`IssueSessionQr`) para `SOLO_GPS`/`NINGUNO`; `GET /sessions/{id}/qr` → 409 en esos métodos
-- [ ] T075 [US5] `API/asistencia/aplicacion/RecordAuthenticatedAttendance.java` y `StartGuestRegistration.java`: resolver la sesión por `qr_token` o por `sesion_id` según el método (exactamente uno), aplicar QR solo si el método lo incluye y GPS solo si lo incluye; `AttendanceInputs` con `qr_token` opcional y `sesion_id` opcional
-- [ ] T076 [US5] `GET /me/active-sessions` en `API/asistencia/presentacion/ActiveSessionsController.java` con consulta paginada en `API/asistencia/persistencia/`
-- [ ] T077 [US5] YAML (`qr_token` opcional, `sesion_id`, `metodo_verificacion` en sesión/actividad, `/me/active-sessions`, `GeolocationRequest` con campos opcionales) + tipos regenerados
-- [ ] T078 [P] [US5] Web: selector de método en la lista de sesiones y en los formularios de actividad, con advertencia visible para `NINGUNO` ("no comprueba presencia") y valores heredados del espacio editables
-- [ ] T079 [P] [US5] Móvil: `apps/mobile/src/features/sessions/ActiveSessionsScreen.tsx` que lista `/me/active-sessions`; según método abre cámara (QR), pide ubicación en el momento de uso (GPS) o envía directo (`NINGUNO`); prueba de pantalla
+- [X] T072 [US5] `PATCH /sessions/{id}` acepta `metodo_verificacion` (T044); validar espacio con coordenadas para `*_GPS`; al pasar a método sin GPS deshabilitar `configuracion_geografica`
+- [X] T073 [US5] `API/sesiones/aplicacion/ConfigureSessionGeolocation.java`: `radius`/`maximumPrecision` opcionales → heredar `radio_defecto_m`/`precision_defecto_m` del espacio; `maximumAgeSeconds` por defecto 60; mantener el cálculo de modo `REVIEW_ONLY`/`AUTO` por evidencia de 001
+- [X] T074 [US5] `API/sesiones/aplicacion/SessionLifecycle.java`: al iniciar, comprobar coherencia método ↔ configuración geográfica ↔ coordenadas y no emitir QR (`QrRotationScheduler`/`IssueSessionQr`) para `SOLO_GPS`/`NINGUNO`; `GET /sessions/{id}/qr` → 409 en esos métodos
+- [X] T075 [US5] `API/asistencia/aplicacion/RecordAuthenticatedAttendance.java` y `StartGuestRegistration.java`: resolver la sesión por `qr_token` o por `sesion_id` según el método (exactamente uno), aplicar QR solo si el método lo incluye y GPS solo si lo incluye; `AttendanceInputs` con `qr_token` opcional y `sesion_id` opcional
+- [X] T076 [US5] `GET /me/active-sessions` en `API/asistencia/presentacion/ActiveSessionsController.java` con consulta paginada en `API/asistencia/persistencia/`
+- [X] T077 [US5] YAML (`qr_token` opcional, `sesion_id`, `metodo_verificacion` en sesión/actividad, `/me/active-sessions`, `GeolocationRequest` con campos opcionales) + tipos regenerados
+- [X] T078 [P] [US5] Web: selector de método en la lista de sesiones y en los formularios de actividad, con advertencia visible para `NINGUNO` ("no comprueba presencia") y valores heredados del espacio editables
+- [X] T079 [P] [US5] Móvil: `apps/mobile/src/features/sessions/ActiveSessionsScreen.tsx` que lista `/me/active-sessions`; según método abre cámara (QR), pide ubicación en el momento de uso (GPS) o envía directo (`NINGUNO`); prueba de pantalla
 
 **Checkpoint**: todas las historias completas.
 

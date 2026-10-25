@@ -364,6 +364,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/open/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consultar datos publicos minimos de un evento abierto activo */
+        get: operations["getOpenEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sessions/{sessionId}/attendances": {
         parameters: {
             query?: never;
@@ -754,6 +771,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/active-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sesiones activas donde el participante puede registrar asistencia
+         * @description Clases donde está autorizado (vigente) y eventos abiertos o cerrados con cuenta. Nunca incluye sesiones PROGRAMADA, CERRADA ni CANCELADA.
+         */
+        get: operations["listMyActiveSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/spaces": {
         parameters: {
             query?: never;
@@ -940,7 +977,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Editar hora o espacio de una sesión programada
+         * Editar hora, espacio o método de una sesión programada
          * @description Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
          */
         patch: operations["updateScheduledSession"];
@@ -1285,7 +1322,7 @@ export interface components {
             /** @enum {integer} */
             vigencia_segundos: 40;
         };
-        /** @description Al habilitar se requieren los tres parámetros; el servidor los valida conjuntamente. Si está apagada no se pide permiso ni se conserva ubicación. */
+        /** @description Al habilitar, radio_m y precision_max_m son opcionales y heredan los valores por defecto del espacio de la sesión; antiguedad_max_s por defecto es 60. Si está apagada no se pide permiso ni se conserva ubicación. */
         GeolocationSettings: {
             /** @default false */
             habilitada: boolean;
@@ -1309,8 +1346,13 @@ export interface components {
         };
         AttendanceAttemptRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
-            qr_token: string;
+            qr_token?: string;
             dispositivo_id: components["schemas"]["DeviceId"];
+            /**
+             * Format: uuid
+             * @description Identifica la sesión cuando su método no incluye QR (SOLO_GPS, NINGUNO). Se envía exactamente uno de qr_token o sesion_id; qr_token en método sin QR responde 400 METODO_NO_ADMITE_QR y sesion_id en método con QR responde 400 QR_REQUERIDO.
+             */
+            sesion_id?: string;
             ubicacion?: components["schemas"]["Location"];
         };
         /** @description Recibo mínimo compartido por ambos flujos. Sin cédula, nombres ni datos del listado. */
@@ -1337,7 +1379,12 @@ export interface components {
         };
         GuestStartRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
-            qr_token: string;
+            qr_token?: string;
+            /**
+             * Format: uuid
+             * @description Alternativa a qr_token solo para sesiones cuyo método no incluye QR.
+             */
+            sesion_id?: string;
         };
         GuestStartResult: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
@@ -1346,13 +1393,23 @@ export interface components {
             inicio_en: string;
             /** Format: date-time */
             vence_en: string;
+            evento_abierto: boolean;
         };
         GuestSubmitRequest: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             registro_invitado_token: string;
             cedula: string;
+            nombres?: string;
             dispositivo_id: components["schemas"]["DeviceId"];
             ubicacion?: components["schemas"]["Location"];
+        };
+        OpenEvent: {
+            /** Format: uuid */
+            sesion_id: string;
+            nombre: string;
+            espacio?: string | null;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
         };
         /** @description Una fila por persona identificada en la sesión. Prevalece su asistencia confirmada; si no existe, mostrar su último intento identificado pendiente o rechazado. Nunca exponer intentos sin persona identificada ni cédulas desconocidas. El filtro estado se aplica después de esta proyección. */
         AttendanceRow: {
@@ -1590,6 +1647,35 @@ export interface components {
             entrada: string;
             motivo: string;
         };
+        ActiveSession: {
+            /** Format: uuid */
+            sesion_id: string;
+            actividad: {
+                /** Format: uuid */
+                id: string;
+                nombre: string;
+                /** @enum {string} */
+                modalidad: "CLASE" | "EVENTO";
+            };
+            espacio?: {
+                /** Format: uuid */
+                id: string;
+                nombre: string;
+            } | null;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            requiere_ubicacion: boolean;
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+        };
+        ActiveSessionPage: {
+            items: components["schemas"]["ActiveSession"][];
+            page: number;
+            size: number;
+            total: number;
+        };
         MyParallel: {
             /** Format: uuid */
             paralelo_id: string;
@@ -1602,14 +1688,23 @@ export interface components {
         };
         CreateActivityRequest: {
             /** @enum {string} */
-            modalidad: "CLASE";
+            modalidad: "CLASE" | "EVENTO";
             nombre: string;
             /** Format: uuid */
             espacio_id: string;
             /** @enum {string} */
             metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
-            paralelo_ids: string[];
+            paralelo_ids?: string[];
             horario?: components["schemas"]["Schedule"];
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
+            /** Format: date-time */
+            inicio?: string;
+            /** Format: date-time */
+            fin?: string;
+            /** @default 120 */
+            tolerancia_invitado_segundos: number;
+            carrera_ids?: string[];
         };
         Schedule: {
             dias: number[];
@@ -1630,6 +1725,8 @@ export interface components {
             metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
             ciclo_automatico?: boolean;
             umbral_asistencia?: number;
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
         };
         SessionSummary: {
             /** Format: uuid */
@@ -1653,7 +1750,10 @@ export interface components {
             espacio_id: string;
             /** @enum {string} */
             metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
-            estudiantes_autorizados: number;
+            estudiantes_autorizados?: number;
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
+            tolerancia_invitado_segundos?: number;
             paralelo_ids?: string[];
             carrera_ids?: string[];
             sesiones: components["schemas"]["SessionSummary"][];
@@ -1702,6 +1802,8 @@ export interface components {
             fin?: string;
             /** Format: uuid */
             espacio_id?: string;
+            /** @enum {string} */
+            metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
         };
         ScheduledSession: {
             /** Format: uuid */
@@ -2169,7 +2271,10 @@ export interface operations {
     createActivity: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
             path?: never;
             cookie?: never;
         };
@@ -2179,6 +2284,15 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Replay idempotente de una actividad ya creada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedActivity"];
+                };
+            };
             /** @description Actividad creada con sus sesiones generadas. */
             201: {
                 headers: {
@@ -2606,7 +2720,8 @@ export interface operations {
                      * @example {
                      *       "registro_invitado_token": "ejemplo-formulario-opaco-no-real-00000001",
                      *       "inicio_en": "2026-10-19T16:00:20Z",
-                     *       "vence_en": "2026-10-19T16:02:20Z"
+                     *       "vence_en": "2026-10-19T16:02:20Z",
+                     *       "evento_abierto": true
                      *     }
                      */
                     "application/json": components["schemas"]["GuestStartResult"];
@@ -2699,6 +2814,29 @@ export interface operations {
             410: components["responses"]["Gone"];
             422: components["responses"]["BusinessRejected"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    getOpenEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evento abierto activo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenEvent"];
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
     listAttendances: {
@@ -3525,6 +3663,31 @@ export interface operations {
             403: components["responses"]["Forbidden"];
         };
     };
+    listMyActiveSessions: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de sesiones activas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActiveSessionPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
     searchSpaces: {
         parameters: {
             query?: {
@@ -3707,7 +3870,10 @@ export interface operations {
     addAuthorizedStudent: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 activityId: components["parameters"]["activityId"];
             };
@@ -3824,7 +3990,10 @@ export interface operations {
     createLooseSession: {
         parameters: {
             query?: never;
-            header?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
             path: {
                 activityId: components["parameters"]["activityId"];
             };

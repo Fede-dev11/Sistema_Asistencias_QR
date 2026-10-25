@@ -75,11 +75,12 @@ public abstract class PostgresFixture {
     var activity = java.util.UUID.randomUUID();
     var session = java.util.UUID.randomUUID();
     db.update(
-        "INSERT INTO actividades(id,nombre,modalidad,responsable_id) VALUES (?,?,?,?)",
+        "INSERT INTO actividades(id,nombre,modalidad,responsable_id,acceso) VALUES (?,?,?,?,?)",
         activity,
         "Escenario ficticio",
         mode,
-        ScenarioFixtures.id(owner));
+        ScenarioFixtures.id(owner),
+        mode.equals("EVENTO") ? "CERRADO" : null);
     db.update("INSERT INTO actividad_carreras VALUES (?,?)", activity, ScenarioFixtures.id(1));
     db.update(
         "INSERT INTO sesiones(id,actividad_id,ventana_inicio,ventana_fin) VALUES (?,?,?,?)",
@@ -116,7 +117,7 @@ public abstract class PostgresFixture {
         .asText();
   }
 
-  protected record GuestScenario(
+  public record GuestScenario(
       java.util.UUID activity, java.util.UUID session, String owner, String qr) {}
 
   protected GuestScenario guests(int duration, String... cedulas) throws Exception {
@@ -173,17 +174,23 @@ public abstract class PostgresFixture {
 
   protected org.springframework.test.web.servlet.ResultActions guestSubmit(
       String secret, String cedula, java.util.UUID key, java.util.UUID deviceId) throws Exception {
+    return guestSubmit(secret, cedula, null, key, deviceId);
+  }
+
+  protected org.springframework.test.web.servlet.ResultActions guestSubmit(
+      String secret, String cedula, String nombres, java.util.UUID key, java.util.UUID deviceId) throws Exception {
+    var body = new java.util.LinkedHashMap<String, Object>();
+    body.put("registro_invitado_token", secret);
+    body.put("cedula", cedula);
+    body.put("dispositivo_id", deviceId);
+    if (nombres != null) body.put("nombres", nombres);
     return api.perform(
         org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
                 "/api/v1/guest-registrations/submit")
             .header("Idempotency-Key", key.toString())
             .contentType("application/json")
             .content(
-                json.writeValueAsString(
-                    java.util.Map.of(
-                        "registro_invitado_token", secret,
-                        "cedula", cedula,
-                        "dispositivo_id", deviceId))));
+                json.writeValueAsString(body)));
   }
 
   private static final java.util.concurrent.atomic.AtomicLong FICTIONAL_IDS =

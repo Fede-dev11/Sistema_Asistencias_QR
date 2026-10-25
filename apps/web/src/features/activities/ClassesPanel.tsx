@@ -6,6 +6,7 @@ import { request } from '../../lib/api/client';
 import { AuthorizedStudents } from './AuthorizedStudents';
 import { ClassSessions } from './ClassSessions';
 import { CreateClassForm } from './CreateClassForm';
+import { CreateEventForm } from './CreateEventForm';
 
 type Activity = components['schemas']['Activity'];
 
@@ -39,6 +40,7 @@ export function ClassesPanel() {
       {error && <p role="alert">{error}</p>}
       {selected && <><AuthorizedStudents activityId={selected} /><ClassSessions activityId={selected} /></>}
       <CreateClassForm onCreated={a => { setSelected(a.id); load(); }} />
+      <CreateEventForm onCreated={load} />
     </section>
   );
 }

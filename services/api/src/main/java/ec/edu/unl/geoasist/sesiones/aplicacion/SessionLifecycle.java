@@ -68,6 +68,7 @@ public class SessionLifecycle {
             if (!row.state().equals("PROGRAMADA")
                 || clock.instant().isBefore(row.windowStart())
                 || !clock.instant().isBefore(row.windowEnd())) throw ApiFailure.conflict();
+            sessions.requireGpsConfigured(session);
             db.update(
                 "UPDATE sesiones SET estado='ACTIVA',iniciada_en=? WHERE id=?",
                 java.sql.Timestamp.from(clock.instant()),

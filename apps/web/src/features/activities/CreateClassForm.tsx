@@ -5,13 +5,13 @@ import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { SpacePicker } from '../spaces/SpacePicker';
 import type { Space } from '../spaces/SpaceForm';
+import { MethodSelect } from '../sessions/MethodSelect';
 import { MAX_SESSIONS, previewDates } from './schedulePreview';
 
 type Created = components['schemas']['CreatedActivity'];
 type Parallel = components['schemas']['MyParallel'];
 
 const DAYS = [[1, 'Lunes'], [2, 'Martes'], [3, 'Miércoles'], [4, 'Jueves'], [5, 'Viernes'], [6, 'Sábado'], [7, 'Domingo']] as const;
-const METHODS = [['SOLO_QR', 'Solo QR'], ['QR_Y_GPS', 'QR y GPS'], ['SOLO_GPS', 'Solo GPS'], ['NINGUNO', 'Ninguno']] as const;
 
 function toggle<T>(list: T[], value: T): T[] {
   return list.includes(value) ? list.filter(x => x !== value) : [...list, value];
@@ -51,6 +51,7 @@ export function CreateClassForm({ onCreated }: { onCreated?: (activity: Created)
     try {
       const created = await request<Created>('/activities', {
         method: 'POST',
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
         body: JSON.stringify({
           modalidad: 'CLASE', nombre: name, espacio_id: space.id, metodo_verificacion: method, paralelo_ids: chosen,
           ...(withSchedule ? { horario: { dias: days, hora_inicio: start, hora_fin: end, desde: from, hasta: to } } : {})
@@ -79,11 +80,7 @@ export function CreateClassForm({ onCreated }: { onCreated?: (activity: Created)
       </fieldset>
       <p>{space ? `Espacio: ${space.codigo} — ${space.nombre}` : 'Sin espacio elegido.'}</p>
       <SpacePicker onSelect={setSpace} />
-      <label>Método de verificación
-        <select value={method} onChange={e => setMethod(e.target.value)}>
-          {METHODS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
-      </label>
+      <MethodSelect value={method} onChange={setMethod} />
       <fieldset>
         <legend>Horario semanal (opcional)</legend>
         {DAYS.map(([n, label]) => (

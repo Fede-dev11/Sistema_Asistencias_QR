@@ -16,6 +16,7 @@ class DeviceUniquenessTest extends PostgresFixture {
   @Test
   void authenticatedDeviceIsUniquePerSessionAndNeverStoredInClear() throws Exception {
     var first = scenario("EVENTO", 200);
+    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", first[0]); // cuentas sin listado
     String owner = token(ScenarioFixtures.TEACHER);
     start(first[1], owner);
     UUID device = UUID.randomUUID();
@@ -26,6 +27,7 @@ class DeviceUniquenessTest extends PostgresFixture {
         .andExpect(jsonPath("code").value("DISPOSITIVO_YA_REGISTRADO"));
 
     var second = scenario("EVENTO", 200);
+    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", second[0]);
     start(second[1], owner);
     account(second[1], token(ScenarioFixtures.DIRECTOR), qr(second[1], owner), device)
         .andExpect(status().isCreated());
@@ -73,6 +75,20 @@ class DeviceUniquenessTest extends PostgresFixture {
           .andExpect(status().isBadRequest())
           .andExpect(jsonPath("code").value("DISPOSITIVO_REQUERIDO"));
     }
+  }
+
+  @Test
+  void selfRegistrationUsesTheSameDeviceUniquenessRule() throws Exception {
+    var ids=scenario("EVENTO",201);
+    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?",ids[0]);
+    db.update("INSERT INTO configuracion_invitados(actividad_id,habilitado,tolerancia_invitado_segundos) VALUES (?,true,120)",ids[0]);
+    String owner=token("encargado@example.test"); start(ids[1],owner);
+    GuestScenario event=new GuestScenario(ids[0],ids[1],owner,qr(ids[1],owner));
+    UUID device=UUID.randomUUID();
+    guestSubmit(open(event).get("registro_invitado_token").asText(),fictionalId(),"Primera",UUID.randomUUID(),device)
+        .andExpect(status().isCreated());
+    guestSubmit(open(event).get("registro_invitado_token").asText(),fictionalId(),"Segunda",UUID.randomUUID(),device)
+        .andExpect(status().isConflict()).andExpect(jsonPath("code").value("DISPOSITIVO_YA_REGISTRADO"));
   }
 
   private org.springframework.test.web.servlet.ResultActions account(

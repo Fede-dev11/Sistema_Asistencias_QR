@@ -35,12 +35,10 @@ public class ActivitySessionController {
   public ResponseEntity<Map<String, Object>> create(
       @AuthenticationPrincipal UserSession user,
       @PathVariable UUID activityId,
+      @RequestHeader("Idempotency-Key") UUID key,
       @Valid @RequestBody Input body) {
-    return ResponseEntity.status(201)
-        .body(
-            service.create(
-                user,
-                activityId,
-                new ManageScheduledSessions.Changes(body.inicio(), body.fin(), body.espacio_id())));
+    var receipt = service.create(user, activityId, key,
+        new ManageScheduledSessions.Changes(body.inicio(), body.fin(), body.espacio_id(), null));
+    return ResponseEntity.status(receipt.status()).body(receipt.body());
   }
 }

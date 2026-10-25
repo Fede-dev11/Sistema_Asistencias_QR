@@ -26,6 +26,16 @@ public class AttendanceRecording {
     this.clock = clock;
   }
 
+  /** Exactamente un identificador de sesión, coherente con el método (token solo si incluye QR). */
+  public static void requireChannel(String method, boolean withToken, boolean withSession) {
+    boolean qr = ec.edu.unl.geoasist.sesiones.persistencia.SessionRepository.usesQr(method);
+    if (withToken && !qr)
+      throw new ApiFailure(400, "METODO_NO_ADMITE_QR", "Esta sesión no usa QR.");
+    if (withToken == withSession) throw ApiFailure.invalid();
+    if (withSession && qr)
+      throw new ApiFailure(400, "QR_REQUERIDO", "Esta sesión requiere escanear el QR.");
+  }
+
   public void requireActive(Activity activity, Session session) {
     Instant now = clock.instant();
     if (!activity.state().equals("ABIERTA")

@@ -47,15 +47,18 @@ public class RecordAuthenticatedAttendance {
   public Receipt record(
       UserSession user,
       String token,
+      UUID sessionId,
       UUID deviceId,
       GeoMeasurement location,
       UUID key,
       Object canonical,
       Instant received) {
-    var issued = qr.lookup(token);
-    UUID activityId = activities.activityOfSession(issued.session());
+    var issued = token == null || sessionId != null ? null : qr.lookup(token);
+    UUID session = sessionId != null ? sessionId : issued.session();
+    UUID activityId = activities.activityOfSession(session);
     locks.activity(activityId, false);
-    locks.session(issued.session());
+    locks.session(session);
+    AttendanceRecording.requireChannel(sessions.method(session), token != null, sessionId != null);
     locks.person(user.personId());
     var activity = activities.find(activityId);
     retention.check(activity.anonymizeAt());
@@ -63,7 +66,7 @@ public class RecordAuthenticatedAttendance {
     try {
       person = eligible.account(user, activity);
     } catch (ApiFailure e) {
-      return recording.reject(issued.session(), null, deviceId, e, "CREDENCIALES", received, null);
+      return recording.reject(session, null, deviceId, e, "CREDENCIALES", received, null);
     }
     return replay.run(
         "attendance-account",
@@ -73,12 +76,12 @@ public class RecordAuthenticatedAttendance {
         canonical,
         () -> {
           try {
-            recording.requireActive(activity, sessions.find(issued.session()));
-            IssueSessionQr.validate(issued, received);
+            recording.requireActive(activity, sessions.find(session));
+            if (issued != null) IssueSessionQr.validate(issued, received);
             return recording.record(
-                issued.session(), person, deviceId, location, "CREDENCIALES", received, null);
+                session, person, deviceId, location, "CREDENCIALES", received, null);
           } catch (ApiFailure e) {
-            return recording.reject(issued.session(), person, deviceId, e, "CREDENCIALES", received, null);
+            return recording.reject(session, person, deviceId, e, "CREDENCIALES", received, null);
           }
         });
   }

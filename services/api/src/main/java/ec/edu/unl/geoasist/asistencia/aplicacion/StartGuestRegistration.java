@@ -49,15 +49,17 @@ public class StartGuestRegistration {
   }
 
   @Transactional
-  public Map<String, Object> open(String value, Instant received) {
-    var token = qr.lookup(value);
-    UUID activityId = activities.activityOfSession(token.session());
+  public Map<String, Object> open(String value, UUID sessionId, Instant received) {
+    var token = value == null || sessionId != null ? null : qr.lookup(value);
+    UUID session = sessionId != null ? sessionId : token.session();
+    UUID activityId = activities.activityOfSession(session);
     locks.activity(activityId, false);
-    locks.session(token.session());
+    locks.session(session);
+    AttendanceRecording.requireChannel(sessions.method(session), value != null, sessionId != null);
     var activity = activities.find(activityId);
     retention.check(activity.anonymizeAt());
-    recording.requireActive(activity, sessions.find(token.session()));
-    IssueSessionQr.validate(token, received);
+    recording.requireActive(activity, sessions.find(session));
+    if (token != null) IssueSessionQr.validate(token, received);
     if (!activity.mode().equals("EVENTO")) throw ApiFailure.forbidden();
     var config =
         db.queryForList(
@@ -71,8 +73,10 @@ public class StartGuestRegistration {
     String secret = secrets.issue();
     Instant now = clock.instant();
     starts.create(
-        UUID.randomUUID(), token.session(), OpaqueSecrets.hash(secret), now, duration, generation);
+        UUID.randomUUID(), session, OpaqueSecrets.hash(secret), now, duration, generation);
+    String access = db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId);
     return Map.of(
-        "registro_invitado_token", secret, "inicio_en", now, "vence_en", now.plusSeconds(duration));
+        "registro_invitado_token", secret, "inicio_en", now, "vence_en", now.plusSeconds(duration),
+        "evento_abierto", "ABIERTO".equals(access));
   }
 }

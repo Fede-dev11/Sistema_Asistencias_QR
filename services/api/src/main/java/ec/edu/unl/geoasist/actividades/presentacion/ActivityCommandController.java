@@ -44,8 +44,11 @@ public class ActivityCommandController {
 
   @PostMapping
   public ResponseEntity<Map<String, Object>> create(
-      @AuthenticationPrincipal UserSession user, @RequestBody CreateActivity.Command body) {
-    return ResponseEntity.status(201).body(create.create(user, body));
+      @AuthenticationPrincipal UserSession user,
+      @RequestHeader("Idempotency-Key") UUID key,
+      @RequestBody CreateActivity.Command body) {
+    var receipt = create.create(user, key, body);
+    return ResponseEntity.status(receipt.status()).body(receipt.body());
   }
 
   @PatchMapping("/{activityId}")
@@ -83,8 +86,10 @@ public class ActivityCommandController {
   public ResponseEntity<Map<String, Object>> addStudent(
       @AuthenticationPrincipal UserSession user,
       @PathVariable UUID activityId,
+      @RequestHeader("Idempotency-Key") UUID key,
       @Valid @RequestBody StudentInput body) {
-    return ResponseEntity.status(201).body(students.add(user, activityId, body.cedula()));
+    var receipt = students.add(user, activityId, key, body.cedula());
+    return ResponseEntity.status(receipt.status()).body(receipt.body());
   }
 
   @DeleteMapping("/{activityId}/students/{personId}")

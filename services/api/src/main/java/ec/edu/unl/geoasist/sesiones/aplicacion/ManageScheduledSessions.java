@@ -3,6 +3,8 @@ package ec.edu.unl.geoasist.sesiones.aplicacion;
 import ec.edu.unl.geoasist.actividades.aplicacion.*;
 import ec.edu.unl.geoasist.actividades.persistencia.ActivityRepository;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
+import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService;
+import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService.Receipt;
 import ec.edu.unl.geoasist.compartido.persistencia.AttendanceLocks;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import java.sql.Timestamp;
@@ -14,8 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ManageScheduledSessions {
-  /** Campos nulos no cambian; metodo_verificacion se añade con US5. */
-  public record Changes(Instant inicio, Instant fin, UUID espacio_id) {}
+  /** Campos nulos no cambian. */
+  public record Changes(
+      Instant inicio, Instant fin, UUID espacio_id, String metodo_verificacion) {}
 
   private final JdbcTemplate db;
   private final ActivityRepository activities;
@@ -23,6 +26,7 @@ public class ManageScheduledSessions {
   private final AttendanceLocks locks;
   private final ActivityAuditWriter audit;
   private final SpaceMethodRules rules;
+  private final IdempotencyService replay;
 
   public ManageScheduledSessions(
       JdbcTemplate db,
@@ -30,13 +34,15 @@ public class ManageScheduledSessions {
       ActivityAuthorization scope,
       AttendanceLocks locks,
       ActivityAuditWriter audit,
-      SpaceMethodRules rules) {
+      SpaceMethodRules rules,
+      IdempotencyService replay) {
     this.db = db;
     this.activities = activities;
     this.scope = scope;
     this.locks = locks;
     this.audit = audit;
     this.rules = rules;
+    this.replay = replay;
   }
 
   private static final String COLUMNS =
@@ -75,7 +81,12 @@ public class ManageScheduledSessions {
   }
 
   @Transactional
-  public Map<String, Object> create(UserSession user, UUID activityId, Changes c) {
+  public Receipt create(UserSession user, UUID activityId, UUID key, Changes c) {
+    return replay.run("create-activity-session", user.accountId().toString(), key, activityId, c,
+        () -> new Receipt(201, createOnce(user, activityId, c)));
+  }
+
+  private Map<String, Object> createOnce(UserSession user, UUID activityId, Changes c) {
     scope.write(user, activityId);
     locks.activity(activityId, true);
     var activity = scope.write(user, activityId);
@@ -114,13 +125,20 @@ public class ManageScheduledSessions {
     Instant end = c.fin() == null ? (Instant) row.get("fin") : c.fin();
     UUID space = c.espacio_id() == null ? (UUID) row.get("espacio_id") : c.espacio_id();
     if (!end.isAfter(start)) throw ApiFailure.invalid();
-    rules.check(space, (String) row.get("metodo_verificacion"));
+    String before = (String) row.get("metodo_verificacion");
+    String method = c.metodo_verificacion() == null ? before : c.metodo_verificacion();
+    rules.check(space, method);
     db.update(
-        "UPDATE sesiones SET ventana_inicio=?,ventana_fin=?,espacio_id=? WHERE id=?",
+        "UPDATE sesiones SET ventana_inicio=?,ventana_fin=?,espacio_id=?,metodo_verificacion=? WHERE id=?",
         Timestamp.from(start),
         Timestamp.from(end),
         space,
+        method,
         session);
+    if (!method.equals(before) && !method.contains("GPS"))
+      db.update(
+          "UPDATE configuracion_geografica SET habilitada=false,radio_m=NULL,precision_max_m=NULL,antiguedad_max_s=NULL,modo='OFF',evidencia_id=NULL WHERE sesion_id=?",
+          session);
     audit.write(
         (UUID) row.get("activity_id"),
         user.accountId(),
@@ -132,8 +150,18 @@ public class ManageScheduledSessions {
             "inicio",
             row.get("inicio").toString(),
             "fin",
-            row.get("fin").toString()),
-        Map.of("sesion_id", session, "inicio", start.toString(), "fin", end.toString()));
+            row.get("fin").toString(),
+            "metodo_verificacion",
+            before),
+        Map.of(
+            "sesion_id",
+            session,
+            "inicio",
+            start.toString(),
+            "fin",
+            end.toString(),
+            "metodo_verificacion",
+            method));
     return find(session);
   }
 

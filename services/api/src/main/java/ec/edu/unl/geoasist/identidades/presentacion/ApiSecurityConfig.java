@@ -64,7 +64,8 @@ public class ApiSecurityConfig {
             a.requestMatchers(
                     "/api/v1/auth/login",
                     "/api/v1/guest-registrations",
-                    "/api/v1/guest-registrations/submit")
+                    "/api/v1/guest-registrations/submit",
+                    "/api/v1/events/open/*")
                 .permitAll()
                 .requestMatchers("/api/v1/admin/**")
                 .hasAuthority("ADMINISTRADOR")

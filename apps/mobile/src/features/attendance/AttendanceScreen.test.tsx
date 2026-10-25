@@ -43,6 +43,7 @@ test('la capacidad invitada usa almacenamiento seguro separado y sin PII', async
     registro_invitado_token: 't'.repeat(64),
     inicio_en: '2026-10-20T01:00:00Z',
     vence_en: '2026-10-20T01:02:00Z',
+    evento_abierto: false,
   }, '11111111-1111-4111-8111-111111111111');
   await saveGuestResume(resume);
   expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
@@ -62,6 +63,7 @@ test('recarga recupera el formulario sin otra apertura y no solicita ubicación 
       venceEn: '2026-10-20T01:02:00Z',
       idempotencyKey: '11111111-1111-4111-8111-111111111111',
       deviceId: '11111111-1111-4111-8111-111111111111',
+      openEvent: false,
     }),
   );
   const ui = await render(<AttendanceScreen session={null} />);
@@ -78,6 +80,7 @@ test('pérdida de red conserva la misma carga y clave para el reintento', async 
       venceEn: '2026-10-20T01:02:00Z',
       idempotencyKey: '11111111-1111-4111-8111-111111111111',
       deviceId: '11111111-1111-4111-8111-111111111111',
+      openEvent: false,
     }),
   );
   jest
@@ -101,4 +104,20 @@ test('la cámara pide permiso solo al pulsar y acepta un QR en fragmento', async
   await waitFor(() => expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1));
   await fireEvent(ui.getByLabelText('Escáner QR'), 'touchEnd');
   await waitFor(() => expect(ui.getByText('Continuar como invitado sin cuenta')).toBeTruthy());
+});
+
+test('evento abierto exige y envia nombres en el autorregistro', async () => {
+  jest.mocked(SecureStore.getItemAsync).mockResolvedValue(JSON.stringify({
+    token: 'a'.repeat(64), inicioEn: '2026-10-20T01:00:00Z', venceEn: '2026-10-20T01:02:00Z',
+    idempotencyKey: '11111111-1111-4111-8111-111111111111', deviceId: '11111111-1111-4111-8111-111111111111', openEvent: true,
+  }));
+  jest.mocked(request).mockResolvedValue({ resultado: 'CONFIRMADA', mensaje: 'Asistencia registrada.' });
+  const ui = await render(<AttendanceScreen session={null} />);
+  await waitFor(() => expect(ui.getByLabelText('Nombres')).toBeTruthy());
+  await fireEvent.changeText(ui.getByLabelText('Cédula'), '0105000017');
+  await fireEvent.changeText(ui.getByLabelText('Nombres'), 'Persona Externa');
+  await fireEvent.press(ui.getByText('Enviar asistencia'));
+  await waitFor(() => expect(request).toHaveBeenCalledWith('/guest-registrations/submit', expect.objectContaining({
+    body: expect.stringContaining('Persona Externa'),
+  })));
 });

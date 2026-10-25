@@ -3,6 +3,8 @@ package ec.edu.unl.geoasist.actividades.aplicacion;
 import ec.edu.unl.geoasist.actividades.dominio.WeeklySchedule;
 import ec.edu.unl.geoasist.actividades.persistencia.ActivityRepository;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
+import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService;
+import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService.Receipt;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -31,7 +33,12 @@ public class CreateActivity {
       UUID espacio_id,
       String metodo_verificacion,
       List<UUID> paralelo_ids,
-      Schedule horario) {}
+      Schedule horario,
+      String acceso,
+      java.time.Instant inicio,
+      java.time.Instant fin,
+      Integer tolerancia_invitado_segundos,
+      List<UUID> carrera_ids) {}
 
   private final JdbcTemplate db;
   private final ActivityAuditWriter audit;
@@ -39,6 +46,7 @@ public class CreateActivity {
   private final ReplaceSchedule schedules;
   private final FindVisibleActivities queries;
   private final ActivityRepository activities;
+  private final IdempotencyService replay;
 
   public CreateActivity(
       JdbcTemplate db,
@@ -46,22 +54,68 @@ public class CreateActivity {
       SpaceMethodRules rules,
       ReplaceSchedule schedules,
       FindVisibleActivities queries,
-      ActivityRepository activities) {
+      ActivityRepository activities,
+      IdempotencyService replay) {
     this.db = db;
     this.audit = audit;
     this.rules = rules;
     this.schedules = schedules;
     this.queries = queries;
     this.activities = activities;
+    this.replay = replay;
   }
 
   @Transactional
-  public Map<String, Object> create(UserSession user, Command c) {
+  public Receipt create(UserSession user, UUID key, Command c) {
     if (c == null || c.modalidad() == null) throw ApiFailure.invalid();
-    return switch (c.modalidad()) {
-      case "CLASE" -> createClass(user, c);
-      default -> throw ApiFailure.invalid();
-    };
+    return replay.run(
+        "create-activity",
+        user.accountId().toString(),
+        key,
+        null,
+        c,
+        () -> new Receipt(201, switch (c.modalidad()) {
+          case "CLASE" -> createClass(user, c);
+          case "EVENTO" -> createEvent(user, c);
+          default -> throw ApiFailure.invalid();
+        }));
+  }
+
+  private Map<String, Object> createEvent(UserSession user, Command c) {
+    user.requireAnyRole("DOCENTE", "ENCARGADO");
+    if (c.nombre() == null || c.nombre().isBlank() || c.nombre().length() > 200
+        || c.espacio_id() == null || c.inicio() == null || c.fin() == null
+        || !c.fin().isAfter(c.inicio())
+        || !("CERRADO".equals(c.acceso()) || "ABIERTO".equals(c.acceso())))
+      throw ApiFailure.invalid();
+    int tolerance = c.tolerancia_invitado_segundos() == null ? 120 : c.tolerancia_invitado_segundos();
+    if (tolerance <= 40) throw ApiFailure.invalid();
+    String method = c.metodo_verificacion() == null ? "SOLO_QR" : c.metodo_verificacion();
+    rules.check(c.espacio_id(), method);
+    List<UUID> careers = c.carrera_ids() == null ? List.of() : new ArrayList<>(new LinkedHashSet<>(c.carrera_ids()));
+    if (careers.stream().anyMatch(Objects::isNull)) throw ApiFailure.invalid();
+    if (!careers.isEmpty()) {
+      String marks = String.join(",", Collections.nCopies(careers.size(), "?"));
+      Integer count = db.queryForObject("SELECT count(*) FROM carreras WHERE id IN (" + marks + ")", Integer.class, careers.toArray());
+      if (count == null || count != careers.size()) throw ApiFailure.invalid();
+    }
+    UUID id = UUID.randomUUID();
+    UUID session = UUID.randomUUID();
+    db.update("INSERT INTO actividades(id,nombre,modalidad,responsable_id,espacio_id,metodo_verificacion,acceso) VALUES (?,?,'EVENTO',?,?,?,?)",
+        id, c.nombre().strip(), user.accountId(), c.espacio_id(), method, c.acceso());
+    for (UUID career : careers) db.update("INSERT INTO actividad_carreras VALUES (?,?)", id, career);
+    db.update("INSERT INTO sesiones(id,actividad_id,espacio_id,ventana_inicio,ventana_fin,metodo_verificacion) VALUES (?,?,?,?,?,?)",
+        session, id, c.espacio_id(), java.sql.Timestamp.from(c.inicio()), java.sql.Timestamp.from(c.fin()), method);
+    db.update("INSERT INTO configuracion_invitados(actividad_id,habilitado,tolerancia_invitado_segundos,version) VALUES (?,true,?,1)", id, tolerance);
+    audit.write(id, user.accountId(), "CREAR_ACTIVIDAD", null, Map.of(),
+        Map.of("modalidad", "EVENTO", "acceso", c.acceso(), "sesiones", 1));
+    var out = new LinkedHashMap<>(queries.dto(activities.find(id)));
+    out.put("acceso", c.acceso());
+    out.put("espacio_id", c.espacio_id());
+    out.put("metodo_verificacion", method);
+    out.put("tolerancia_invitado_segundos", tolerance);
+    out.put("sesiones", List.of(Map.of("id", session, "estado", "PROGRAMADA", "inicio", c.inicio(), "fin", c.fin())));
+    return out;
   }
 
   private Map<String, Object> createClass(UserSession user, Command c) {

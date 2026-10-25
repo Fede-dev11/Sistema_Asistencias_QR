@@ -33,14 +33,16 @@ public class GuestRegistrationController {
       @Valid @RequestBody AttendanceInputs.GuestStart body, HttpServletRequest request) {
     UUID session = null;
     try {
-      session = qr.lookup(body.qr_token()).session();
+      if (body.sesion_id() == null && body.qr_token() == null) throw ApiFailure.invalid();
+      session =
+          body.sesion_id() != null ? body.sesion_id() : qr.lookup(body.qr_token()).session();
     } catch (ApiFailure e) {
       limits.opening(request.getRemoteAddr(), null);
       throw e;
     }
     limits.opening(request.getRemoteAddr(), session);
     return ResponseEntity.status(201)
-        .body(opening.open(body.qr_token(), ServerTime.received(request)));
+        .body(opening.open(body.qr_token(), body.sesion_id(), ServerTime.received(request)));
   }
 
   @PostMapping("/submit")
@@ -53,6 +55,7 @@ public class GuestRegistrationController {
         submit.submit(
             body.registro_invitado_token(),
             ec.edu.unl.geoasist.compartido.dominio.Cedula.of(body.cedula()).value(),
+            body.nombres(),
             body.dispositivo_id(),
             body.ubicacion() == null ? null : body.ubicacion().measurement(),
             key,

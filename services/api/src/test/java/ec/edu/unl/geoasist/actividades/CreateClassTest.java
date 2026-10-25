@@ -6,6 +6,7 @@ import ec.edu.unl.geoasist.soporte.ClassSupport;
 import ec.edu.unl.geoasist.soporte.ScenarioFixtures;
 import java.util.*;
 import org.junit.jupiter.api.Test;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
 class CreateClassTest extends ClassSupport {
   private int count(String sql, String id) {
@@ -107,5 +108,40 @@ class CreateClassTest extends ClassSupport {
                     "metodo_verificacion", "SOLO_GPS")),
             409);
     assertEquals("ESPACIO_SIN_UBICACION", e.get("code").asText());
+  }
+
+  @Test
+  void createIsIdempotentPerActorAndRejectsChangedPayload() throws Exception {
+    String teacher = token(ScenarioFixtures.TEACHER);
+    UUID key = UUID.randomUUID();
+    var body = Map.of("modalidad", "CLASE", "nombre", "Idempotente", "espacio_id", SPACE, "paralelo_ids", List.of(P11));
+    var first = ok(api.perform(post("/api/v1/activities").header("Authorization", "Bearer " + teacher)
+        .header("Idempotency-Key", key).contentType("application/json").content(json.writeValueAsString(body))), 201);
+    var replay = ok(api.perform(post("/api/v1/activities").header("Authorization", "Bearer " + teacher)
+        .header("Idempotency-Key", key).contentType("application/json").content(json.writeValueAsString(body))), 200);
+    assertEquals(first.get("id").asText(), replay.get("id").asText());
+    var changed = new LinkedHashMap<String, Object>(body); changed.put("nombre", "Distinta");
+    assertEquals("IDEMPOTENCIA_CONFLICTO", ok(api.perform(post("/api/v1/activities").header("Authorization", "Bearer " + teacher)
+        .header("Idempotency-Key", key).contentType("application/json").content(json.writeValueAsString(changed))), 409).get("code").asText());
+  }
+
+  @Test
+  void looseSessionAndStudentCreatesAlsoReplayPerActor() throws Exception {
+    String teacher=token(ScenarioFixtures.TEACHER);
+    String activity=createClass(teacher,List.of(P11),null,201).get("id").asText();
+    UUID sessionKey=UUID.randomUUID();
+    var sessionBody=Map.of("inicio","2026-11-02T13:00:00Z","fin","2026-11-02T15:00:00Z");
+    var first=ok(api.perform(post("/api/v1/activities/"+activity+"/sessions").header("Authorization","Bearer "+teacher)
+        .header("Idempotency-Key",sessionKey).contentType("application/json").content(json.writeValueAsString(sessionBody))),201);
+    var replay=ok(api.perform(post("/api/v1/activities/"+activity+"/sessions").header("Authorization","Bearer "+teacher)
+        .header("Idempotency-Key",sessionKey).contentType("application/json").content(json.writeValueAsString(sessionBody))),200);
+    assertEquals(first.get("id").asText(),replay.get("id").asText());
+
+    UUID studentKey=UUID.randomUUID(); var studentBody=Map.of("cedula","0100000074");
+    var added=ok(api.perform(post("/api/v1/activities/"+activity+"/students").header("Authorization","Bearer "+teacher)
+        .header("Idempotency-Key",studentKey).contentType("application/json").content(json.writeValueAsString(studentBody))),201);
+    var addedReplay=ok(api.perform(post("/api/v1/activities/"+activity+"/students").header("Authorization","Bearer "+teacher)
+        .header("Idempotency-Key",studentKey).contentType("application/json").content(json.writeValueAsString(studentBody))),200);
+    assertEquals(added.get("persona_id").asText(),addedReplay.get("persona_id").asText());
   }
 }
