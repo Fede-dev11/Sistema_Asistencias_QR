@@ -22,12 +22,13 @@ public class AttemptRepository {
       UUID session,
       Person person,
       AttendanceOutcome outcome,
+      String deviceHash,
       String channel,
       Instant received,
       UUID start) {
     UUID id = UUID.randomUUID();
     db.update(
-        "INSERT INTO intentos_asistencia(id,sesion_id,persona_id,nombres_referencia,resultado,code,mensaje,canal,recibido_en,distancia_m,precision_m,inicio_invitado_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+        "INSERT INTO intentos_asistencia(id,sesion_id,persona_id,nombres_referencia,resultado,code,mensaje,dispositivo_hash,canal,recibido_en,distancia_m,precision_m,inicio_invitado_id) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
         id,
         session,
         person == null ? null : person.id(),
@@ -35,6 +36,7 @@ public class AttemptRepository {
         outcome.result().name(),
         outcome.code(),
         outcome.message(),
+        deviceHash,
         channel,
         java.sql.Timestamp.from(received),
         rounded(outcome.distance()),
@@ -66,8 +68,13 @@ public class AttemptRepository {
   }
 
   public boolean confirm(UUID session, Person person, UUID attempt, Instant received, String form) {
+    return confirm(session, person, attempt, received, form, null);
+  }
+
+  public boolean confirm(
+      UUID session, Person person, UUID attempt, Instant received, String form, String deviceHash) {
     return !db.queryForList(
-            "INSERT INTO asistencias(id,sesion_id,persona_id,intento_id,registrada_en,forma,nombres_registro) VALUES (?,?,?,?,?,?,?) ON CONFLICT(sesion_id,persona_id) DO NOTHING RETURNING id",
+            "INSERT INTO asistencias(id,sesion_id,persona_id,intento_id,registrada_en,forma,nombres_registro,dispositivo_hash) VALUES (?,?,?,?,?,?,?,?) ON CONFLICT DO NOTHING RETURNING id",
             UUID.class,
             UUID.randomUUID(),
             session,
@@ -75,8 +82,18 @@ public class AttemptRepository {
             attempt,
             java.sql.Timestamp.from(received),
             form,
-            person.name())
+            person.name(),
+            deviceHash)
         .isEmpty();
+  }
+
+  public Optional<Attendance> existingDevice(UUID session, String deviceHash) {
+    return db.query(
+            "SELECT id,sesion_id,persona_id,intento_id,registrada_en,nombres_registro FROM asistencias WHERE sesion_id=? AND dispositivo_hash=?",
+            (r, n) -> new Attendance(r.getObject(1, UUID.class), r.getObject(2, UUID.class),
+                r.getObject(3, UUID.class), r.getObject(4, UUID.class),
+                r.getTimestamp(5).toInstant(), r.getString(6)), session, deviceHash)
+        .stream().findFirst();
   }
 
   public int consecutiveUncertainty(UUID session, UUID person) {

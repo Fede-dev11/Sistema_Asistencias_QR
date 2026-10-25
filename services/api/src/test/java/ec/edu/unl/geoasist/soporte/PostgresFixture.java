@@ -166,6 +166,13 @@ public abstract class PostgresFixture {
 
   protected org.springframework.test.web.servlet.ResultActions guestSubmit(
       String secret, String cedula, java.util.UUID key) throws Exception {
+    // Dispositivo estable por clave: un reintento idempotente conserva el mismo cuerpo canonico.
+    return guestSubmit(
+        secret, cedula, key, java.util.UUID.nameUUIDFromBytes(key.toString().getBytes()));
+  }
+
+  protected org.springframework.test.web.servlet.ResultActions guestSubmit(
+      String secret, String cedula, java.util.UUID key, java.util.UUID deviceId) throws Exception {
     return api.perform(
         org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
                 "/api/v1/guest-registrations/submit")
@@ -173,7 +180,10 @@ public abstract class PostgresFixture {
             .contentType("application/json")
             .content(
                 json.writeValueAsString(
-                    java.util.Map.of("registro_invitado_token", secret, "cedula", cedula))));
+                    java.util.Map.of(
+                        "registro_invitado_token", secret,
+                        "cedula", cedula,
+                        "dispositivo_id", deviceId))));
   }
 
   private static final java.util.concurrent.atomic.AtomicLong FICTIONAL_IDS =

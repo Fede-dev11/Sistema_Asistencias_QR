@@ -34,7 +34,7 @@ test('responsable exporta y directores solo leen su ámbito', async ({ page, req
   const qr = ((await qrResponse.json()) as { qr_token: string }).qr_token;
   const attendance = await request.post(`${API}/attendance/attempts`, {
     headers: { Authorization: `Bearer ${student}`, 'Idempotency-Key': crypto.randomUUID() },
-    data: { qr_token: qr },
+    data: { qr_token: qr, dispositivo_id: crypto.randomUUID() },
   });
   expect(attendance.status()).toBe(201);
 

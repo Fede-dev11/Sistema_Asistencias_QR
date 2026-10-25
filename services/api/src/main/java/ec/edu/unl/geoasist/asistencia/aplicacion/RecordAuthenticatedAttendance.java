@@ -47,6 +47,7 @@ public class RecordAuthenticatedAttendance {
   public Receipt record(
       UserSession user,
       String token,
+      UUID deviceId,
       GeoMeasurement location,
       UUID key,
       Object canonical,
@@ -62,7 +63,7 @@ public class RecordAuthenticatedAttendance {
     try {
       person = eligible.account(user, activity);
     } catch (ApiFailure e) {
-      return recording.reject(issued.session(), null, e, "CREDENCIALES", received, null);
+      return recording.reject(issued.session(), null, deviceId, e, "CREDENCIALES", received, null);
     }
     return replay.run(
         "attendance-account",
@@ -75,9 +76,9 @@ public class RecordAuthenticatedAttendance {
             recording.requireActive(activity, sessions.find(issued.session()));
             IssueSessionQr.validate(issued, received);
             return recording.record(
-                issued.session(), person, location, "CREDENCIALES", received, null);
+                issued.session(), person, deviceId, location, "CREDENCIALES", received, null);
           } catch (ApiFailure e) {
-            return recording.reject(issued.session(), person, e, "CREDENCIALES", received, null);
+            return recording.reject(issued.session(), person, deviceId, e, "CREDENCIALES", received, null);
           }
         });
   }

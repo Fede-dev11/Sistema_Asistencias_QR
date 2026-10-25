@@ -53,6 +53,7 @@ public class GuestRegistrationController {
         submit.submit(
             body.registro_invitado_token(),
             ec.edu.unl.geoasist.compartido.dominio.Cedula.of(body.cedula()).value(),
+            body.dispositivo_id(),
             body.ubicacion() == null ? null : body.ubicacion().measurement(),
             key,
             body,

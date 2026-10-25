@@ -14,6 +14,7 @@ import {
   type GuestResume,
 } from './guestResume';
 import { captureAttendanceLocation, type AttendanceLocation } from './location';
+import { getInstallationId } from '../device/installationId';
 
 type GuestStart = components['schemas']['GuestStartResult'];
 type Receipt = components['schemas']['AttendanceReceipt'];
@@ -86,10 +87,11 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
     setBusy(true);
     setResult(null);
     try {
+      const deviceId = await getInstallationId();
       const value = await request<Receipt | Pending>('/attendance/attempts', {
         method: 'POST',
         headers: { 'Idempotency-Key': key },
-        body: JSON.stringify({ qr_token: qrToken, ...(location ? { ubicacion: location } : {}) }),
+        body: JSON.stringify({ qr_token: qrToken, dispositivo_id: deviceId, ...(location ? { ubicacion: location } : {}) }),
       });
       setResult(show(value));
     } catch (error) {
@@ -122,7 +124,7 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
         authentication: 'none',
         body: JSON.stringify({ qr_token: qrToken }),
       });
-      const resume = createGuestResume(opened);
+      const resume = createGuestResume(opened, await getInstallationId());
       await saveGuestResume(resume);
       setGuest(resume);
     } catch (error) {
@@ -146,7 +148,7 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
         method: 'POST',
         authentication: 'none',
         headers: { 'Idempotency-Key': current.idempotencyKey },
-        body: JSON.stringify({ registro_invitado_token: current.token, cedula, ...(location ? { ubicacion: location } : {}) }),
+        body: JSON.stringify({ registro_invitado_token: current.token, cedula, dispositivo_id: current.deviceId, ...(location ? { ubicacion: location } : {}) }),
       });
       setResult(show(value));
       if (value.resultado === 'CONFIRMADA') {

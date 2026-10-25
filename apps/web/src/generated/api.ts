@@ -810,6 +810,7 @@ export interface components {
         AttendanceAttemptRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
             qr_token: string;
+            dispositivo_id: components["schemas"]["DeviceId"];
             ubicacion?: components["schemas"]["Location"];
         };
         /** @description Recibo mínimo compartido por ambos flujos. Sin cédula, nombres ni datos del listado. */
@@ -850,6 +851,7 @@ export interface components {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             registro_invitado_token: string;
             cedula: string;
+            dispositivo_id: components["schemas"]["DeviceId"];
             ubicacion?: components["schemas"]["Location"];
         };
         /** @description Una fila por persona identificada en la sesión. Prevalece su asistencia confirmada; si no existe, mostrar su último intento identificado pendiente o rechazado. Nunca exponer intentos sin persona identificada ni cédulas desconocidas. El filtro estado se aplica después de esta proyección. */

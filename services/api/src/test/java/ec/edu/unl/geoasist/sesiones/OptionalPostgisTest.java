@@ -109,6 +109,8 @@ class OptionalPostgisTest {
                             Map.of(
                                 "qr_token",
                                 qr,
+                                "dispositivo_id",
+                                UUID.randomUUID(),
                                 "ubicacion",
                                 Map.of(
                                     "latitud",
