@@ -2030,6 +2030,35 @@ paths:
       - $ref: '#/components/parameters/sessionId'
       - $ref: '#/components/parameters/Page'
       - $ref: '#/components/parameters/Size'
+  /me/attendances:
+    get:
+      operationId: listMyAttendances
+      summary: Historial propio por sesión cerrada
+      description: Solo datos de la persona autenticada. Sesiones cerradas con su resultado y el estado de su última solicitud de justificación; las actividades anonimizadas no aparecen.
+      tags: [stats]
+      parameters:
+      - {$ref: '#/components/parameters/Page'}
+      - {$ref: '#/components/parameters/Size'}
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MyAttendancePage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /me/stats:
+    get:
+      operationId: getMyStats
+      summary: Porcentajes propios por actividad de clase
+      tags: [stats]
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MyStatsList'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
 components:
   securitySchemes:
     SessionBearer:
@@ -3517,3 +3546,39 @@ components:
         page: {type: integer, minimum: 0}
         size: {type: integer, minimum: 1, maximum: 100}
         total: {type: integer, minimum: 0}
+    MyAttendance:
+      type: object
+      required: [sesion_id, actividad_id, actividad, inicio, resultado, justificacion]
+      properties:
+        sesion_id: {type: string, format: uuid}
+        actividad_id: {type: string, format: uuid}
+        actividad: {type: string}
+        inicio: {type: string, format: date-time}
+        resultado: {type: string, enum: [ASISTIO, AUSENTE, JUSTIFICADA, PENDIENTE_REVISION]}
+        justificacion: {type: string, nullable: true, enum: [PENDIENTE, APROBADA, RECHAZADA, null]}
+    MyAttendancePage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/MyAttendance'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    MyActivityStats:
+      allOf:
+      - $ref: '#/components/schemas/AttendanceStats'
+      - type: object
+        required: [actividad_id, actividad, umbral_asistencia]
+        properties:
+          actividad_id: {type: string, format: uuid}
+          actividad: {type: string}
+          umbral_asistencia: {type: number, minimum: 0, maximum: 100}
+    MyStatsList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/MyActivityStats'}

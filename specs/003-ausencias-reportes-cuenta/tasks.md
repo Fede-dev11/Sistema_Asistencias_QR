@@ -46,8 +46,8 @@ Reutilizar `ActivityAuthorization`, `ActivityAuditWriter`, `AttendanceLocks`, `I
 
 ## Phase 5: US3 — Historial del participante (P2)
 
-- [ ] T019 [P] [US3] `TEST/estadisticas/MyHistoryTest.java`: US3-1, US3-2 (no ve datos ajenos), US3-3 (actividad anonimizada desaparece), paginación
-- [ ] T020 [US3] `GET /me/attendances` (por sesión cerrada: actividad, fecha, resultado ASISTIO/AUSENTE/JUSTIFICADA/PENDIENTE_REVISION, estado de su solicitud) y `GET /me/stats` (por clase) en `API/estadisticas/presentacion/MyHistoryController.java` reutilizando `StatsRepository`; YAML + tipos
+- [X] T019 [P] [US3] `TEST/estadisticas/MyHistoryTest.java`: US3-1, US3-2 (no ve datos ajenos), US3-3 (actividad anonimizada desaparece), paginación
+- [X] T020 [US3] `GET /me/attendances` (por sesión cerrada: actividad, fecha, resultado ASISTIO/AUSENTE/JUSTIFICADA/PENDIENTE_REVISION, estado de su solicitud) y `GET /me/stats` (por clase) en `API/estadisticas/presentacion/MyHistoryController.java` reutilizando `StatsRepository`; YAML + tipos
 
 ## Phase 6: US4 — Ciclo automático (P2)
 
