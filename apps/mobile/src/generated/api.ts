@@ -594,6 +594,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/me/active-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sesiones activas donde el participante puede registrar asistencia
+         * @description Clases donde está autorizado (vigente) y eventos abiertos o cerrados con cuenta. Nunca incluye sesiones PROGRAMADA, CERRADA ni CANCELADA.
+         */
+        get: operations["listMyActiveSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/spaces": {
         parameters: {
             query?: never;
@@ -780,7 +800,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Editar hora o espacio de una sesión programada
+         * Editar hora, espacio o método de una sesión programada
          * @description Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
          */
         patch: operations["updateScheduledSession"];
@@ -978,7 +998,7 @@ export interface components {
             /** @enum {integer} */
             vigencia_segundos: 40;
         };
-        /** @description Al habilitar se requieren los tres parámetros; el servidor los valida conjuntamente. Si está apagada no se pide permiso ni se conserva ubicación. */
+        /** @description Al habilitar, radio_m y precision_max_m son opcionales y heredan los valores por defecto del espacio de la sesión; antiguedad_max_s por defecto es 60. Si está apagada no se pide permiso ni se conserva ubicación. */
         GeolocationSettings: {
             /** @default false */
             habilitada: boolean;
@@ -1002,8 +1022,13 @@ export interface components {
         };
         AttendanceAttemptRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
-            qr_token: string;
+            qr_token?: string;
             dispositivo_id: components["schemas"]["DeviceId"];
+            /**
+             * Format: uuid
+             * @description Identifica la sesión cuando su método no incluye QR (SOLO_GPS, NINGUNO). Se envía exactamente uno de qr_token o sesion_id; qr_token en método sin QR responde 400 METODO_NO_ADMITE_QR y sesion_id en método con QR responde 400 QR_REQUERIDO.
+             */
+            sesion_id?: string;
             ubicacion?: components["schemas"]["Location"];
         };
         /** @description Recibo mínimo compartido por ambos flujos. Sin cédula, nombres ni datos del listado. */
@@ -1030,7 +1055,12 @@ export interface components {
         };
         GuestStartRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
-            qr_token: string;
+            qr_token?: string;
+            /**
+             * Format: uuid
+             * @description Alternativa a qr_token solo para sesiones cuyo método no incluye QR.
+             */
+            sesion_id?: string;
         };
         GuestStartResult: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
@@ -1200,6 +1230,35 @@ export interface components {
             entrada: string;
             motivo: string;
         };
+        ActiveSession: {
+            /** Format: uuid */
+            sesion_id: string;
+            actividad: {
+                /** Format: uuid */
+                id: string;
+                nombre: string;
+                /** @enum {string} */
+                modalidad: "CLASE" | "EVENTO";
+            };
+            espacio?: {
+                /** Format: uuid */
+                id: string;
+                nombre: string;
+            } | null;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            requiere_ubicacion: boolean;
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+        };
+        ActiveSessionPage: {
+            items: components["schemas"]["ActiveSession"][];
+            page: number;
+            size: number;
+            total: number;
+        };
         MyParallel: {
             /** Format: uuid */
             paralelo_id: string;
@@ -1324,6 +1383,8 @@ export interface components {
             fin?: string;
             /** Format: uuid */
             espacio_id?: string;
+            /** @enum {string} */
+            metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
         };
         ScheduledSession: {
             /** Format: uuid */
@@ -2820,6 +2881,31 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
+        };
+    };
+    listMyActiveSessions: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de sesiones activas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActiveSessionPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
         };
     };
     searchSpaces: {

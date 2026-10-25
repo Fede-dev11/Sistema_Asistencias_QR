@@ -38,7 +38,7 @@ public class ActivitySessionController {
       @RequestHeader("Idempotency-Key") UUID key,
       @Valid @RequestBody Input body) {
     var receipt = service.create(user, activityId, key,
-        new ManageScheduledSessions.Changes(body.inicio(), body.fin(), body.espacio_id()));
+        new ManageScheduledSessions.Changes(body.inicio(), body.fin(), body.espacio_id(), null));
     return ResponseEntity.status(receipt.status()).body(receipt.body());
   }
 }

@@ -64,6 +64,17 @@ public class SessionLifecycle {
             if (!row.state().equals("PROGRAMADA")
                 || clock.instant().isBefore(row.windowStart())
                 || !clock.instant().isBefore(row.windowEnd())) throw ApiFailure.conflict();
+            String method = sessions.method(session);
+            if (method.contains("GPS")
+                && !Boolean.TRUE.equals(
+                    db.queryForObject(
+                        "SELECT COALESCE((SELECT habilitada FROM configuracion_geografica WHERE sesion_id=?),false)",
+                        Boolean.class,
+                        session)))
+              throw new ApiFailure(
+                  409,
+                  "CONFIGURACION_GPS_REQUERIDA",
+                  "El método incluye GPS: configura la geolocalización antes de iniciar.");
             db.update(
                 "UPDATE sesiones SET estado='ACTIVA',iniciada_en=? WHERE id=?",
                 java.sql.Timestamp.from(clock.instant()),

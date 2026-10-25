@@ -58,6 +58,27 @@ public class ConfigureSessionGeolocation {
     if (!activity.state().equals("ABIERTA") || !session.state().equals("PROGRAMADA"))
       throw ApiFailure.conflict();
 
+    if (command.enabled()
+        && (command.radius() == null
+            || command.maximumPrecision() == null
+            || command.maximumAgeSeconds() == null)) {
+      var defaults =
+          db.queryForList(
+              "SELECT e.radio_defecto_m,e.precision_defecto_m FROM sesiones s JOIN espacios e ON e.id=s.espacio_id WHERE s.id=?",
+              sessionId);
+      if (defaults.isEmpty() && (command.radius() == null || command.maximumPrecision() == null))
+        throw ApiFailure.invalid();
+      command =
+          new Command(
+              true,
+              command.radius() != null
+                  ? command.radius()
+                  : ((Number) defaults.getFirst().get("radio_defecto_m")).doubleValue(),
+              command.maximumPrecision() != null
+                  ? command.maximumPrecision()
+                  : ((Number) defaults.getFirst().get("precision_defecto_m")).doubleValue(),
+              command.maximumAgeSeconds() == null ? Integer.valueOf(60) : command.maximumAgeSeconds());
+    }
     validate(command);
     UUID evidence = null;
     String mode = "OFF";

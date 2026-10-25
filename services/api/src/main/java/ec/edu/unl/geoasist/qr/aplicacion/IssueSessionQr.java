@@ -71,6 +71,7 @@ public class IssueSessionQr {
     var s = sessions.find(session);
     var now = clock.instant();
     return a.state().equals("ABIERTA")
+        && SessionRepository.usesQr(sessions.method(session))
         && s.state().equals("ACTIVA")
         && !now.isBefore(s.windowStart())
         && now.isBefore(s.windowEnd());
