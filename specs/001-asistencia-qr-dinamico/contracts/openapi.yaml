@@ -3210,7 +3210,7 @@ components:
       required: [items, page, size, total]
     AuditValues:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       properties:
         estado:
           type: string
@@ -3224,11 +3224,16 @@ components:
           type: integer
           minimum: 0
         sesion_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        forma: {type: string}
+        nombre: {type: string}
+        metodo_verificacion: {type: string}
         codigo: {type: string}
         ciclo_automatico: {type: boolean}
         umbral_asistencia: {type: number, minimum: 0, maximum: 100}
       description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o
-        copias completas de listados.
+        copias completas de listados. Las claves listadas son las habituales; la fila puede incluir otras
+        claves propias de la acción auditada.
     AuditRow:
       type: object
       additionalProperties: false

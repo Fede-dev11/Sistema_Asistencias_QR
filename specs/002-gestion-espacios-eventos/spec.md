@@ -333,13 +333,17 @@ en una sesión y luego intentar registrar a la persona B en la misma sesión.
 **Eventos abiertos**
 
 - **FR-015**: En eventos abiertos, cualquier cuenta activa DEBE poder registrar asistencia
-  con credenciales sin lista autorizada.
+  con credenciales sin lista autorizada. En eventos cerrados, una persona con cuenta tambien
+  DEBE figurar activa en el listado del evento para registrar asistencia o ver la sesion en
+  `/me/active-sessions` (decision de US4; modifica el comportamiento de 001, donde la cuenta
+  no necesitaba figurar en el listado).
 - **FR-016**: En eventos abiertos, una persona sin cuenta DEBE poder autorregistrarse con
   cédula válida y nombres (1 a 200 caracteres); si la cédula tiene cuenta, el sistema DEBE
   exigir credenciales. El autorregistro DEBE reutilizar la persona externa existente por
   cédula y NO DEBE crear cuentas.
 - **FR-017**: El autorregistro DEBE limitarse a eventos abiertos; los eventos cerrados
-  mantienen las reglas de invitados de 001 sin cambios.
+  mantienen las reglas de invitados de 001 (listado cargado por el encargado) y, ademas,
+  exigen que las personas con cuenta figuren en ese listado (ver FR-015).
 
 **Método de verificación y tolerancia**
 
@@ -433,6 +437,9 @@ en una sesión y luego intentar registrar a la persona B en la misma sesión.
 - La página de asistencia de la web deja de ofrecerse a participantes; la web atiende a
   responsables, directores y administradores.
 - La zona horaria de la institución es America/Guayaquil.
+- Decisión de US4: en un evento CERRADO las personas con cuenta también deben estar en el listado
+  del evento (`invitados_evento` activo); solo los eventos ABIERTOS aceptan cualquier cuenta
+  activa. Es un cambio deliberado respecto de 001 y está registrado en el ADR 0004.
 - El método por defecto `SOLO_QR` conserva el comportamiento actual de 001.
 - El mapa para elegir coordenadas es responsabilidad del cliente web; el servidor recibe y
   valida latitud y longitud.

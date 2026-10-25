@@ -21,3 +21,5 @@ ciclo automático (`SessionCycleScheduler`) ejecuta `SessionCycle.tick()` cada 6
 las sesiones de actividades con `ciclo_automatico` y reintenta cada 60 s un inicio fallido
 (auditado como `SISTEMA_INICIO_FALLIDO`). La prueba de rendimiento SC-003 queda fuera de `verify`:
 `./mvnw -B test -DexcludedGroups= -Dgroups=performance -Dtest=StatsPerformanceTest`.
+
+Importación CSV (002, solo `dev`): `POST /api/v1/admin/imports/students` como administrador; requiere `geoasist.dev.import-password` (o `geoasist.dev-seed-password`), de lo contrario responde 409 `CONFIGURACION_INCOMPLETA`.

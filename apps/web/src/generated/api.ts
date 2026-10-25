@@ -1532,7 +1532,7 @@ export interface components {
             size: number;
             total: number;
         };
-        /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. */
+        /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. Las claves listadas son las habituales; la fila puede incluir otras claves propias de la acción auditada. */
         AuditValues: {
             estado?: string;
             decision?: string;
@@ -1541,9 +1541,16 @@ export interface components {
             cantidad_invitados?: number;
             /** Format: uuid */
             sesion_id?: string;
+            /** Format: uuid */
+            persona_id?: string;
+            forma?: string;
+            nombre?: string;
+            metodo_verificacion?: string;
             codigo?: string;
             ciclo_automatico?: boolean;
             umbral_asistencia?: number;
+        } & {
+            [key: string]: unknown;
         };
         AuditRow: {
             /** Format: uuid */

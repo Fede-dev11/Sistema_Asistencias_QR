@@ -68,7 +68,7 @@ class GuestConfigurationContractTest extends PostgresFixture {
                 .contentType("application/json")
                 .content("{\"invitados\":[{\"cedula\":\"inválida\",\"nombres\":\"Invitado\"}]}"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("detail").isString());
+        .andExpect(jsonPath("code").value("CEDULA_INVALIDA"));
     assertEquals(
         1,
         db.queryForObject(

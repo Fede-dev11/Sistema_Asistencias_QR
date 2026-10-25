@@ -29,6 +29,12 @@ cédula puede registrarla en un evento abierto; `NINGUNO` solo deja constancia d
 comunica garantía antifraude. No usar con datos reales hasta cerrar la revisión de Gobernanza y
 el tratamiento LOPDP institucional.
 
+## Actualización (incremento 002, US4)
+
+En un evento CERRADO, las personas con cuenta también deben figurar activas en el listado del
+evento; solo los eventos ABIERTOS aceptan cualquier cuenta activa. Esto cambia el comportamiento
+de 001 para eventos y queda pendiente de revisión de otro integrante.
+
 ## Alternativas descartadas
 
 QR siempre obligatorio (rechazado por el usuario); eventos abiertos solo con cuenta UNL

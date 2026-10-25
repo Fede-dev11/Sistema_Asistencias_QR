@@ -452,6 +452,8 @@ política institucional o una validación de la base legal pendiente.
   `003-espacios-eventos`.
 - Las pruebas de clases utilizan estudiantes y listas autorizadas como datos semilla. Los
   eventos incorporan la carga de externos por el encargado y el registro mínimo de invitados.
+- La gestión de datos semilla (personas, espacios, actividades) pasa a la especificación 002;
+  dispositivo y canal móvil se rigen por FR-023..FR-026 de 002.
 - Los participantes UNL usan credenciales; el proveedor institucional está pendiente de
   confirmación. Las pruebas con cuentas semilla no demuestran integración con CAS real.
 - La identificación de invitados usa únicamente cédula contra listado por decisión expresa
