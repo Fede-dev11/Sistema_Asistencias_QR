@@ -69,7 +69,8 @@ public class SessionLifecycle {
                 java.sql.Timestamp.from(clock.instant()),
                 session);
           } else {
-            if (row.state().equals("CERRADA")) throw ApiFailure.conflict();
+            if (row.state().equals("CERRADA") || row.state().equals("CANCELADA"))
+              throw ApiFailure.conflict();
             db.update(
                 "UPDATE sesiones SET estado='CERRADA',cerrada_en=? WHERE id=?",
                 java.sql.Timestamp.from(clock.instant()),

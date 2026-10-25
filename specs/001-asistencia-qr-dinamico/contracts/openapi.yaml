@@ -123,6 +123,35 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/RateLimited'
+    post:
+      operationId: createActivity
+      summary: Crear una clase (con horario recurrente opcional)
+      description: DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). La modalidad EVENTO aún no se acepta aquí.
+      tags:
+      - activities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateActivityRequest'
+      responses:
+        '201':
+          description: Actividad creada con sus sesiones generadas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedActivity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
   /activities/{activityId}:
     get:
       operationId: getActivity
@@ -154,6 +183,39 @@ paths:
           $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+    patch:
+      operationId: updateActivity
+      summary: Editar nombre, espacio o método por defecto
+      description: Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.
+      tags:
+      - activities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateActivityRequest'
+      responses:
+        '200':
+          description: Actividad actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '429':
           $ref: '#/components/responses/RateLimited'
       parameters:
@@ -1284,6 +1346,310 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/RateLimited'
+  /activities/{activityId}/cancel:
+    post:
+      operationId: cancelActivity
+      summary: Cancelar actividad
+      description: Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Actividad cancelada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/schedule:
+    put:
+      operationId: replaceSchedule
+      summary: Reemplazar el horario recurrente
+      description: Solo RESPONSABLE de una clase ABIERTA. Borra y regenera únicamente las sesiones PROGRAMADA futuras del horario sin intentos ni tokens QR; conserva las demás.
+      tags:
+      - activities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schedule'
+      responses:
+        '200':
+          description: Horario reemplazado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleReplaced'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/students:
+    get:
+      operationId: listAuthorizedStudents
+      summary: Lista autorizada
+      description: Estudiantes autorizados (vigentes o quitados), paginada.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Página de estudiantes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedStudentPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+    post:
+      operationId: addAuthorizedStudent
+      summary: Añadir estudiante por cédula
+      description: La cédula debe pertenecer a una persona con cuenta ESTUDIANTE; reactiva a quien fue quitado.
+      tags:
+      - activities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStudentRequest'
+      responses:
+        '201':
+          description: Estudiante autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedStudent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/students/{personId}:
+    delete:
+      operationId: removeAuthorizedStudent
+      summary: Quitar estudiante de la lista autorizada
+      description: Marca vigente=false; las asistencias existentes no se tocan y la sincronización no lo reincorpora.
+      tags:
+      - activities
+      responses:
+        '204':
+          description: Estudiante quitado.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - name: personId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /activities/{activityId}/students/sync:
+    post:
+      operationId: syncAuthorizedStudents
+      summary: Sincronizar con los paralelos
+      description: Añade los matriculados vigentes de los paralelos de la clase sin reincorporar a quienes fueron quitados.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Estudiantes añadidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/sessions:
+    get:
+      operationId: listActivitySessions
+      summary: Sesiones de la actividad
+      description: Paginado por inicio de ventana.
+      tags:
+      - sessions
+      responses:
+        '200':
+          description: Página de sesiones.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+    post:
+      operationId: createLooseSession
+      summary: Crear una sesión suelta
+      description: Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.
+      tags:
+      - sessions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '201':
+          description: Sesión creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /sessions/{sessionId}:
+    patch:
+      operationId: updateScheduledSession
+      summary: Editar hora o espacio de una sesión programada
+      description: Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+      tags:
+      - sessions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSessionRequest'
+      responses:
+        '200':
+          description: Sesión actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
+  /sessions/{sessionId}/cancel:
+    post:
+      operationId: cancelScheduledSession
+      summary: Cancelar una sesión programada
+      description: Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+      tags:
+      - sessions
+      responses:
+        '200':
+          description: Sesión cancelada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
 components:
   securitySchemes:
     SessionBearer:
@@ -1750,6 +2116,7 @@ components:
           enum:
           - ABIERTA
           - CERRADA
+          - CANCELADA
         cerrada_en:
           type: string
           format: date-time
@@ -2425,3 +2792,136 @@ components:
         carrera_codigo: {type: string}
         carrera_nombre: {type: string}
         matriculados: {type: integer, minimum: 0}
+    CreateActivityRequest:
+      type: object
+      required: [modalidad, nombre, espacio_id, paralelo_ids]
+      properties:
+        modalidad: {type: string, enum: [CLASE]}
+        nombre: {type: string, minLength: 1, maxLength: 200}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        paralelo_ids:
+          type: array
+          minItems: 1
+          items: {type: string, format: uuid}
+        horario: {$ref: '#/components/schemas/Schedule'}
+    Schedule:
+      type: object
+      required: [dias, hora_inicio, hora_fin, desde, hasta]
+      properties:
+        dias:
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          items: {type: integer, minimum: 1, maximum: 7}
+        hora_inicio: {type: string, example: '08:00'}
+        hora_fin: {type: string, example: '10:00'}
+        desde: {type: string, format: date}
+        hasta: {type: string, format: date}
+    UpdateActivityRequest:
+      type: object
+      properties:
+        nombre: {type: string, minLength: 1, maxLength: 200}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+    SessionSummary:
+      type: object
+      required: [id, estado, inicio, fin]
+      properties:
+        id: {type: string, format: uuid}
+        estado: {type: string, enum: [PROGRAMADA, ACTIVA, CERRADA, CANCELADA]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+    CreatedActivity:
+      type: object
+      required: [id, nombre, tipo, estado, espacio_id, metodo_verificacion, estudiantes_autorizados, sesiones]
+      properties:
+        id: {type: string, format: uuid}
+        nombre: {type: string}
+        tipo: {type: string, enum: [CLASE, EVENTO]}
+        estado: {type: string, enum: [ABIERTA, CERRADA, CANCELADA]}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        estudiantes_autorizados: {type: integer, minimum: 0}
+        paralelo_ids:
+          type: array
+          items: {type: string, format: uuid}
+        carrera_ids:
+          type: array
+          items: {type: string, format: uuid}
+        sesiones:
+          type: array
+          items: {$ref: '#/components/schemas/SessionSummary'}
+    ScheduleReplaced:
+      type: object
+      required: [eliminadas, generadas]
+      properties:
+        activity_id: {type: string, format: uuid}
+        eliminadas: {type: integer, minimum: 0}
+        generadas: {type: integer, minimum: 0}
+    AddStudentRequest:
+      type: object
+      required: [cedula]
+      properties:
+        cedula: {type: string, pattern: '^[0-9]{10}$'}
+    AuthorizedStudent:
+      type: object
+      required: [persona_id, vigente]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        vigente: {type: boolean}
+        activity_id: {type: string, format: uuid}
+    AuthorizedStudentPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/AuthorizedStudent'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    SyncResult:
+      type: object
+      required: [agregados]
+      properties:
+        activity_id: {type: string, format: uuid}
+        agregados: {type: integer, minimum: 0}
+    CreateSessionRequest:
+      type: object
+      required: [inicio, fin]
+      properties:
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid}
+    UpdateSessionRequest:
+      type: object
+      properties:
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid}
+    ScheduledSession:
+      type: object
+      required: [id, activity_id, estado, inicio, fin, metodo_verificacion]
+      properties:
+        id: {type: string, format: uuid}
+        activity_id: {type: string, format: uuid}
+        estado: {type: string, enum: [PROGRAMADA, ACTIVA, CERRADA, CANCELADA]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid, nullable: true}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        horario_id: {type: string, format: uuid, nullable: true}
+    SessionPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/ScheduledSession'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
