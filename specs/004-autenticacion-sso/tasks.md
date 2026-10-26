@@ -71,9 +71,9 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 **Independent Test**: emulador → navegador del sistema → vuelve a la app autenticado.
 
-- [ ] T030 [P] [US3] `apps/mobile/src/features/auth/casLogin.test.ts`: nonce generado y verificado; retorno con nonce ajeno se descarta; cancelación deja sin sesión; canje usa el mismo `service`
-- [ ] T031 [US3] `apps/mobile/src/features/auth/casLogin.ts` con `expo-web-browser` `openAuthSessionAsync` y `expo-crypto` (nonce de 16 bytes), `service=geoasist://auth/callback?n=<nonce>`; `apps/mobile/app.json` `scheme: "geoasist"`; añadir dependencias con `npx expo install`
-- [ ] T032 [US3] `apps/mobile/src/features/auth/LoginScreen.tsx`: botón "Ingresar con cuenta universitaria" como acción principal; token de GeoAsist en SecureStore como hoy
+- [X] T030 [P] [US3] `apps/mobile/src/features/auth/casLogin.test.ts`: nonce generado y verificado; retorno con nonce ajeno se descarta; cancelación deja sin sesión; canje usa el mismo `service`
+- [X] T031 [US3] `apps/mobile/src/features/auth/casLogin.ts` con `expo-web-browser` `openAuthSessionAsync` y `expo-crypto` (nonce de 16 bytes), `service=geoasist://auth/callback?n=<nonce>`; `apps/mobile/app.json` `scheme: "geoasist"`; añadir dependencias con `npx expo install`
+- [X] T032 [US3] `apps/mobile/src/features/auth/LoginScreen.tsx`: botón "Ingresar con cuenta universitaria" como acción principal; token de GeoAsist en SecureStore como hoy
 - [ ] T033 [US3] `AUTHT/servicios/ServiceMatcherTest.java`: casos del esquema `geoasist://` (prefijo exacto, sin host ajeno)
 
 ## Phase 6: US4 — Administrar usuarios simulados (P2)
