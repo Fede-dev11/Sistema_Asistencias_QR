@@ -62,9 +62,9 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 **Independent Test**: tras ingresar en GeoAsist, el servicio de ejemplo entra sin pedir contraseña; un ticket de GeoAsist no sirve al ejemplo.
 
-- [ ] T026 [P] [US2] `AUTHT/cas/SingleSignOnTest.java`: con TGC vigente `GET /cas/login?service=` → 302 inmediato con ticket nuevo; ticket de `geoasist-web` validado con `service` de `ejemplo` → `INVALID_SERVICE`; `service` no registrado → 400 sin `Location`; logout cierra TGT y el siguiente login pide credenciales; inactividad de 8 h y máximo 24 h (reloj)
-- [ ] T027 [US2] `AUTH/cas/presentacion/LogoutController.java` (`GET /cas/logout?service=`, solo redirige a servicios registrados) + plantilla `logout.html`
-- [ ] T028 [P] [US2] Script de demostración `infra/tests/sso_demo.py` (solo biblioteca estándar): con una cookie `CASTGC` de un ingreso previo pide `GET /cas/login?service=http://localhost:8082/` sin credenciales, toma el `ticket` del `Location` y lo valida como servicio `ejemplo`; imprime el usuario y sus roles (demuestra SSO hacia un segundo servicio sin levantar otro contenedor)
+- [X] T026 [P] [US2] `AUTHT/cas/SingleSignOnTest.java`: con TGC vigente `GET /cas/login?service=` → 302 inmediato con ticket nuevo; ticket de `geoasist-web` validado con `service` de `ejemplo` → `INVALID_SERVICE`; `service` no registrado → 400 sin `Location`; logout cierra TGT y el siguiente login pide credenciales; inactividad de 8 h y máximo 24 h (reloj)
+- [X] T027 [US2] `AUTH/cas/presentacion/LogoutController.java` (`GET /cas/logout?service=`, solo redirige a servicios registrados) + plantilla `logout.html`
+- [X] T028 [P] [US2] Script de demostración `infra/tests/sso_demo.py` (solo biblioteca estándar): con una cookie `CASTGC` de un ingreso previo pide `GET /cas/login?service=http://localhost:8082/` sin credenciales, toma el `ticket` del `Location` y lo valida como servicio `ejemplo`; imprime el usuario y sus roles (demuestra SSO hacia un segundo servicio sin levantar otro contenedor)
 - [ ] T029 [US2] GeoAsist: `POST /auth/logout` devuelve `sso_logout_url`; la web ofrece "Cerrar también la sesión universitaria" (`apps/web/src/features/auth/SessionProvider.tsx`)
 
 ## Phase 5: US3 — Ingresar desde la app móvil (P1)
@@ -80,11 +80,11 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 **Independent Test**: importar CSV, ingresar con un usuario, desactivarlo; su siguiente ingreso y su renovación en GeoAsist se rechazan.
 
-- [ ] T034 [P] [US4] `AUTHT/usuarios/AdminUsersTest.java`: alta (correo único en minúsculas, cédula módulo 10 única, roles válidos, `debe_cambiar_password=true`); duplicados rechazados; desactivar cierra sesiones SSO; restablecer genera temporal de 16 caracteres mostrada una vez y cierra sesiones; acciones en `auditoria_admin` sin contraseñas; solo `ADMINISTRADOR` accede a `/admin/**`; alta/edición de servicios registrados valida prefijos de retorno (FR-010)
-- [ ] T035 [P] [US4] `AUTHT/usuarios/CsvImportTest.java`: `correo,cedula,nombres,roles,carreras` (separador `|` en roles y carreras), informe por fila, idempotente por correo, encabezado inválido → error sin cambios, máx. 5 000 filas / 2 MB
-- [ ] T036 [P] [US4] `AUTHT/usuarios/StatusEndpointTest.java`: `GET /api/v1/users/status?correo=` con `X-Service-Key` válida → `{activo}`; clave inválida → 401; correo inexistente → 404
-- [ ] T037 [US4] `AUTH/usuarios/aplicacion/ManageUsers.java`, `CsvUserImport.java` (parser estándar como el de GeoAsist 002), `AUTH/usuarios/presentacion/AdminController.java` + plantillas `admin/usuarios.html`, `admin/usuario.html`, `admin/importar.html`, `admin/servicios.html`
-- [ ] T038 [US4] `AUTH/usuarios/presentacion/StatusController.java` y cambio de contraseña propio (T018) que cierra las demás sesiones SSO
+- [X] T034 [P] [US4] `AUTHT/usuarios/AdminUsersTest.java`: alta (correo único en minúsculas, cédula módulo 10 única, roles válidos, `debe_cambiar_password=true`); duplicados rechazados; desactivar cierra sesiones SSO; restablecer genera temporal de 16 caracteres mostrada una vez y cierra sesiones; acciones en `auditoria_admin` sin contraseñas; solo `ADMINISTRADOR` accede a `/admin/**`; alta/edición de servicios registrados valida prefijos de retorno (FR-010)
+- [X] T035 [P] [US4] `AUTHT/usuarios/CsvImportTest.java`: `correo,cedula,nombres,roles,carreras` (separador `|` en roles y carreras), informe por fila, idempotente por correo, encabezado inválido → error sin cambios, máx. 5 000 filas / 2 MB
+- [X] T036 [P] [US4] `AUTHT/usuarios/StatusEndpointTest.java`: `GET /api/v1/users/status?correo=` con `X-Service-Key` válida → `{activo}`; clave inválida → 401; correo inexistente → 404
+- [X] T037 [US4] `AUTH/usuarios/aplicacion/ManageUsers.java`, `CsvUserImport.java` (parser estándar como el de GeoAsist 002), `AUTH/usuarios/presentacion/AdminController.java` + plantillas `admin/usuarios.html`, `admin/usuario.html`, `admin/importar.html`, `admin/servicios.html`
+- [X] T038 [US4] `AUTH/usuarios/presentacion/StatusController.java` y cambio de contraseña propio (T018) que cierra las demás sesiones SSO
 - [ ] T039 [US4] GeoAsist: `/auth/renew` consulta `isActive` y responde 403 `CUENTA_INACTIVA` (prueba en `APIT/identidades/SessionRenewalTest.java` con el servidor falso)
 - [ ] T040 [US4] GeoAsist (FR-017): retirar `PUT /me/password` y `POST /admin/accounts/{id}/password-reset` (código, pruebas de 003 que los cubrían y YAML), quitar `password` de `POST/PATCH /admin/accounts`; la importación CSV de 002 crea cuentas de docentes **y estudiantes** sin contraseña (`proveedor='CAS'`); ajustar `APIT/academico/CsvImportTest.java`; actualizar `apps/web` admin si usa esos campos; documentar en `specs/003-ausencias-reportes-cuenta/spec.md` que US5 de 003 queda reemplazada por 004
 
@@ -97,8 +97,8 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 - [ ] T043 [P] E2E `apps/web/e2e/sso-login.spec.ts`: login por el servicio → `/auth/callback` → "Mis clases"; segundo ingreso sin contraseña; adaptar `apps/web/e2e/*` existentes para ingresar por SSO (o activar `GEOASIST_LOCAL_LOGIN=true` en el job `browser` si se decide mantenerlos con login local) y añadir el servicio `auth` al job `browser` de `.github/workflows/ci.yml`; registrar la duración del ingreso de punta a punta (SC-001 < 30 s)
 - [ ] T044 [P] Actualizar `README.md`, `infra/README.md` (puertos, usuarios, `SSO_*`) y la página `/documentacion`
-- [ ] T047 [P] Limpieza diaria de `registro_ingresos` con más de 90 días y de tickets vencidos en `AUTH/compartido/RetentionJob.java` (`@Scheduled`, desactivable en pruebas) con prueba `AUTHT/compartido/RetentionJobTest.java`
-- [ ] T045 Prueba de privacidad `AUTHT/compartido/NoSecretsInLogsTest.java` y en GeoAsist (SC-004): ningún `ticket`, `password` ni `CASTGC` en logs capturados
+- [X] T047 [P] Limpieza diaria de `registro_ingresos` con más de 90 días y de tickets vencidos en `AUTH/compartido/RetentionJob.java` (`@Scheduled`, desactivable en pruebas) con prueba `AUTHT/compartido/RetentionJobTest.java`
+- [X] T045 Prueba de privacidad `AUTHT/compartido/NoSecretsInLogsTest.java` y en GeoAsist (SC-004): ningún `ticket`, `password` ni `CASTGC` en logs capturados
 - [ ] T046 Ejecutar quickstart y registrar resultados reales en `docs/validation/revision-incremento-004.md`; `/speckit-analyze`; PR a `develop` tras integrar 002 y 003, declarando IA y ADR 0006 pendiente
 
 ## Dependencies & Execution Order

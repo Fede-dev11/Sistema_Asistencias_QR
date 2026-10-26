@@ -18,7 +18,7 @@ class SecurityConfig {
   @Bean
   SecurityFilterChain chain(HttpSecurity http) throws Exception {
     CookieCsrfTokenRepository csrf = new CookieCsrfTokenRepository();
-    csrf.setCookiePath("/cas");
+    csrf.setCookiePath("/");
     csrf.setCookieCustomizer(c -> c.sameSite("Lax"));
     http.authorizeHttpRequests(a -> a.anyRequest().permitAll())
         .csrf(c -> c.csrfTokenRepository(csrf))

@@ -50,9 +50,7 @@ class LogoutController {
           .header(HttpHeaders.LOCATION, service)
           .build();
     }
-    model.addAttribute("titulo", "Sesión cerrada");
-    model.addAttribute("mensaje", "Cerraste tu sesión universitaria.");
     resp.addHeader(HttpHeaders.SET_COOKIE, clear);
-    return "error";
+    return "logout";
   }
 }

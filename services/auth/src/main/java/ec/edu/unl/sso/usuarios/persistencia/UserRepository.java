@@ -44,6 +44,60 @@ public class UserRepository {
     return db.sql(SELECT + "WHERE id = ?").param(id).query(this::map).optional();
   }
 
+  /** Búsqueda por fragmento de correo o cédula (vacío = todos), paginada. */
+  public List<Usuario> buscar(String q, int limit, int offset) {
+    return db.sql(SELECT + "WHERE correo ILIKE ? OR cedula LIKE ? ORDER BY correo LIMIT ? OFFSET ?")
+        .params(like(q), like(q), limit, offset)
+        .query(this::map)
+        .list();
+  }
+
+  public int contar(String q) {
+    return db.sql("SELECT count(*) FROM usuarios WHERE correo ILIKE ? OR cedula LIKE ?")
+        .params(like(q), like(q))
+        .query(Integer.class)
+        .single();
+  }
+
+  private static String like(String q) {
+    String v =
+        q == null ? "" : q.strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+    return "%" + v + "%";
+  }
+
+  public Optional<Usuario> porCedula(String cedula) {
+    return db.sql(SELECT + "WHERE cedula = ?").param(cedula).query(this::map).optional();
+  }
+
+  /** Reemplaza datos editables, roles y carreras. */
+  public void actualizar(Usuario u) {
+    db.sql(
+            "UPDATE usuarios SET correo = ?, cedula = ?, nombres = ?, actualizado_en = ? WHERE id = ?")
+        .params(u.correo(), u.cedula(), u.nombres(), OffsetDateTime.now(clock), u.id())
+        .update();
+    db.sql("DELETE FROM usuario_roles WHERE usuario_id = ?").param(u.id()).update();
+    db.sql("DELETE FROM usuario_carreras WHERE usuario_id = ?").param(u.id()).update();
+    u.roles()
+        .forEach(r -> db.sql("INSERT INTO usuario_roles VALUES (?,?)").params(u.id(), r).update());
+    u.carreras()
+        .forEach(
+            c -> db.sql("INSERT INTO usuario_carreras VALUES (?,?)").params(u.id(), c).update());
+  }
+
+  public void fijarActivo(UUID id, boolean activo) {
+    db.sql("UPDATE usuarios SET activo = ?, actualizado_en = ? WHERE id = ?")
+        .params(activo, OffsetDateTime.now(clock), id)
+        .update();
+  }
+
+  /** Contraseña temporal: obliga a cambiarla en el siguiente ingreso. */
+  public void fijarPasswordTemporal(UUID id, String hash) {
+    db.sql(
+            "UPDATE usuarios SET password_hash = ?, debe_cambiar_password = true, actualizado_en = ? WHERE id = ?")
+        .params(hash, OffsetDateTime.now(clock), id)
+        .update();
+  }
+
   public void cambiarPassword(UUID id, String hash) {
     db.sql(
             "UPDATE usuarios SET password_hash = ?, debe_cambiar_password = false, actualizado_en = ? WHERE id = ?")

@@ -28,4 +28,15 @@ public final class Secrets {
       throw new IllegalStateException(e);
     }
   }
+
+  private static final String TEMP_ALPHABET =
+      "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+
+  /** Contraseña temporal de 16 caracteres (sin símbolos ambiguos). */
+  public static String temporaryPassword() {
+    StringBuilder sb = new StringBuilder(16);
+    for (int i = 0; i < 16; i++)
+      sb.append(TEMP_ALPHABET.charAt(RANDOM.nextInt(TEMP_ALPHABET.length())));
+    return sb.toString();
+  }
 }

@@ -29,6 +29,11 @@ public class ServiceMatcher {
         .findFirst();
   }
 
+  /** Un prefijo de retorno es válido si cumple las mismas reglas que una URL de servicio. */
+  public static boolean validPrefix(String raw) {
+    return parse(raw) != null;
+  }
+
   private static URI parse(String raw) {
     if (raw == null || raw.length() > 2048 || !raw.matches("[\\x21-\\x7E]+")) return null;
     try {

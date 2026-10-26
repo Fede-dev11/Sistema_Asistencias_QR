@@ -7,6 +7,10 @@ spring:
     password: ${POSTGRES_PASSWORD}
   flyway:
     locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 3MB
+      max-request-size: 4MB
   jackson:
     deserialization:
       fail-on-unknown-properties: true
@@ -24,6 +28,8 @@ sso:
   service-key: ${SSO_SERVICE_KEY:}
   login-limit-email: 5
   login-limit-ip: 50
+  # '-' desactiva la limpieza programada (pruebas)
+  retention-cron: ${SSO_RETENTION_CRON:0 30 3 * * *}
 logging:
   pattern:
     # FR-006: ticket, password y CASTGC nunca aparecen en registros

@@ -73,6 +73,13 @@ public class SsoSessions {
         .update();
   }
 
+  /** Cierra todas las sesiones abiertas del usuario (desactivación, restablecimiento). */
+  public void cerrarTodas(UUID usuarioId) {
+    db.sql("UPDATE sesiones_sso SET cerrada_en = ? WHERE usuario_id = ? AND cerrada_en IS NULL")
+        .params(OffsetDateTime.now(clock), usuarioId)
+        .update();
+  }
+
   /** Usuario activo dueño de una sesión no cerrada (para validar tickets). */
   public Optional<UUID> usuarioActivoDe(UUID sesionId) {
     return db.sql(

@@ -83,8 +83,9 @@ class LoginController {
       @CookieValue(name = COOKIE, required = false) String tgc,
       Model model,
       HttpServletResponse resp) {
-    Optional<Servicio> svc = resolve(service);
-    if (svc == null) return unregistered(model, resp);
+    Resolved resolved = resolve(service);
+    if (resolved.noRegistrado()) return unregistered(model, resp);
+    Optional<Servicio> svc = resolved.servicio();
     Optional<Sesion> session = sessions.vigente(tgc);
     if (session.isPresent()) {
       Usuario user = users.porId(session.get().usuarioId()).orElseThrow();
@@ -103,8 +104,9 @@ class LoginController {
       Model model,
       HttpServletRequest req,
       HttpServletResponse resp) {
-    Optional<Servicio> svc = resolve(service);
-    if (svc == null) return unregistered(model, resp);
+    Resolved resolved = resolve(service);
+    if (resolved.noRegistrado()) return unregistered(model, resp);
+    Optional<Servicio> svc = resolved.servicio();
     String email = correo == null ? "" : correo.strip().toLowerCase();
     String origin = req.getRemoteAddr();
     java.util.UUID serviceId = svc.map(Servicio::id).orElse(null);
@@ -142,8 +144,9 @@ class LoginController {
       @CookieValue(name = COOKIE, required = false) String tgc,
       Model model,
       HttpServletResponse resp) {
-    Optional<Servicio> svc = resolve(service);
-    if (svc == null) return unregistered(model, resp);
+    Resolved resolved = resolve(service);
+    if (resolved.noRegistrado()) return unregistered(model, resp);
+    Optional<Servicio> svc = resolved.servicio();
     Optional<Sesion> session = sessions.vigente(tgc);
     if (session.isEmpty()) return redirect(loginUrl(service));
     return passwordView(model, service, null, users.porId(session.get().usuarioId()).orElseThrow());
@@ -158,8 +161,9 @@ class LoginController {
       @CookieValue(name = COOKIE, required = false) String tgc,
       Model model,
       HttpServletResponse resp) {
-    Optional<Servicio> svc = resolve(service);
-    if (svc == null) return unregistered(model, resp);
+    Resolved resolved = resolve(service);
+    if (resolved.noRegistrado()) return unregistered(model, resp);
+    Optional<Servicio> svc = resolved.servicio();
     Optional<Sesion> session = sessions.vigente(tgc);
     if (session.isEmpty()) return redirect(loginUrl(service));
     Usuario user = users.porId(session.get().usuarioId()).orElseThrow();
@@ -188,11 +192,15 @@ class LoginController {
 
   // --- utilidades -------------------------------------------------------------------------
 
-  /** null = service presente pero no registrado; vacío = sin service. */
-  private Optional<Servicio> resolve(String service) {
-    if (service == null || service.isBlank()) return Optional.empty();
+  /**
+   * Resultado de interpretar {@code service}: ausente, registrado o presente pero no registrado.
+   */
+  private record Resolved(Optional<Servicio> servicio, boolean noRegistrado) {}
+
+  private Resolved resolve(String service) {
+    if (service == null || service.isBlank()) return new Resolved(Optional.empty(), false);
     Optional<Servicio> svc = matcher.match(service);
-    return svc.isPresent() ? svc : null;
+    return new Resolved(svc, svc.isEmpty());
   }
 
   private boolean matches(String raw, String hash) {

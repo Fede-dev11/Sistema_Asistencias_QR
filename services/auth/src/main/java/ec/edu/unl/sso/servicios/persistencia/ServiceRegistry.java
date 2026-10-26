@@ -21,7 +21,11 @@ public class ServiceRegistry {
   }
 
   public List<Servicio> activos() {
-    return db.sql("SELECT id, nombre, retornos, activo FROM servicios WHERE activo")
+    return todos().stream().filter(Servicio::activo).toList();
+  }
+
+  public List<Servicio> todos() {
+    return db.sql("SELECT id, nombre, retornos, activo FROM servicios ORDER BY nombre")
         .query(
             (rs, i) -> {
               Array a = rs.getArray("retornos");

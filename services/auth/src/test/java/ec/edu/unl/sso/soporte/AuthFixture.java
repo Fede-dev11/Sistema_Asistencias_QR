@@ -27,7 +27,8 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
     properties = {
       "spring.profiles.active=dev",
       "sso.initial-password=fixture-password-123",
-      "sso.service-key=fixture-service-key"
+      "sso.service-key=fixture-service-key",
+      "sso.retention-cron=-"
     })
 @AutoConfigureMockMvc(print = MockMvcPrint.NONE)
 @Import(AuthFixture.TimeConfig.class)
@@ -66,7 +67,10 @@ public abstract class AuthFixture {
   @BeforeEach
   void resetState() {
     clock.set(MutableClock.START);
-    db.update("TRUNCATE sesiones_sso, contadores_limite, registro_ingresos CASCADE");
+    db.update(
+        "TRUNCATE sesiones_sso, contadores_limite, registro_ingresos, auditoria_admin CASCADE");
+    db.update("DELETE FROM usuarios WHERE correo LIKE '%@nuevo.test'");
+    db.update("DELETE FROM servicios WHERE nombre LIKE 'test-%'");
     db.update(
         "UPDATE usuarios SET password_hash = ?, debe_cambiar_password = false, activo = (correo <> 'inactiva@example.test')",
         encoder.encode(PASSWORD));
@@ -95,5 +99,29 @@ public abstract class AuthFixture {
             .getResponse()
             .getHeader("Location");
     return location.substring(location.indexOf("ticket=") + 7);
+  }
+
+  /** Cédula válida (módulo 10) de provincia 01 a partir de un número de 0 a 9 999 999. */
+  protected static String cedula(int n) {
+    String base = String.format("01%07d", 5_000_000 + n);
+    int sum = 0;
+    for (int i = 0; i < 9; i++) {
+      int d = (base.charAt(i) - '0') * (i % 2 == 0 ? 2 : 1);
+      sum += d > 9 ? d - 9 : d;
+    }
+    return base + (10 - sum % 10) % 10;
+  }
+
+  /** Ingresa en /admin/login como administrador y devuelve la cookie ADMINTGC. */
+  protected jakarta.servlet.http.Cookie adminCookie() throws Exception {
+    var res =
+        mvc.perform(
+                post("/admin/login")
+                    .with(csrf())
+                    .param("correo", "admin@dev.geoasist.local")
+                    .param("password", PASSWORD))
+            .andReturn()
+            .getResponse();
+    return new jakarta.servlet.http.Cookie("ADMINTGC", res.getCookie("ADMINTGC").getValue());
   }
 }
