@@ -186,8 +186,8 @@ paths:
           $ref: '#/components/responses/RateLimited'
     post:
       operationId: createActivity
-      summary: Crear una clase (con horario recurrente opcional)
-      description: DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). La modalidad EVENTO aún no se acepta aquí.
+      summary: Crear una clase o un evento
+      description: DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). Con modalidad EVENTO (DOCENTE o ENCARGADO) exige acceso CERRADO o ABIERTO, inicio y fin, y crea una sesión programada y la configuración de invitados (tolerancia_invitado_segundos, por defecto 120).
       tags:
       - activities
       parameters:
