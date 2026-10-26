@@ -69,10 +69,18 @@ jobs:
       GEOASIST_HMAC_KEY: ci-key-ficticia-larga-exclusiva-no-productiva
       SPRING_PROFILES_ACTIVE: dev
       API_PORT: '18080'
-      WEB_ORIGIN: http://127.0.0.1:13000
+      WEB_ORIGIN: http://localhost:13000
       NEXT_PUBLIC_API_URL: http://127.0.0.1:18080/api/v1
-      WEB_URL: http://127.0.0.1:13000
+      WEB_URL: http://localhost:13000
       API_URL: http://127.0.0.1:18080/api/v1
+      # SSO simulado: el servicio auth corre en 8081 y registra como retorno el callback del web de CI.
+      SSO_SERVICE_KEY: ci-sso-key-ficticia-larga-exclusiva
+      SSO_PUBLIC_URL: http://127.0.0.1:8081
+      SSO_INTERNAL_URL: http://127.0.0.1:8081
+      # El servicio SSO solo admite http en localhost, por eso el web de CI se sirve como localhost.
+      SSO_WEB_SERVICE: http://localhost:13000/auth/callback
+      SSO_WEB_RETURN: http://localhost:13000/auth/callback
+      AUTH_DATABASE_URL: jdbc:postgresql://127.0.0.1:5433/geoasist_auth
       # La suite funcional autentica repetidamente el mismo usuario ficticio;
       # PrivacyAndLimitsTest verifica por separado los límites efectivos sin multiplicador.
       GEOASIST_RATE_LIMIT_MULTIPLIER: '10'
@@ -91,6 +99,9 @@ jobs:
       - run: docker compose -f infra/docker-compose.yml up -d --wait db
       - run: ./mvnw -B -DskipTests package
         working-directory: services/api
+      - run: ./mvnw -B -DskipTests package
+        working-directory: services/auth
+      - run: java -jar services/auth/target/geoasist-auth-0.1.0-SNAPSHOT.jar > /tmp/auth-ci.log 2>&1 &
       - run: java -jar services/api/target/geoasist-api-0.1.0-SNAPSHOT.jar > /tmp/api-ci.log 2>&1 &
       - run: npm ci && npx playwright install --with-deps chromium && npm run build
         working-directory: apps/web
@@ -100,7 +111,7 @@ jobs:
         run: |
           for attempt in $(seq 1 60); do
             status=$(curl -s -o /dev/null -w '%{http_code}' "$API_URL/activities" || true)
-            if [ "$status" = 401 ] && curl -fsS "$WEB_URL/login" > /dev/null; then exit 0; fi
+            if [ "$status" = 401 ] && curl -fsS "$WEB_URL/login" > /dev/null && curl -fsS "$SSO_PUBLIC_URL/cas/login" > /dev/null; then exit 0; fi
             sleep 1
           done
           exit 1

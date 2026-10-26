@@ -50,18 +50,21 @@ class DevelopmentSeed implements ApplicationRunner {
   private final PasswordEncoder encoder;
   private final String password;
   private final String serviceKey;
+  private final String webReturn;
 
   DevelopmentSeed(
       UserRepository users,
       JdbcClient db,
       PasswordEncoder encoder,
       @Value("${sso.initial-password}") String password,
-      @Value("${sso.service-key}") String serviceKey) {
+      @Value("${sso.service-key}") String serviceKey,
+      @Value("${sso.web-return}") String webReturn) {
     this.users = users;
     this.db = db;
     this.encoder = encoder;
     this.password = password;
     this.serviceKey = serviceKey;
+    this.webReturn = webReturn;
   }
 
   @Override
@@ -91,7 +94,7 @@ class DevelopmentSeed implements ApplicationRunner {
         List.of());
     // Sin SSO_SERVICE_KEY la clave queda aleatoria (consulta de estado inutilizable).
     String keyHash = Secrets.sha256Hex(serviceKey.isBlank() ? Secrets.random() : serviceKey);
-    service("geoasist-web", "http://localhost:3000/auth/callback", keyHash);
+    service("geoasist-web", webReturn, keyHash);
     service("geoasist-movil", "geoasist://auth/callback", keyHash);
     service("ejemplo", "http://localhost:8082/", Secrets.sha256Hex(Secrets.random()));
   }
