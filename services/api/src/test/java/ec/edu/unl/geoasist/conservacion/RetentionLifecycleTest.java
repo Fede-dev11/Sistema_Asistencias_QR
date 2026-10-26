@@ -264,6 +264,59 @@ class RetentionLifecycleTest extends PostgresFixture {
   }
 
   @Test
+  void absencesJustificationsAndManualReasonsAreRemovedWithExpiredActivity() {
+    var expired = scenario("CLASE", 200);
+    var current = scenario("CLASE", 200);
+    UUID person = ScenarioFixtures.id(102);
+    for (var ids : List.of(expired, current)) {
+      db.update("INSERT INTO estudiantes_autorizados VALUES (?,?,true)", ids[0], person);
+      db.update(
+          "INSERT INTO ausencias VALUES (?,?,'JUSTIFICADA',?)",
+          ids[1],
+          person,
+          Timestamp.from(clock.instant()));
+      db.update(
+          "INSERT INTO justificaciones(id,sesion_id,persona_id,origen,motivo,estado,decidida_por,solicitada_en,decidida_en) VALUES (?,?,?,'RESPONSABLE','Motivo ficticio','APROBADA',?,?,?)",
+          UUID.randomUUID(),
+          ids[1],
+          person,
+          ScenarioFixtures.id(200),
+          Timestamp.from(clock.instant()),
+          Timestamp.from(clock.instant()));
+      UUID attempt = UUID.randomUUID();
+      db.update(
+          "INSERT INTO intentos_asistencia(id,sesion_id,persona_id,nombres_referencia,resultado,code,mensaje,canal,recibido_en) VALUES (?,?,?,'Nombre ficticio','ACEPTADO','ASISTENCIA_CONFIRMADA','Registrada','MANUAL',?)",
+          attempt,
+          ids[1],
+          ScenarioFixtures.id(106),
+          Timestamp.from(clock.instant()));
+      db.update(
+          "INSERT INTO asistencias(id,sesion_id,persona_id,intento_id,registrada_en,forma,nombres_registro,razon_manual,registrada_por) VALUES (?,?,?,?,?,'MANUAL','Nombre ficticio','Razón ficticia',?)",
+          UUID.randomUUID(),
+          ids[1],
+          ScenarioFixtures.id(106),
+          attempt,
+          Timestamp.from(clock.instant()),
+          ScenarioFixtures.id(200));
+    }
+    expire(expired[0]);
+    runBatch();
+    for (String table : List.of("ausencias", "justificaciones", "asistencias"))
+      assertEquals(
+          List.of(0, 1),
+          List.of(
+              db.queryForObject(
+                  "SELECT count(*) FROM " + table + " WHERE sesion_id=?",
+                  Integer.class,
+                  expired[1]),
+              db.queryForObject(
+                  "SELECT count(*) FROM " + table + " WHERE sesion_id=?",
+                  Integer.class,
+                  current[1])),
+          table);
+  }
+
+  @Test
   void orphanSelfRegisteredExternalIsRemovedWithExpiredEvent() {
     var ids = scenario("EVENTO", 201);
     UUID person = UUID.randomUUID();

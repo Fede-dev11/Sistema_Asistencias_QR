@@ -15,4 +15,11 @@ Los listados de invitados se precargan mediante la operación contractual; no se
 
 No borrar volúmenes de Docker para reiniciar pruebas: Testcontainers usa una base independiente efímera. `.env` nunca se incluye en backups compartidos ni en Git.
 
+Propiedades de 003: `geoasist.correccion.dias` (por defecto 7) fija el plazo de correcciones
+(asistencia manual, justificaciones y revisión) tras el cierre de una sesión. El programador del
+ciclo automático (`SessionCycleScheduler`) ejecuta `SessionCycle.tick()` cada 60 s; inicia y cierra
+las sesiones de actividades con `ciclo_automatico` y reintenta cada 60 s un inicio fallido
+(auditado como `SISTEMA_INICIO_FALLIDO`). La prueba de rendimiento SC-003 queda fuera de `verify`:
+`./mvnw -B test -DexcludedGroups= -Dgroups=performance -Dtest=StatsPerformanceTest`.
+
 Importación CSV (002, solo `dev`): `POST /api/v1/admin/imports/students` como administrador; requiere `geoasist.dev.import-password` (o `geoasist.dev-seed-password`), de lo contrario responde 409 `CONFIGURACION_INCOMPLETA`.

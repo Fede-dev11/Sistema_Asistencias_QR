@@ -46,6 +46,23 @@ public class SessionRepository {
         .orElseThrow(ApiFailure::missing);
   }
 
+  /**
+   * Regla única de inicio: un método con GPS exige geolocalización habilitada (manual y
+   * automático).
+   */
+  public void requireGpsConfigured(UUID id) {
+    if (method(id).contains("GPS")
+        && !Boolean.TRUE.equals(
+            db.queryForObject(
+                "SELECT COALESCE((SELECT habilitada FROM configuracion_geografica WHERE sesion_id=?),false)",
+                Boolean.class,
+                id)))
+      throw new ApiFailure(
+          409,
+          "CONFIGURACION_GPS_REQUERIDA",
+          "El método incluye GPS: configura la geolocalización antes de iniciar.");
+  }
+
   public String method(UUID id) {
     return db.queryForObject(
         "SELECT metodo_verificacion FROM sesiones WHERE id=?", String.class, id);

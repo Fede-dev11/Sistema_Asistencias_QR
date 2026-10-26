@@ -14,7 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class EditActivity {
   public record Changes(
-      String nombre, UUID espacio_id, String metodo_verificacion, String acceso) {}
+      String nombre,
+      UUID espacio_id,
+      String metodo_verificacion,
+      Boolean ciclo_automatico,
+      java.math.BigDecimal umbral_asistencia,
+      String acceso) {}
 
   private final JdbcTemplate db;
   private final Clock clock;
@@ -48,7 +53,8 @@ public class EditActivity {
     locks.allSessions(id);
     if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
     return db.queryForMap(
-        "SELECT nombre,espacio_id,metodo_verificacion,acceso FROM actividades WHERE id=?", id);
+        "SELECT nombre,espacio_id,metodo_verificacion,ciclo_automatico,umbral_asistencia,acceso FROM actividades WHERE id=?",
+        id);
   }
 
   /** Cambia los valores por defecto de la actividad; las sesiones ya creadas no se tocan. */
@@ -63,6 +69,16 @@ public class EditActivity {
             ? (String) before.get("metodo_verificacion")
             : c.metodo_verificacion();
     rules.check(space, method);
+    boolean cycle =
+        c.ciclo_automatico() == null
+            ? (Boolean) before.get("ciclo_automatico")
+            : c.ciclo_automatico();
+    var threshold =
+        c.umbral_asistencia() == null
+            ? (java.math.BigDecimal) before.get("umbral_asistencia")
+            : c.umbral_asistencia();
+    if (threshold.signum() < 0 || threshold.compareTo(java.math.BigDecimal.valueOf(100)) > 0)
+      throw ApiFailure.invalid();
     String access = c.acceso() == null ? (String) before.get("acceso") : c.acceso();
     if (c.acceso() != null && !("CERRADO".equals(c.acceso()) || "ABIERTO".equals(c.acceso())))
       throw ApiFailure.invalid();
@@ -75,10 +91,12 @@ public class EditActivity {
       if (started != null && started > 0) throw ApiFailure.conflict();
     }
     db.update(
-        "UPDATE actividades SET nombre=?,espacio_id=?,metodo_verificacion=?,acceso=? WHERE id=?",
+        "UPDATE actividades SET nombre=?,espacio_id=?,metodo_verificacion=?,ciclo_automatico=?,umbral_asistencia=?,acceso=? WHERE id=?",
         name,
         space,
         method,
+        cycle,
+        threshold,
         access,
         id);
     audit.write(
@@ -90,8 +108,20 @@ public class EditActivity {
             "nombre",
             before.get("nombre"),
             "metodo_verificacion",
-            before.get("metodo_verificacion")),
-        Map.of("nombre", name, "metodo_verificacion", method));
+            before.get("metodo_verificacion"),
+            "ciclo_automatico",
+            before.get("ciclo_automatico"),
+            "umbral_asistencia",
+            before.get("umbral_asistencia")),
+        Map.of(
+            "nombre",
+            name,
+            "metodo_verificacion",
+            method,
+            "ciclo_automatico",
+            cycle,
+            "umbral_asistencia",
+            threshold));
     return queries.get(user, id);
   }
 

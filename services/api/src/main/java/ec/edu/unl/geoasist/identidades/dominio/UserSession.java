@@ -3,9 +3,14 @@ package ec.edu.unl.geoasist.identidades.dominio;
 import java.util.Set;
 import java.util.UUID;
 
-public record UserSession(UUID sessionId, UUID accountId, UUID personId, Set<String> roles) {
+public record UserSession(
+    UUID sessionId, UUID accountId, UUID personId, Set<String> roles, boolean mustChangePassword) {
   public UserSession {
     roles = Set.copyOf(roles);
+  }
+
+  public UserSession(UUID sessionId, UUID accountId, UUID personId, Set<String> roles) {
+    this(sessionId, accountId, personId, roles, false);
   }
 
   public boolean has(String role) {

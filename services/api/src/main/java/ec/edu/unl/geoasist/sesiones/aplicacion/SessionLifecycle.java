@@ -5,6 +5,7 @@ import ec.edu.unl.geoasist.actividades.persistencia.ActivityRepository;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
 import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService;
 import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService.Receipt;
+import ec.edu.unl.geoasist.compartido.aplicacion.RecordAbsences;
 import ec.edu.unl.geoasist.compartido.persistencia.AttendanceLocks;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import ec.edu.unl.geoasist.sesiones.persistencia.*;
@@ -24,6 +25,7 @@ public class SessionLifecycle {
   private final SessionRepository sessions;
   private final ActivityAuditWriter audit;
   private final IdempotencyService replay;
+  private final RecordAbsences absences;
 
   public SessionLifecycle(
       JdbcTemplate db,
@@ -33,7 +35,8 @@ public class SessionLifecycle {
       AttendanceLocks locks,
       SessionRepository sessions,
       ActivityAuditWriter audit,
-      IdempotencyService replay) {
+      IdempotencyService replay,
+      RecordAbsences absences) {
     this.db = db;
     this.clock = clock;
     this.activities = activities;
@@ -42,6 +45,7 @@ public class SessionLifecycle {
     this.sessions = sessions;
     this.audit = audit;
     this.replay = replay;
+    this.absences = absences;
   }
 
   @Transactional
@@ -64,17 +68,7 @@ public class SessionLifecycle {
             if (!row.state().equals("PROGRAMADA")
                 || clock.instant().isBefore(row.windowStart())
                 || !clock.instant().isBefore(row.windowEnd())) throw ApiFailure.conflict();
-            String method = sessions.method(session);
-            if (method.contains("GPS")
-                && !Boolean.TRUE.equals(
-                    db.queryForObject(
-                        "SELECT COALESCE((SELECT habilitada FROM configuracion_geografica WHERE sesion_id=?),false)",
-                        Boolean.class,
-                        session)))
-              throw new ApiFailure(
-                  409,
-                  "CONFIGURACION_GPS_REQUERIDA",
-                  "El método incluye GPS: configura la geolocalización antes de iniciar.");
+            sessions.requireGpsConfigured(session);
             db.update(
                 "UPDATE sesiones SET estado='ACTIVA',iniciada_en=? WHERE id=?",
                 java.sql.Timestamp.from(clock.instant()),
@@ -86,6 +80,7 @@ public class SessionLifecycle {
                 "UPDATE sesiones SET estado='CERRADA',cerrada_en=? WHERE id=?",
                 java.sql.Timestamp.from(clock.instant()),
                 session);
+            absences.record(session);
           }
           audit.write(
               id,

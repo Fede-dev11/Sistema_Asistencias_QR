@@ -39,6 +39,83 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/renew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Renovar la sesión por 8 horas rotando el secreto
+         * @description Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401 RENOVACION_VENCIDA si pasaron más de 30 días desde el login original.
+         */
+        post: operations["renewSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Perfil propio sin secretos */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Cambiar la contraseña propia
+         * @description Mínimo 12 caracteres y distinta de la actual (400 PASSWORD_DEBIL). Actual incorrecta (400 PASSWORD_ACTUAL_INCORRECTA) cuenta para el límite de login. Cierra las demás sesiones.
+         */
+        put: operations["changeMyPassword"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/accounts/{accountId}/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Restablecer contraseña con una temporal de un solo uso (ADMINISTRADOR)
+         * @description Genera 16 caracteres aleatorios mostrados una vez, revoca las sesiones de la cuenta y exige cambio en el siguiente ingreso.
+         */
+        post: operations["adminResetPassword"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activities": {
         parameters: {
             query?: never;
@@ -355,9 +432,109 @@ export interface paths {
         put?: never;
         /**
          * Resolver intento pendiente
-         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA y actividad abierta; si están cerradas devolver 409. Una aprobación no duplica asistencia. Rechazar una revisión no crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.
+         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA o CERRADA dentro del plazo de corrección (geoasist.correccion.dias, 7); fuera de plazo 409 PLAZO_CORRECCION_VENCIDO. Aprobar tras el cierre elimina la ausencia. Una aprobación no duplica asistencia. Rechazar una revisión no crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.
          */
         post: operations["reviewAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{sessionId}/manual-attendances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar asistencia manual
+         * @description Solo RESPONSABLE de la actividad. Estudiante autorizado vigente (422 NO_AUTORIZADO_EN_SESION). Sesión ACTIVA o CERRADA dentro de geoasist.correccion.dias (7) días; después 409 PLAZO_CORRECCION_VENCIDO. Duplicado 409 ASISTENCIA_DUPLICADA. Elimina la ausencia, resuelve como rechazado un intento pendiente del estudiante y audita. No aplica la regla de dispositivo.
+         */
+        post: operations["registerManualAttendance"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{sessionId}/absences/{personId}/justify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Justificar una ausencia
+         * @description Solo RESPONSABLE, mismo plazo de corrección. Crea una justificación origen RESPONSABLE aprobada y la ausencia pasa a JUSTIFICADA. 409 SIN_AUSENCIA si no hay ausencia; 409 JUSTIFICACION_PENDIENTE_EXISTE si hay una solicitud pendiente.
+         */
+        post: operations["justifyAbsence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/absences/{sessionId}/justification-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar justificación de la propia ausencia
+         * @description Solo ESTUDIANTE con ausencia propia en la sesión, dentro del plazo de corrección. Una solicitud pendiente por ausencia (409 JUSTIFICACION_PENDIENTE_EXISTE); sin ausencia 409 SIN_AUSENCIA. El motivo no se copia a la auditoría ni al CSV.
+         */
+        post: operations["requestJustification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/justification-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bandeja de justificaciones
+         * @description Responsable y directores según el ámbito de consulta. Incluye el motivo, que solo se muestra a quien puede leer la actividad.
+         */
+        get: operations["listJustificationRequests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/justification-requests/{requestId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decidir una solicitud de justificación
+         * @description Solo RESPONSABLE de la actividad. Razón obligatoria; la decisión es inmutable (409 si ya fue decidida). APROBAR pasa la ausencia a JUSTIFICADA.
+         */
+        post: operations["decideJustification"];
         delete?: never;
         options?: never;
         head?: never;
@@ -826,6 +1003,123 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/activities/{activityId}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estadísticas de asistencia por estudiante de una clase
+         * @description Solo sesiones CERRADAS. Responsable, DIRECTOR_INSTITUCIONAL y DIRECTOR_CARRERA de su carrera (mismo ámbito que la consulta de asistencias). porcentaje es null (sin datos) sin sesiones computables. 409 si la actividad no es una CLASE.
+         */
+        get: operations["getActivityStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stats/parallels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estadísticas por paralelo en un periodo
+         * @description Responsable (sus clases), DIRECTOR_CARRERA (carreras que dirige) y DIRECTOR_INSTITUCIONAL (todas). Cuenta las asistencias y ausencias de los estudiantes matriculados vigentes del paralelo. 403 si careerId no está en el ámbito.
+         */
+        get: operations["getParallelStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/stats/careers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Estadísticas por carrera en un periodo
+         * @description Mismo ámbito que las estadísticas por paralelo.
+         */
+        get: operations["getCareerStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{sessionId}/absences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ausencias registradas al cerrar una sesión
+         * @description Responsable y directores según el ámbito de consulta. Lista vigente al momento del cierre.
+         */
+        get: operations["listSessionAbsences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/attendances": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Historial propio por sesión cerrada
+         * @description Solo datos de la persona autenticada. Sesiones cerradas con su resultado y el estado de su última solicitud de justificación; las actividades anonimizadas no aparecen.
+         */
+        get: operations["listMyAttendances"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Porcentajes propios por actividad de clase */
+        get: operations["getMyStats"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -844,7 +1138,7 @@ export interface components {
             /** Format: uri-reference */
             instance?: string;
             /**
-             * @description Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO.
+             * @description Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO. 003 añade PLAZO_CORRECCION_VENCIDO, NO_AUTORIZADO_EN_SESION, JUSTIFICACION_PENDIENTE_EXISTE, SIN_AUSENCIA, PASSWORD_ACTUAL_INCORRECTA, PASSWORD_DEBIL, CAMBIO_PASSWORD_REQUERIDO y RENOVACION_VENCIDA.
              * @example SESION_CERRADA
              */
             code: string;
@@ -928,6 +1222,34 @@ export interface components {
             /** Format: date-time */
             vence_en: string;
             roles: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
+            /** @description true si solo puede usar PUT /me/password, GET /me y logout. */
+            debe_cambiar_password?: boolean;
+        };
+        PasswordChange: {
+            actual: string;
+            nueva: string;
+        };
+        TemporaryPassword: {
+            password_temporal: string;
+        };
+        MeProfile: {
+            /** Format: uuid */
+            cuenta_id: string;
+            /** Format: uuid */
+            persona_id: string;
+            nombres: string;
+            correo: string;
+            roles: string[];
+            debe_cambiar_password: boolean;
+            paralelos: {
+                /** Format: uuid */
+                paralelo_id: string;
+                codigo: string;
+                /** Format: uuid */
+                carrera_id: string;
+                carrera_codigo: string;
+                carrera_nombre: string;
+            }[];
         };
         /** @description Los eventos pueden vincular varias carreras y paralelos. El servidor calcula los ámbitos mediante estos vínculos y responsable_id; los filtros de lectura no los sustituyen. */
         Activity: {
@@ -946,6 +1268,8 @@ export interface components {
             responsable_id: string;
             carrera_ids: string[];
             paralelo_ids: string[];
+            ciclo_automatico: boolean;
+            umbral_asistencia: number;
         };
         ActivityPage: {
             items: components["schemas"]["Activity"][];
@@ -1111,6 +1435,13 @@ export interface components {
             code: string;
             /** @description Motivo comprensible del resultado mostrado. */
             mensaje: string;
+            /**
+             * @description Forma de la asistencia confirmada; null sin asistencia.
+             * @enum {string|null}
+             */
+            forma: "CREDENCIALES" | "INVITADO_LISTADO" | "REVISION" | "AUTORREGISTRO" | "MANUAL" | null;
+            /** @description Razón del responsable cuando forma es MANUAL. */
+            razon_manual: string | null;
         };
         AttendancePage: {
             items: components["schemas"]["AttendanceRow"][];
@@ -1133,6 +1464,74 @@ export interface components {
             /** Format: date-time */
             revisada_en: string;
         };
+        ManualAttendanceRequest: {
+            /** Format: uuid */
+            persona_id: string;
+            razon: string;
+        };
+        ManualAttendanceResult: {
+            /** Format: uuid */
+            asistencia_id: string;
+            /** Format: uuid */
+            attempt_id: string;
+            /** Format: uuid */
+            session_id: string;
+            /** Format: uuid */
+            persona_id: string;
+            /** @enum {string} */
+            forma: "MANUAL";
+            /** Format: date-time */
+            registrada_en: string;
+        };
+        JustifyAbsenceRequest: {
+            razon: string;
+        };
+        JustificationRequestBody: {
+            motivo: string;
+        };
+        JustificationDecisionRequest: {
+            /** @enum {string} */
+            decision: "APROBAR" | "RECHAZAR";
+            razon: string;
+        };
+        JustificationSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sesion_id: string;
+            /** Format: uuid */
+            persona_id: string;
+            /** @enum {string} */
+            estado: "PENDIENTE" | "APROBADA" | "RECHAZADA";
+            /** Format: date-time */
+            instante: string;
+        };
+        Justification: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            sesion_id: string;
+            /** Format: uuid */
+            persona_id: string;
+            cedula: string;
+            nombres: string;
+            /** @enum {string} */
+            origen: "ESTUDIANTE" | "RESPONSABLE";
+            motivo: string;
+            /** @enum {string} */
+            estado: "PENDIENTE" | "APROBADA" | "RECHAZADA";
+            razon_decision: string | null;
+            /** Format: date-time */
+            solicitada_en: string;
+            /** Format: date-time */
+            decidida_en: string | null;
+        };
+        JustificationPage: {
+            items: components["schemas"]["Justification"][];
+            page: number;
+            size: number;
+            total: number;
+        };
         /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. Las claves listadas son las habituales; la fila puede incluir otras claves propias de la acción auditada. */
         AuditValues: {
             estado?: string;
@@ -1140,7 +1539,9 @@ export interface components {
             configuracion_invitados?: components["schemas"]["GuestSettings"];
             configuracion_geografica?: components["schemas"]["GeolocationSettings"];
             cantidad_invitados?: number;
+            /** Format: uuid */
             sesion_id?: string;
+            /** Format: uuid */
             persona_id?: string;
             forma?: string;
             nombre?: string;
@@ -1156,8 +1557,11 @@ export interface components {
             id: string;
             /** Format: uuid */
             activity_id: string;
-            /** Format: uuid */
-            responsable_id: string;
+            /**
+             * Format: uuid
+             * @description Nulo cuando la acción la ejecuta el sistema (acciones SISTEMA_*).
+             */
+            responsable_id: string | null;
             accion: string;
             /** Format: date-time */
             ocurrida_en: string;
@@ -1169,6 +1573,11 @@ export interface components {
                 configuracion_invitados?: components["schemas"]["GuestSettings"];
                 configuracion_geografica?: components["schemas"]["GeolocationSettings"];
                 cantidad_invitados?: number;
+                /** Format: uuid */
+                sesion_id?: string;
+                codigo?: string;
+                ciclo_automatico?: boolean;
+                umbral_asistencia?: number;
             } | null;
             /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. */
             nuevo: {
@@ -1177,6 +1586,11 @@ export interface components {
                 configuracion_invitados?: components["schemas"]["GuestSettings"];
                 configuracion_geografica?: components["schemas"]["GeolocationSettings"];
                 cantidad_invitados?: number;
+                /** Format: uuid */
+                sesion_id?: string;
+                codigo?: string;
+                ciclo_automatico?: boolean;
+                umbral_asistencia?: number;
             } | null;
         };
         AuditPage: {
@@ -1316,6 +1730,8 @@ export interface components {
             espacio_id?: string;
             /** @enum {string} */
             metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            ciclo_automatico?: boolean;
+            umbral_asistencia?: number;
             /** @enum {string} */
             acceso?: "CERRADO" | "ABIERTO";
         };
@@ -1419,6 +1835,92 @@ export interface components {
             page: number;
             size: number;
             total: number;
+        };
+        /** @enum {string} */
+        AbsenceState: "AUSENTE" | "JUSTIFICADA";
+        AttendanceStats: {
+            sesiones_computables: number;
+            asistencias: number;
+            /** @description Incluye las justificadas. */
+            ausencias: number;
+            ausencias_justificadas: number;
+            /** @description asistencias / computables con 2 decimales; null = sin datos. */
+            porcentaje: number | null;
+            /** @description Solo por estudiante. */
+            bajo_umbral?: boolean;
+        };
+        StudentStats: components["schemas"]["AttendanceStats"] & {
+            /** Format: uuid */
+            persona_id: string;
+            cedula: string;
+            nombres: string;
+        };
+        ActivityStatsPage: {
+            umbral_asistencia: number;
+            resumen: components["schemas"]["AttendanceStats"];
+            items: components["schemas"]["StudentStats"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        GroupStats: components["schemas"]["AttendanceStats"] & {
+            /**
+             * Format: uuid
+             * @description Solo en estadísticas por paralelo.
+             */
+            paralelo_id?: string;
+            /** Format: uuid */
+            carrera_id?: string;
+            /** @description Código de la carrera. */
+            carrera: string;
+            /** @description Código del paralelo. */
+            paralelo?: string;
+            /** @description Nombre de la carrera. */
+            nombre?: string;
+        };
+        StatsGroupList: {
+            items: components["schemas"]["GroupStats"][];
+        };
+        Absence: {
+            /** Format: uuid */
+            persona_id: string;
+            cedula: string;
+            nombres: string;
+            estado: components["schemas"]["AbsenceState"];
+        };
+        AbsencePage: {
+            items: components["schemas"]["Absence"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        MyAttendance: {
+            /** Format: uuid */
+            sesion_id: string;
+            /** Format: uuid */
+            actividad_id: string;
+            actividad: string;
+            /** Format: date-time */
+            inicio: string;
+            /** @enum {string} */
+            resultado: "ASISTIO" | "AUSENTE" | "JUSTIFICADA" | "PENDIENTE_REVISION";
+            /** @enum {string|null} */
+            justificacion: "PENDIENTE" | "APROBADA" | "RECHAZADA" | null;
+        };
+        MyAttendancePage: {
+            items: components["schemas"]["MyAttendance"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        MyActivityStats: components["schemas"]["AttendanceStats"] & {
+            /** Format: uuid */
+            actividad_id: string;
+            actividad: string;
+            umbral_asistencia: number;
+        };
+        MyStatsList: {
+            items: components["schemas"]["MyActivityStats"][];
         };
     };
     responses: {
@@ -1640,6 +2142,98 @@ export interface operations {
             };
             401: components["responses"]["Unauthorized"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    renewSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sesión renovada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResult"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Perfil. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeProfile"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    changeMyPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChange"];
+            };
+        };
+        responses: {
+            /** @description Contraseña cambiada. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    adminResetPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Contraseña temporal. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TemporaryPassword"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     listActivities: {
@@ -2347,6 +2941,189 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReviewResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    registerManualAttendance: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ManualAttendanceRequest"];
+            };
+        };
+        responses: {
+            /** @description Asistencia MANUAL creada (o repetida con la misma clave). */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManualAttendanceResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    justifyAbsence: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+                personId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JustifyAbsenceRequest"];
+            };
+        };
+        responses: {
+            /** @description Justificación registrada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JustificationSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    requestJustification: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JustificationRequestBody"];
+            };
+        };
+        responses: {
+            /** @description Solicitud pendiente creada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JustificationSummary"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listJustificationRequests: {
+        parameters: {
+            query?: {
+                estado?: "PENDIENTE" | "APROBADA" | "RECHAZADA";
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JustificationPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            422: components["responses"]["BusinessRejected"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    decideJustification: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                requestId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["JustificationDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description Decisión registrada o repetida. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JustificationSummary"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -3310,6 +4087,181 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    getActivityStats: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityStatsPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getParallelStats: {
+        parameters: {
+            query?: {
+                careerId?: string;
+                /** @description Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión. */
+                desde?: string;
+                /** @description Fin del periodo (exclusivo); debe ser posterior a desde. */
+                hasta?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatsGroupList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    getCareerStats: {
+        parameters: {
+            query?: {
+                /** @description Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión. */
+                desde?: string;
+                /** @description Fin del periodo (exclusivo); debe ser posterior a desde. */
+                hasta?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StatsGroupList"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listSessionAbsences: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AbsencePage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listMyAttendances: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyAttendancePage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    getMyStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MyStatsList"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
         };
     };
 }

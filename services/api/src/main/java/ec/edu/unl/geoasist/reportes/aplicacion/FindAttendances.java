@@ -57,6 +57,8 @@ public class FindAttendances {
     result.put("attempt_id", row.attempt());
     result.put("code", row.code());
     result.put("mensaje", row.message());
+    result.put("forma", row.form());
+    result.put("razon_manual", row.manualReason());
     return result;
   }
 }

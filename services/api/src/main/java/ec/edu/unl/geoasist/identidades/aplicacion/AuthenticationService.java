@@ -33,9 +33,14 @@ public class AuthenticationService {
     IdentityProvider identity = provider.getIfAvailable();
     if (identity == null) throw ApiFailure.unauthenticated();
     UUID account = identity.authenticate(email, password);
+    return issue(account, clock.instant());
+  }
+
+  private Map<String, Object> issue(UUID account, Instant loginOriginal) {
     String token = secrets.issue();
     Instant now = clock.instant(), expiry = now.plus(Duration.ofHours(8));
-    accounts.createSession(UUID.randomUUID(), account, OpaqueSecrets.hash(token), now, expiry);
+    accounts.createSession(
+        UUID.randomUUID(), account, OpaqueSecrets.hash(token), now, expiry, loginOriginal);
     return Map.of(
         "access_token",
         token,
@@ -44,7 +49,22 @@ public class AuthenticationService {
         "vence_en",
         expiry,
         "roles",
-        accounts.roles(account));
+        accounts.roles(account),
+        "debe_cambiar_password",
+        accounts.mustChangePassword(account));
+  }
+
+  /**
+   * Rota el secreto: el anterior se revoca y el límite de 30 días cuenta desde el login original.
+   */
+  @Transactional
+  public Map<String, Object> renew(UserSession user) {
+    Instant original = accounts.loginOriginal(user.sessionId());
+    if (clock.instant().isAfter(original.plus(Duration.ofDays(30))))
+      throw new ApiFailure(
+          401, "RENOVACION_VENCIDA", "La sesión superó 30 días. Ingresa con tus credenciales.");
+    accounts.revoke(user.sessionId(), clock.instant());
+    return issue(user.accountId(), original);
   }
 
   public UserSession authenticate(String token) {

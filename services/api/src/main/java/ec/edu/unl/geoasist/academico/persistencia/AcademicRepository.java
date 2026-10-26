@@ -127,6 +127,10 @@ public class AcademicRepository {
     db.update("UPDATE cuentas SET password_hash=? WHERE id=?", hash, account);
   }
 
+  public void requirePasswordChange(UUID account) {
+    db.update("UPDATE cuentas SET debe_cambiar_password=true WHERE id=?", account);
+  }
+
   public void revokeSessions(UUID account, java.sql.Timestamp now) {
     db.update(
         "UPDATE sesiones_acceso SET revocada_en=? WHERE cuenta_id=? AND revocada_en IS NULL",

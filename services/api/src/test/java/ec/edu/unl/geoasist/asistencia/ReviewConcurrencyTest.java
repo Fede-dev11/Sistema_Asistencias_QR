@@ -125,7 +125,8 @@ class ReviewConcurrencyTest extends PostgresFixture {
   }
 
   @Test
-  void approvalAfterCloseFailsButRejectionCanResolveWithoutAttendance() throws Exception {
+  void afterCloseApprovalWithinTheCorrectionWindowCreatesAttendanceAndRejectionDoesNot()
+      throws Exception {
     var ids = scenario("EVENTO", 201);
     String owner = token("encargado@example.test");
     start(ids[1], owner);
@@ -137,15 +138,17 @@ class ReviewConcurrencyTest extends PostgresFixture {
                 .header("Idempotency-Key", UUID.randomUUID().toString()))
         .andExpect(result -> assertEquals(200, result.getResponse().getStatus()));
 
-    assertEquals(409, reviewResult(approval, owner, "APROBAR", UUID.randomUUID()).status());
+    // 003 US1-2: dentro del plazo de corrección la aprobación posterior al cierre ya es válida.
     assertEquals(200, reviewResult(rejection, owner, "RECHAZAR", UUID.randomUUID()).status());
+    assertEquals(200, reviewResult(approval, owner, "APROBAR", UUID.randomUUID()).status());
+    assertEquals(
+        1,
+        db.queryForObject(
+            "SELECT count(*) FROM asistencias WHERE intento_id=?", Integer.class, approval));
     assertEquals(
         0,
         db.queryForObject(
-            "SELECT count(*) FROM asistencias WHERE intento_id IN (?,?)",
-            Integer.class,
-            approval,
-            rejection));
+            "SELECT count(*) FROM asistencias WHERE intento_id=?", Integer.class, rejection));
   }
 
   private int review(UUID attempt, String owner, String decision, UUID key, CountDownLatch ready)

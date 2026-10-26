@@ -111,6 +111,12 @@ public class AdminController {
     return people.updateAccount(user, accountId, body.roles(), body.activa(), body.password());
   }
 
+  @PostMapping("/accounts/{accountId}/password-reset")
+  public Map<String, Object> resetPassword(
+      @AuthenticationPrincipal UserSession user, @PathVariable UUID accountId) {
+    return people.resetPassword(user, accountId);
+  }
+
   @GetMapping("/careers")
   public Map<String, Object> careers(@AuthenticationPrincipal UserSession user) {
     return academic.careers(user);
