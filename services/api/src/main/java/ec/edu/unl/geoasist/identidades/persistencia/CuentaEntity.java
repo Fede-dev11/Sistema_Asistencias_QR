@@ -1,6 +1,7 @@
 package ec.edu.unl.geoasist.identidades.persistencia;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -22,6 +23,9 @@ public class CuentaEntity {
 
   @Column(nullable = false)
   private boolean activa;
+
+  @Column(name = "sincronizada_en")
+  private Instant sincronizadaEn;
 
   protected CuentaEntity() {}
 }

@@ -29,7 +29,7 @@ const SCOPE = 'Directores: solo lectura dentro de su ámbito.';
 
 // El contrato no declara roles; se toman de las specs 001–003 y de la autorización del backend.
 export function rolesFor(method, path) {
-  if (path === '/auth/login') return [['pub'], null];
+  if (['/auth/login', '/auth/cas', '/auth/sso-config'].includes(path)) return [['pub'], null];
   if (['/auth/logout', '/auth/renew', '/me', '/me/password'].includes(path)) return [['cta'], null];
   if (path.startsWith('/admin/')) return [['adm'], null];
   if (['/guest-registrations', '/guest-registrations/submit'].includes(path) || path.startsWith('/events/open/')) return [['inv'], null];

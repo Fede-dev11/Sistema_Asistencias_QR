@@ -13,27 +13,38 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthenticationService {
   private final IdentityRepository accounts;
-  private final ObjectProvider<IdentityProvider> provider;
+  private final ObjectProvider<LocalCredentials> localCredentials;
+  private final IdentityProvider provider;
+  private final AccountProvisioning provisioning;
   private final OpaqueSecrets secrets;
   private final Clock clock;
 
   public AuthenticationService(
       IdentityRepository accounts,
-      ObjectProvider<IdentityProvider> provider,
+      ObjectProvider<LocalCredentials> localCredentials,
+      IdentityProvider provider,
+      AccountProvisioning provisioning,
       OpaqueSecrets secrets,
       Clock clock) {
     this.accounts = accounts;
+    this.localCredentials = localCredentials;
     this.provider = provider;
+    this.provisioning = provisioning;
     this.secrets = secrets;
     this.clock = clock;
   }
 
   @Transactional
   public Map<String, Object> login(String email, String password) {
-    IdentityProvider identity = provider.getIfAvailable();
-    if (identity == null) throw ApiFailure.unauthenticated();
-    UUID account = identity.authenticate(email, password);
+    LocalCredentials credentials = localCredentials.getIfAvailable();
+    if (credentials == null) throw ApiFailure.missing();
+    UUID account = credentials.authenticate(email, password);
     return issue(account, clock.instant());
+  }
+
+  @Transactional
+  public Map<String, Object> cas(String ticket, String service) {
+    return issue(provisioning.provision(provider.verifyTicket(ticket, service)), clock.instant());
   }
 
   private Map<String, Object> issue(UUID account, Instant loginOriginal) {

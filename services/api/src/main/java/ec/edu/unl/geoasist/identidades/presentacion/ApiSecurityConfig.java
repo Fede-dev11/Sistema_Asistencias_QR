@@ -63,6 +63,8 @@ public class ApiSecurityConfig {
         a ->
             a.requestMatchers(
                     "/api/v1/auth/login",
+                    "/api/v1/auth/cas",
+                    "/api/v1/auth/sso-config",
                     "/api/v1/guest-registrations",
                     "/api/v1/guest-registrations/submit",
                     "/api/v1/events/open/*")

@@ -30,9 +30,8 @@ paths:
     post:
       operationId: login
       summary: Iniciar sesión con credenciales
-      description: Proveedor local semilla solo en desarrollo; CAS detrás del proveedor de identidad queda pendiente
-        de confirmación institucional. Bearer opaco revocable respaldado en PostgreSQL; sin JWT ni almacenamiento
-        web persistente.
+      description: Solo para pruebas o desarrollo sin red. Devuelve 404 cuando
+        geoasist.auth.local-login=false (valor predeterminado). Bearer opaco revocable respaldado en PostgreSQL.
       tags:
       - auth
       responses:
@@ -52,6 +51,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/RateLimited'
       security: []
@@ -61,6 +62,61 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
+  /auth/cas:
+    post:
+      operationId: loginWithCas
+      summary: Canjear un ticket universitario por una sesión de GeoAsist
+      description: Valida y consume el ticket CAS para el mismo service, sincroniza la cuenta y emite un bearer opaco.
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CasLoginRequest'}
+      responses:
+        '200':
+          description: Ticket válido y sesión creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResult'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401':
+          description: Ticket inválido, usado, vencido o de otro servicio (TICKET_INVALIDO).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:ticket-invalido', title: Ticket inválido, status: 401, code: TICKET_INVALIDO, mensaje: Ticket inválido.}
+        '403':
+          description: Cuenta universitaria inactiva (CUENTA_INACTIVA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:cuenta-inactiva', title: Cuenta inactiva, status: 403, code: CUENTA_INACTIVA, mensaje: Cuenta inactiva.}
+        '422':
+          description: Identidad no provisionable (IDENTIDAD_INVALIDA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:identidad-invalida', title: Identidad inválida, status: 422, code: IDENTIDAD_INVALIDA, mensaje: Identidad inválida.}
+        '502':
+          description: Servicio universitario no disponible (SSO_NO_DISPONIBLE).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:sso-no-disponible', title: SSO no disponible, status: 502, code: SSO_NO_DISPONIBLE, mensaje: SSO no disponible.}
+  /auth/sso-config:
+    get:
+      operationId: getSsoConfiguration
+      summary: Obtener las URLs públicas del SSO
+      tags: [auth]
+      security: []
+      responses:
+        '200':
+          description: Configuración para clientes web y móvil.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SsoConfiguration'}
   /auth/logout:
     post:
       operationId: logout
@@ -89,6 +145,12 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/LoginResult'}
         '401': {$ref: '#/components/responses/Unauthorized'}
+        '403':
+          description: Cuenta universitaria inactiva (CUENTA_INACTIVA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:cuenta-inactiva', title: Cuenta inactiva, status: 403, code: CUENTA_INACTIVA, mensaje: Cuenta inactiva.}
   /me:
     get:
       operationId: getMe
@@ -2525,6 +2587,31 @@ components:
       required:
       - correo
       - password
+    CasLoginRequest:
+      type: object
+      additionalProperties: false
+      required: [ticket, service]
+      properties:
+        ticket:
+          type: string
+          minLength: 1
+          maxLength: 256
+          writeOnly: true
+          description: Ticket CAS de un solo uso; nunca se registra.
+        service:
+          type: string
+          format: uri
+          minLength: 1
+          maxLength: 2048
+    SsoConfiguration:
+      type: object
+      additionalProperties: false
+      required: [login_url, logout_url, web_service, mobile_service_prefix]
+      properties:
+        login_url: {type: string, format: uri}
+        logout_url: {type: string, format: uri}
+        web_service: {type: string, format: uri}
+        mobile_service_prefix: {type: string, format: uri}
     LoginResult:
       type: object
       additionalProperties: false
