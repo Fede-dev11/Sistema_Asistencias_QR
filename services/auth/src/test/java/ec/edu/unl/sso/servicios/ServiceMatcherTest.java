@@ -46,7 +46,11 @@ class ServiceMatcherTest extends AuthFixture {
         "",
         "geoasist://evil/callback",
         "geoasist://auth/other",
+        "geoasist://evil",
         "geoasist://auth@evil/callback",
+        "geoasist://auth/callbackX",
+        "geoasist://auth/callback@evil.com",
+        "geoasist2://auth/callback",
         "GEOASIST://auth/callback",
         "otro://auth/callback"
       })
@@ -74,5 +78,6 @@ class ServiceMatcherTest extends AuthFixture {
     assertEquals(
         "geoasist-movil", matcher.match("geoasist://auth/callback?n=abc123").get().nombre());
     assertTrue(matcher.match("geoasist://auth/callback/sub").isPresent());
+    assertEquals("geoasist-movil", matcher.match("geoasist://auth/callback").get().nombre());
   }
 }

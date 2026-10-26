@@ -74,7 +74,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 - [ ] T030 [P] [US3] `apps/mobile/src/features/auth/casLogin.test.ts`: nonce generado y verificado; retorno con nonce ajeno se descarta; cancelación deja sin sesión; canje usa el mismo `service`
 - [ ] T031 [US3] `apps/mobile/src/features/auth/casLogin.ts` con `expo-web-browser` `openAuthSessionAsync` y `expo-crypto` (nonce de 16 bytes), `service=geoasist://auth/callback?n=<nonce>`; `apps/mobile/app.json` `scheme: "geoasist"`; añadir dependencias con `npx expo install`
 - [ ] T032 [US3] `apps/mobile/src/features/auth/LoginScreen.tsx`: botón "Ingresar con cuenta universitaria" como acción principal; token de GeoAsist en SecureStore como hoy
-- [ ] T033 [US3] `AUTHT/servicios/ServiceMatcherTest.java`: casos del esquema `geoasist://` (prefijo exacto, sin host ajeno)
+- [X] T033 [US3] `AUTHT/servicios/ServiceMatcherTest.java`: casos del esquema `geoasist://` (prefijo exacto, sin host ajeno)
 
 ## Phase 6: US4 — Administrar usuarios simulados (P2)
 
@@ -90,7 +90,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 ## Phase 7: US5 — Cambiar al servicio real sin reescribir GeoAsist (P3)
 
-- [ ] T041 [P] [US5] `APIT/soporte/ArchitectureDependencyTest.java`: ningún paquete fuera de `identidades` depende de `CasIdentityProvider` ni de clases HTTP del adaptador
+- [X] T041 [P] [US5] `APIT/soporte/ArchitectureDependencyTest.java`: ningún paquete fuera de `identidades` depende de `CasIdentityProvider` ni de clases HTTP del adaptador
 - [X] T042 [US5] `infra/README.md`: cómo apuntar a otro servicio CAS (variables `SSO_*`) y qué cambiar si el protocolo difiere (solo `CasIdentityProvider`)
 
 ## Phase 8: Polish
