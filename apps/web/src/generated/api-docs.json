@@ -101,7 +101,7 @@
       "method": "POST",
       "path": "/auth/login",
       "summary": "Iniciar sesión con credenciales",
-      "desc": "Proveedor local semilla solo en desarrollo; CAS detrás del proveedor de identidad queda pendiente de confirmación institucional. Bearer opaco revocable respaldado en PostgreSQL; sin JWT ni almacenamiento web persistente.",
+      "desc": "Solo para pruebas o desarrollo sin red. Devuelve 404 cuando geoasist.auth.local-login=false (valor predeterminado). Bearer opaco revocable respaldado en PostgreSQL.",
       "group": "auth",
       "roles": [
         "pub"
@@ -145,9 +145,100 @@
           "schema": "Problem"
         },
         {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
           "code": "429",
           "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
           "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "loginWithCas",
+      "method": "POST",
+      "path": "/auth/cas",
+      "summary": "Canjear un ticket universitario por una sesión de GeoAsist",
+      "desc": "Valida y consume el ticket CAS para el mismo service, sincroniza la cuenta y emite un bearer opaco.",
+      "group": "auth",
+      "roles": [
+        "pub"
+      ],
+      "note": null,
+      "params": [],
+      "body": {
+        "contentType": "application/json",
+        "schema": "CasLoginRequest",
+        "fields": [
+          {
+            "name": "ticket",
+            "type": "string",
+            "required": true,
+            "desc": "Ticket CAS de un solo uso; nunca se registra.",
+            "rules": "mín. long. 1; máx. long. 256"
+          },
+          {
+            "name": "service",
+            "type": "string (uri)",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 2048"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Ticket válido y sesión creada.",
+          "schema": "LoginResult"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Ticket inválido, usado, vencido o de otro servicio (TICKET_INVALIDO).",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Cuenta universitaria inactiva (CUENTA_INACTIVA).",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Identidad no provisionable (IDENTIDAD_INVALIDA).",
+          "schema": "Problem"
+        },
+        {
+          "code": "502",
+          "desc": "Servicio universitario no disponible (SSO_NO_DISPONIBLE).",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getSsoConfiguration",
+      "method": "GET",
+      "path": "/auth/sso-config",
+      "summary": "Obtener las URLs públicas del SSO",
+      "desc": "",
+      "group": "auth",
+      "roles": [
+        "pub"
+      ],
+      "note": null,
+      "params": [],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Configuración para clientes web y móvil.",
+          "schema": "SsoConfiguration"
         }
       ]
     },
@@ -204,6 +295,11 @@
         {
           "code": "401",
           "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Cuenta universitaria inactiva (CUENTA_INACTIVA).",
           "schema": "Problem"
         }
       ]
@@ -4959,6 +5055,7 @@
   "codes": [
     "CAMBIO_PASSWORD_REQUERIDO",
     "CEDULA_INVALIDA",
+    "CUENTA_INACTIVA",
     "DISPOSITIVO_REQUERIDO",
     "DISPOSITIVO_YA_REGISTRADO",
     "ESPACIO_CODIGO_EXISTE",
@@ -4966,6 +5063,7 @@
     "ESTADO_INCOMPATIBLE",
     "FORMULARIO_EXPIRADO",
     "HORARIO_DEMASIADO_LARGO",
+    "IDENTIDAD_INVALIDA",
     "JUSTIFICACION_PENDIENTE_EXISTE",
     "LIMITE_SOLICITUDES",
     "METODO_NO_ADMITE_QR",
@@ -4983,6 +5081,8 @@
     "SESION_NO_EDITABLE",
     "SIN_AUSENCIA",
     "SOLICITUD_INVALIDA",
+    "SSO_NO_DISPONIBLE",
+    "TICKET_INVALIDO",
     "UBICACION_INCIERTA",
     "UBICACION_NO_DISPONIBLE"
   ]

@@ -10,9 +10,46 @@ export interface paths {
         put?: never;
         /**
          * Iniciar sesión con credenciales
-         * @description Proveedor local semilla solo en desarrollo; CAS detrás del proveedor de identidad queda pendiente de confirmación institucional. Bearer opaco revocable respaldado en PostgreSQL; sin JWT ni almacenamiento web persistente.
+         * @description Solo para pruebas o desarrollo sin red. Devuelve 404 cuando geoasist.auth.local-login=false (valor predeterminado). Bearer opaco revocable respaldado en PostgreSQL.
          */
         post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/cas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Canjear un ticket universitario por una sesión de GeoAsist
+         * @description Valida y consume el ticket CAS para el mismo service, sincroniza la cuenta y emite un bearer opaco.
+         */
+        post: operations["loginWithCas"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/sso-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtener las URLs públicas del SSO */
+        get: operations["getSsoConfiguration"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1214,6 +1251,22 @@ export interface components {
             /** Format: password */
             password: string;
         };
+        CasLoginRequest: {
+            /** @description Ticket CAS de un solo uso; nunca se registra. */
+            ticket: string;
+            /** Format: uri */
+            service: string;
+        };
+        SsoConfiguration: {
+            /** Format: uri */
+            login_url: string;
+            /** Format: uri */
+            logout_url: string;
+            /** Format: uri */
+            web_service: string;
+            /** Format: uri */
+            mobile_service_prefix: string;
+        };
         LoginResult: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             access_token: string;
@@ -2121,7 +2174,125 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    loginWithCas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CasLoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Ticket válido y sesión creada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Ticket inválido, usado, vencido o de otro servicio (TICKET_INVALIDO). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:ticket-invalido",
+                     *       "title": "Ticket inválido",
+                     *       "status": 401,
+                     *       "code": "TICKET_INVALIDO",
+                     *       "mensaje": "Ticket inválido."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Cuenta universitaria inactiva (CUENTA_INACTIVA). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:cuenta-inactiva",
+                     *       "title": "Cuenta inactiva",
+                     *       "status": 403,
+                     *       "code": "CUENTA_INACTIVA",
+                     *       "mensaje": "Cuenta inactiva."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Identidad no provisionable (IDENTIDAD_INVALIDA). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:identidad-invalida",
+                     *       "title": "Identidad inválida",
+                     *       "status": 422,
+                     *       "code": "IDENTIDAD_INVALIDA",
+                     *       "mensaje": "Identidad inválida."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Servicio universitario no disponible (SSO_NO_DISPONIBLE). */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:sso-no-disponible",
+                     *       "title": "SSO no disponible",
+                     *       "status": 502,
+                     *       "code": "SSO_NO_DISPONIBLE",
+                     *       "mensaje": "SSO no disponible."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSsoConfiguration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configuración para clientes web y móvil. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoConfiguration"];
+                };
+            };
         };
     };
     logout: {
@@ -2163,6 +2334,24 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            /** @description Cuenta universitaria inactiva (CUENTA_INACTIVA). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:cuenta-inactiva",
+                     *       "title": "Cuenta inactiva",
+                     *       "status": 403,
+                     *       "code": "CUENTA_INACTIVA",
+                     *       "mensaje": "Cuenta inactiva."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     getMe: {

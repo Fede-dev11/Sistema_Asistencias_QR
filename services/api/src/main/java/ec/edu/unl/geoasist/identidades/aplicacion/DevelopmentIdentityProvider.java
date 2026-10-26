@@ -3,13 +3,13 @@ package ec.edu.unl.geoasist.identidades.aplicacion;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
 import ec.edu.unl.geoasist.identidades.persistencia.IdentityRepository;
 import java.util.UUID;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile("dev")
-public class DevelopmentIdentityProvider implements IdentityProvider {
+@ConditionalOnProperty(name = "geoasist.auth.local-login", havingValue = "true")
+public class DevelopmentIdentityProvider implements LocalCredentials {
   private final IdentityRepository accounts;
   private final PasswordEncoder encoder;
   private final String fallback;
