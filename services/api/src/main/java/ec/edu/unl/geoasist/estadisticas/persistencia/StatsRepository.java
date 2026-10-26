@@ -22,7 +22,8 @@ public class StatsRepository {
   public record Absence(UUID person, String cedula, String names, String state) {}
 
   /** Visibilidad por fila: institucional, responsable de la actividad o director de la carrera. */
-  public record Viewer(UUID account, boolean institutional, boolean responsible, boolean director) {}
+  public record Viewer(
+      UUID account, boolean institutional, boolean responsible, boolean director) {}
 
   /** Una fila por (sesión, persona) con su resultado A=asistió, F=ausente, J=justificada. */
   private static final String ROWS =
@@ -65,8 +66,7 @@ public class StatsRepository {
             + " WHERE e.actividad_id=? AND e.vigente) r JOIN personas p ON p.id=r.persona_id"
             + " GROUP BY p.id ORDER BY p.nombres,p.id LIMIT ? OFFSET ?",
         (r, n) ->
-            new Student(
-                r.getObject(1, UUID.class), r.getString(2), r.getString(3), counts(r, 4)),
+            new Student(r.getObject(1, UUID.class), r.getString(2), r.getString(3), counts(r, 4)),
         activity,
         activity,
         activity,
@@ -149,7 +149,9 @@ public class StatsRepository {
         args.toArray());
   }
 
-  /** Filtro de fechas sobre el inicio de ventana; se usa dos veces en ROWS, de ahí la copia de args. */
+  /**
+   * Filtro de fechas sobre el inicio de ventana; se usa dos veces en ROWS, de ahí la copia de args.
+   */
   private static String dates(Instant from, Instant to, List<Object> args) {
     var sql = new StringBuilder();
     if (from != null) {
@@ -193,8 +195,7 @@ public class StatsRepository {
         "SELECT p.id,p.cedula_normalizada,p.nombres,u.estado FROM ausencias u JOIN personas p ON p.id=u.persona_id"
             + " WHERE u.sesion_id=? ORDER BY p.nombres,p.id LIMIT ? OFFSET ?",
         (r, n) ->
-            new Absence(
-                r.getObject(1, UUID.class), r.getString(2), r.getString(3), r.getString(4)),
+            new Absence(r.getObject(1, UUID.class), r.getString(2), r.getString(3), r.getString(4)),
         session,
         limit,
         offset);
@@ -205,11 +206,20 @@ public class StatsRepository {
         "SELECT count(*) FROM ausencias WHERE sesion_id=?", Long.class, session);
   }
 
-  public record Mine(UUID session, UUID activity, String name, Instant start, String result, String justification) {}
+  public record Mine(
+      UUID session,
+      UUID activity,
+      String name,
+      Instant start,
+      String result,
+      String justification) {}
 
-  public record MyActivity(UUID activity, String name, java.math.BigDecimal threshold, Counts counts) {}
+  public record MyActivity(
+      UUID activity, String name, java.math.BigDecimal threshold, Counts counts) {}
 
-  /** Historial propio por sesión cerrada; la actividad anonimizada ya no existe y desaparece sola. */
+  /**
+   * Historial propio por sesión cerrada; la actividad anonimizada ya no existe y desaparece sola.
+   */
   public List<Mine> mine(UUID person, int limit, long offset) {
     return db.query(
         "SELECT s.id,a.id,a.nombre,s.ventana_inicio,"
@@ -225,7 +235,12 @@ public class StatsRepository {
                 r.getTimestamp(4).toInstant(),
                 r.getString(5),
                 r.getString(6)),
-        person, person, person, person, limit, offset);
+        person,
+        person,
+        person,
+        person,
+        limit,
+        offset);
   }
 
   public long countMine(UUID person) {
@@ -246,7 +261,10 @@ public class StatsRepository {
   /** Conteos propios por actividad de clase (misma regla que el resto de estadísticas). */
   public List<MyActivity> myActivities(UUID person) {
     return db.query(
-        "SELECT a.id,a.nombre,a.umbral_asistencia," + COUNTS + " FROM (" + ROWS.formatted("")
+        "SELECT a.id,a.nombre,a.umbral_asistencia,"
+            + COUNTS
+            + " FROM ("
+            + ROWS.formatted("")
             + ") r JOIN actividades a ON a.id=r.actividad_id AND a.modalidad='CLASE'"
             + " WHERE r.persona_id=? GROUP BY a.id ORDER BY a.nombre,a.id",
         (r, n) ->

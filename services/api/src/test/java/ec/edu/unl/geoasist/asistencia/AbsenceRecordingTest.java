@@ -21,7 +21,10 @@ class AbsenceRecordingTest extends AbsenceSupport {
     UUID pending = UUID.randomUUID();
     db.update(
         "INSERT INTO intentos_asistencia(id,sesion_id,persona_id,nombres_referencia,resultado,code,mensaje,canal,recibido_en) VALUES (?,?,?,'Nombre ficticio','PENDIENTE_REVISION','UBICACION_INCIERTA','Pendiente','CREDENCIALES',?)",
-        pending, ids[1], S2, Timestamp.from(clock.instant()));
+        pending,
+        ids[1],
+        S2,
+        Timestamp.from(clock.instant()));
     assertEquals(0, absences(ids[1]), "nada antes del cierre");
     close(ids[1], owner);
     // US1-1 y US1-2: S2 con intento pendiente y S3 sin intento quedan ausentes.
@@ -71,7 +74,8 @@ class AbsenceRecordingTest extends AbsenceSupport {
             post("/api/v1/activities/" + ids[0] + "/close")
                 .header("Authorization", "Bearer " + owner)
                 .header("Idempotency-Key", UUID.randomUUID().toString()))
-        .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.status().isOk());
     assertEquals(2, absences(active));
     assertEquals(1, absences(closed));
     assertEquals(2, absences(ids[1]), "la sesión programada también se cierra");

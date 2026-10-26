@@ -74,9 +74,16 @@ public class StartGuestRegistration {
     Instant now = clock.instant();
     starts.create(
         UUID.randomUUID(), session, OpaqueSecrets.hash(secret), now, duration, generation);
-    String access = db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId);
+    String access =
+        db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId);
     return Map.of(
-        "registro_invitado_token", secret, "inicio_en", now, "vence_en", now.plusSeconds(duration),
-        "evento_abierto", "ABIERTO".equals(access));
+        "registro_invitado_token",
+        secret,
+        "inicio_en",
+        now,
+        "vence_en",
+        now.plusSeconds(duration),
+        "evento_abierto",
+        "ABIERTO".equals(access));
   }
 }

@@ -62,8 +62,6 @@ public class ApiProblemHandler {
   private ResponseEntity<Map<String, Object>> deviceRequired() {
     return failure(
         new ApiFailure(
-            400,
-            "DISPOSITIVO_REQUERIDO",
-            "Registra tu asistencia desde la app GeoAsist."));
+            400, "DISPOSITIVO_REQUERIDO", "Registra tu asistencia desde la app GeoAsist."));
   }
 }

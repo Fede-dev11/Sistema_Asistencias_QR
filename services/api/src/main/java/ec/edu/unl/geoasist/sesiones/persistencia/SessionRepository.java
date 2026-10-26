@@ -46,7 +46,10 @@ public class SessionRepository {
         .orElseThrow(ApiFailure::missing);
   }
 
-  /** Regla única de inicio: un método con GPS exige geolocalización habilitada (manual y automático). */
+  /**
+   * Regla única de inicio: un método con GPS exige geolocalización habilitada (manual y
+   * automático).
+   */
   public void requireGpsConfigured(UUID id) {
     if (method(id).contains("GPS")
         && !Boolean.TRUE.equals(
@@ -61,7 +64,8 @@ public class SessionRepository {
   }
 
   public String method(UUID id) {
-    return db.queryForObject("SELECT metodo_verificacion FROM sesiones WHERE id=?", String.class, id);
+    return db.queryForObject(
+        "SELECT metodo_verificacion FROM sesiones WHERE id=?", String.class, id);
   }
 
   public static boolean usesQr(String method) {

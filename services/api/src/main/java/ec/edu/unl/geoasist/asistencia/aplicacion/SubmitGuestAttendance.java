@@ -85,7 +85,8 @@ public class SubmitGuestAttendance {
           || !Boolean.TRUE.equals(configs.getFirst().get("habilitado"))
           || ((Number) configs.getFirst().get("acceso_generacion")).longValue()
               != start.generation()) throw ApiFailure.forbidden();
-      String access = db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId);
+      String access =
+          db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId);
       if ("ABIERTO".equals(access)) {
         person = eligible.selfRegistered(activity, cedula, names);
       } else {
@@ -98,11 +99,23 @@ public class SubmitGuestAttendance {
             "FORMULARIO_CONSUMIDO",
             "Este formulario ya está vinculado a otra persona. Escanea nuevamente.");
     } catch (ApiFailure e) {
-      String channel = "ABIERTO".equals(db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId)) ? "AUTORREGISTRO" : "INVITADO_LISTADO";
+      String channel =
+          "ABIERTO"
+                  .equals(
+                      db.queryForObject(
+                          "SELECT acceso FROM actividades WHERE id=?", String.class, activityId))
+              ? "AUTORREGISTRO"
+              : "INVITADO_LISTADO";
       return recording.reject(start.session(), null, deviceId, e, channel, received, start.id());
     }
     AttendanceEligibility.Person authorized = person;
-    String channel = "ABIERTO".equals(db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, activityId)) ? "AUTORREGISTRO" : "INVITADO_LISTADO";
+    String channel =
+        "ABIERTO"
+                .equals(
+                    db.queryForObject(
+                        "SELECT acceso FROM actividades WHERE id=?", String.class, activityId))
+            ? "AUTORREGISTRO"
+            : "INVITADO_LISTADO";
     return replay.run(
         "attendance-guest",
         "guest:" + start.id(),
@@ -114,13 +127,7 @@ public class SubmitGuestAttendance {
             recording.requireActive(activity, sessions.find(start.session()));
             var receipt =
                 recording.record(
-                    start.session(),
-                    authorized,
-                    deviceId,
-                    location,
-                    channel,
-                    received,
-                    start.id());
+                    start.session(), authorized, deviceId, location, channel, received, start.id());
             starts.bind(start.id(), authorized.id());
             if (receipt.status() == 201 || receipt.status() == 200) {
               UUID attendance = UUID.fromString(receipt.body().get("asistencia_id").toString());

@@ -12,7 +12,9 @@ class SessionRenewalTest extends PostgresFixture {
     var r = api.perform(post("/api/v1/auth/renew").header("Authorization", "Bearer " + bearer));
     r.andExpect(status().is(status));
     return status == 200
-        ? json.readTree(r.andReturn().getResponse().getContentAsString()).get("access_token").asText()
+        ? json.readTree(r.andReturn().getResponse().getContentAsString())
+            .get("access_token")
+            .asText()
         : null;
   }
 

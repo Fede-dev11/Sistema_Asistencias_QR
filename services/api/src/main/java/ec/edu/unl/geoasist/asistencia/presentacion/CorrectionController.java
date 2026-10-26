@@ -39,7 +39,11 @@ public class CorrectionController {
       @Valid @RequestBody ManualInput input) {
     return AttendanceController.response(
         manual.register(
-            user, sessionId, new ManualAttendance.Command(input.persona_id(), input.razon()), key, input));
+            user,
+            sessionId,
+            new ManualAttendance.Command(input.persona_id(), input.razon()),
+            key,
+            input));
   }
 
   @PostMapping("/sessions/{sessionId}/absences/{personId}/justify")

@@ -19,7 +19,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/** FR-005: asistencia manual del responsable; no aplica la regla de dispositivo (no hay dispositivo). */
+/**
+ * FR-005: asistencia manual del responsable; no aplica la regla de dispositivo (no hay
+ * dispositivo).
+ */
 @Service
 public class ManualAttendance {
   public record Command(UUID personId, String reason) {}
@@ -129,7 +132,14 @@ public class ManualAttendance {
         "ASISTENCIA_MANUAL",
         reason,
         Map.of(
-            "sesion_id", sessionId, "persona_id", personId, "asistencia", false, "ausente", removed > 0),
+            "sesion_id",
+            sessionId,
+            "persona_id",
+            personId,
+            "asistencia",
+            false,
+            "ausente",
+            removed > 0),
         Map.of("asistencia_id", attendance, "forma", "MANUAL", "revision_resuelta", resolved > 0));
 
     Map<String, Object> body = new LinkedHashMap<>();

@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import ec.edu.unl.geoasist.soporte.AbsenceSupport;
 import ec.edu.unl.geoasist.soporte.ScenarioFixtures;
-import java.time.Instant;
 import java.util.*;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
@@ -24,7 +23,11 @@ class AttendanceStatsTest extends AbsenceSupport {
   /** 3 estudiantes x 10 sesiones: S1 asiste a 10, S2 a 7, S3 a 5 (con 2 justificadas). */
   private UUID classOfTen(String owner, int year) throws Exception {
     var ids = scenario("CLASE", 200);
-    db.update("INSERT INTO actividad_paralelos VALUES (?,?,?)", ids[0], ScenarioFixtures.id(1), ScenarioFixtures.id(11));
+    db.update(
+        "INSERT INTO actividad_paralelos VALUES (?,?,?)",
+        ids[0],
+        ScenarioFixtures.id(1),
+        ScenarioFixtures.id(11));
     db.update("DELETE FROM sesiones WHERE id=?", ids[1]);
     authorize(ids[0], true, S1, S2, S3);
     for (int i = 0; i < 10; i++) {
@@ -42,13 +45,16 @@ class AttendanceStatsTest extends AbsenceSupport {
     attend(activeSession(ids[0], day(year, 20)), S1);
     db.update(
         "INSERT INTO sesiones(id,actividad_id,estado,ventana_inicio,ventana_fin) VALUES (?,?,'CANCELADA',?,?)",
-        UUID.randomUUID(), ids[0], java.sql.Timestamp.from(day(year, 21)),
+        UUID.randomUUID(),
+        ids[0],
+        java.sql.Timestamp.from(day(year, 21)),
         java.sql.Timestamp.from(day(year, 21).plusSeconds(60)));
     return ids[0];
   }
 
   private static JsonNode student(JsonNode stats, UUID person) {
-    for (JsonNode n : stats.get("items")) if (n.get("persona_id").asText().equals(person.toString())) return n;
+    for (JsonNode n : stats.get("items"))
+      if (n.get("persona_id").asText().equals(person.toString())) return n;
     throw new AssertionError("sin " + person);
   }
 
@@ -118,7 +124,11 @@ class AttendanceStatsTest extends AbsenceSupport {
   void activityStatsAndAbsencesRespectQueryScope() throws Exception {
     String owner = token(ScenarioFixtures.TEACHER);
     UUID activity = classOfTen(owner, nextYear());
-    UUID session = db.queryForObject("SELECT id FROM sesiones WHERE actividad_id=? AND estado='CERRADA' ORDER BY ventana_inicio DESC LIMIT 1", UUID.class, activity);
+    UUID session =
+        db.queryForObject(
+            "SELECT id FROM sesiones WHERE actividad_id=? AND estado='CERRADA' ORDER BY ventana_inicio DESC LIMIT 1",
+            UUID.class,
+            activity);
     String stats = "/api/v1/activities/" + activity + "/stats";
     String absences = "/api/v1/sessions/" + session + "/absences";
     fetch(stats, token("director@example.test"), 200);
@@ -133,7 +143,10 @@ class AttendanceStatsTest extends AbsenceSupport {
     assertEquals("AUSENTE", abs.get("items").get(0).get("estado").asText());
     // Fuera de la carrera del director de carrera.
     db.update("DELETE FROM actividad_paralelos WHERE actividad_id=?", activity);
-    db.update("UPDATE actividad_carreras SET carrera_id=? WHERE actividad_id=?", ScenarioFixtures.id(2), activity);
+    db.update(
+        "UPDATE actividad_carreras SET carrera_id=? WHERE actividad_id=?",
+        ScenarioFixtures.id(2),
+        activity);
     fetch(stats, token("director-carrera@example.test"), 403);
     fetch(stats, token("director@example.test"), 200);
   }
@@ -145,8 +158,15 @@ class AttendanceStatsTest extends AbsenceSupport {
     classOfTen(owner, year);
     // Otra clase de la carrera 2 con una ausencia, del mismo periodo.
     var other = scenario("CLASE", 205);
-    db.update("UPDATE actividad_carreras SET carrera_id=? WHERE actividad_id=?", ScenarioFixtures.id(2), other[0]);
-    db.update("INSERT INTO actividad_paralelos VALUES (?,?,?)", other[0], ScenarioFixtures.id(2), ScenarioFixtures.id(12));
+    db.update(
+        "UPDATE actividad_carreras SET carrera_id=? WHERE actividad_id=?",
+        ScenarioFixtures.id(2),
+        other[0]);
+    db.update(
+        "INSERT INTO actividad_paralelos VALUES (?,?,?)",
+        other[0],
+        ScenarioFixtures.id(2),
+        ScenarioFixtures.id(12));
     db.update("DELETE FROM sesiones WHERE id=?", other[1]);
     authorize(other[0], true, S3);
     close(activeSession(other[0], day(year, 3)), token("otro-docente@example.test"));
@@ -160,18 +180,37 @@ class AttendanceStatsTest extends AbsenceSupport {
     assertEquals(20, p.get("sesiones_computables").asInt());
     assertEquals(85.00, p.get("porcentaje").asDouble());
 
-    JsonNode careerDirector = fetch("/api/v1/stats/careers?" + range, token("director-carrera@example.test"), 200);
+    JsonNode careerDirector =
+        fetch("/api/v1/stats/careers?" + range, token("director-carrera@example.test"), 200);
     assertEquals(1, careerDirector.get("items").size());
     assertEquals("CARRERA-1", careerDirector.get("items").get(0).get("carrera").asText());
     assertEquals(30, careerDirector.get("items").get(0).get("sesiones_computables").asInt());
 
-    JsonNode institutional = fetch("/api/v1/stats/careers?" + range, token("director@example.test"), 200);
+    JsonNode institutional =
+        fetch("/api/v1/stats/careers?" + range, token("director@example.test"), 200);
     assertEquals(2, institutional.get("items").size());
-    assertEquals(1, fetch("/api/v1/stats/parallels?careerId=" + ScenarioFixtures.id(2) + "&" + range, token("director@example.test"), 200).get("items").size());
+    assertEquals(
+        1,
+        fetch(
+                "/api/v1/stats/parallels?careerId=" + ScenarioFixtures.id(2) + "&" + range,
+                token("director@example.test"),
+                200)
+            .get("items")
+            .size());
 
     // Periodo sin sesiones; otra carrera pedida por un director; estudiante.
-    assertEquals(0, fetch("/api/v1/stats/careers?desde=" + day(year, 200) + "&hasta=" + day(year, 300), owner, 200).get("items").size());
-    fetch("/api/v1/stats/parallels?careerId=" + ScenarioFixtures.id(2) + "&" + range, token("director-carrera@example.test"), 403);
+    assertEquals(
+        0,
+        fetch(
+                "/api/v1/stats/careers?desde=" + day(year, 200) + "&hasta=" + day(year, 300),
+                owner,
+                200)
+            .get("items")
+            .size());
+    fetch(
+        "/api/v1/stats/parallels?careerId=" + ScenarioFixtures.id(2) + "&" + range,
+        token("director-carrera@example.test"),
+        403);
     fetch("/api/v1/stats/careers?" + range, token(ScenarioFixtures.STUDENT), 403);
     fetch("/api/v1/stats/careers?desde=" + day(year, 5) + "&hasta=" + day(year, 1), owner, 400);
   }

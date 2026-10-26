@@ -33,12 +33,16 @@ class ManualAttendanceTest extends CorrectionSupport {
         "MANUAL",
         db.queryForObject(
             "SELECT forma FROM asistencias WHERE sesion_id=? AND persona_id=?",
-            String.class, ids[1], S1));
+            String.class,
+            ids[1],
+            S1));
     assertEquals(
         "MANUAL",
         db.queryForObject(
             "SELECT canal FROM intentos_asistencia WHERE sesion_id=? AND persona_id=?",
-            String.class, ids[1], S1));
+            String.class,
+            ids[1],
+            S1));
     assertEquals(
         1,
         count(
@@ -70,18 +74,36 @@ class ManualAttendanceTest extends CorrectionSupport {
     authorize(ids[0], false, S2);
     start(ids[1], owner);
     // Sesión ACTIVA: permitido. US2-7: otros actores rechazados.
-    assertEquals(403, status(send(path(ids[1]), token("otro-docente@example.test"),
-        Map.of("persona_id", S1.toString(), "razon", "x"))));
-    assertEquals(403, status(send(path(ids[1]), token(ScenarioFixtures.STUDENT),
-        Map.of("persona_id", S1.toString(), "razon", "x"))));
-    assertEquals(403, status(send(path(ids[1]), token(ScenarioFixtures.DIRECTOR),
-        Map.of("persona_id", S1.toString(), "razon", "x"))));
-    assertEquals(400, status(send(path(ids[1]), owner, Map.of("persona_id", S1.toString(), "razon", "  "))));
+    assertEquals(
+        403,
+        status(
+            send(
+                path(ids[1]),
+                token("otro-docente@example.test"),
+                Map.of("persona_id", S1.toString(), "razon", "x"))));
+    assertEquals(
+        403,
+        status(
+            send(
+                path(ids[1]),
+                token(ScenarioFixtures.STUDENT),
+                Map.of("persona_id", S1.toString(), "razon", "x"))));
+    assertEquals(
+        403,
+        status(
+            send(
+                path(ids[1]),
+                token(ScenarioFixtures.DIRECTOR),
+                Map.of("persona_id", S1.toString(), "razon", "x"))));
+    assertEquals(
+        400, status(send(path(ids[1]), owner, Map.of("persona_id", S1.toString(), "razon", "  "))));
     var notListed = send(path(ids[1]), owner, Map.of("persona_id", S2.toString(), "razon", "x"));
     assertEquals(422, status(notListed));
     assertEquals("NO_AUTORIZADO_EN_SESION", code(notListed));
     assertEquals(0, count("SELECT count(*) FROM asistencias WHERE sesion_id=?", ids[1]));
-    assertEquals(201, status(send(path(ids[1]), owner, Map.of("persona_id", S1.toString(), "razon", "Activa"))));
+    assertEquals(
+        201,
+        status(send(path(ids[1]), owner, Map.of("persona_id", S1.toString(), "razon", "Activa"))));
   }
 
   @Test
@@ -94,12 +116,20 @@ class ManualAttendanceTest extends CorrectionSupport {
     var closedAt = clock.instant();
 
     clock.set(closedAt.plus(Duration.ofDays(6)));
-    assertEquals(201, status(send(path(ids[1]), token(ScenarioFixtures.TEACHER),
-        Map.of("persona_id", S1.toString(), "razon", "Dentro del plazo"))));
+    assertEquals(
+        201,
+        status(
+            send(
+                path(ids[1]),
+                token(ScenarioFixtures.TEACHER),
+                Map.of("persona_id", S1.toString(), "razon", "Dentro del plazo"))));
 
     clock.set(closedAt.plus(Duration.ofDays(8)));
-    var late = send(path(ids[1]), token(ScenarioFixtures.TEACHER),
-        Map.of("persona_id", S2.toString(), "razon", "Fuera del plazo"));
+    var late =
+        send(
+            path(ids[1]),
+            token(ScenarioFixtures.TEACHER),
+            Map.of("persona_id", S2.toString(), "razon", "Fuera del plazo"));
     assertEquals(409, status(late));
     assertEquals("PLAZO_CORRECCION_VENCIDO", code(late));
     assertEquals(1, absences(ids[1]), "S2 sigue ausente");
@@ -112,18 +142,27 @@ class ManualAttendanceTest extends CorrectionSupport {
     authorize(ids[0], true, S2);
     start(ids[1], owner);
     UUID attempt = pendingAttempt(ids[1], S2);
-    assertEquals(201, status(send(path(ids[1]), owner, Map.of("persona_id", S2.toString(), "razon", "Manual"))));
+    assertEquals(
+        201,
+        status(send(path(ids[1]), owner, Map.of("persona_id", S2.toString(), "razon", "Manual"))));
     assertEquals(
         "RECHAZAR",
-        db.queryForObject("SELECT decision FROM revisiones_asistencia WHERE intento_id=?", String.class, attempt));
+        db.queryForObject(
+            "SELECT decision FROM revisiones_asistencia WHERE intento_id=?",
+            String.class,
+            attempt));
     assertEquals(
         "Registro manual",
-        db.queryForObject("SELECT razon FROM revisiones_asistencia WHERE intento_id=?", String.class, attempt));
+        db.queryForObject(
+            "SELECT razon FROM revisiones_asistencia WHERE intento_id=?", String.class, attempt));
     // Un pendiente ya resuelto no puede aprobarse después.
     assertEquals(
         409,
-        status(send("/attempts/" + attempt + "/review", owner,
-            Map.of("decision", "APROBAR", "razon", "Tarde"))));
+        status(
+            send(
+                "/attempts/" + attempt + "/review",
+                owner,
+                Map.of("decision", "APROBAR", "razon", "Tarde"))));
   }
 
   @Test
@@ -140,16 +179,27 @@ class ManualAttendanceTest extends CorrectionSupport {
 
     clock.set(closedAt.plus(Duration.ofDays(2)));
     String later = token(ScenarioFixtures.TEACHER);
-    var approved = send("/attempts/" + inside + "/review", later, Map.of("decision", "APROBAR", "razon", "Verificado"));
+    var approved =
+        send(
+            "/attempts/" + inside + "/review",
+            later,
+            Map.of("decision", "APROBAR", "razon", "Verificado"));
     assertEquals(200, status(approved));
     assertEquals(1, absences(ids[1]), "la ausencia de S1 se elimina");
     assertEquals(
         "REVISION",
-        db.queryForObject("SELECT forma FROM asistencias WHERE sesion_id=? AND persona_id=?", String.class, ids[1], S1));
+        db.queryForObject(
+            "SELECT forma FROM asistencias WHERE sesion_id=? AND persona_id=?",
+            String.class,
+            ids[1],
+            S1));
 
     clock.set(closedAt.plus(Duration.ofDays(8)));
-    var late = send("/attempts/" + outside + "/review", token(ScenarioFixtures.TEACHER),
-        Map.of("decision", "APROBAR", "razon", "Muy tarde"));
+    var late =
+        send(
+            "/attempts/" + outside + "/review",
+            token(ScenarioFixtures.TEACHER),
+            Map.of("decision", "APROBAR", "razon", "Muy tarde"));
     assertEquals(409, status(late));
     assertEquals("PLAZO_CORRECCION_VENCIDO", code(late));
     assertEquals(1, absences(ids[1]));

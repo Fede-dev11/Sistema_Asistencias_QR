@@ -61,10 +61,14 @@ public class ManagePeopleAndAccounts {
     if (page < 0 || size < 1 || size > 100) throw ApiFailure.invalid();
     String term = q == null ? "" : q.strip();
     return Map.of(
-        "items", repo.people(term, size, page * size),
-        "page", page,
-        "size", size,
-        "total", repo.countPeople(term));
+        "items",
+        repo.people(term, size, page * size),
+        "page",
+        page,
+        "size",
+        size,
+        "total",
+        repo.countPeople(term));
   }
 
   public Map<String, Object> person(UserSession user, UUID id) {
@@ -87,7 +91,13 @@ public class ManagePeopleAndAccounts {
           if (repo.personByCedula(id).isPresent())
             throw new ApiFailure(409, "PERSONA_EXISTE", "Ya existe una persona con esa cédula.");
           UUID created = repo.insertPerson(id, full);
-          audit.write(user.accountId(), "CREAR_PERSONA", "PERSONA", created, Map.of(), Map.of("nombres", full));
+          audit.write(
+              user.accountId(),
+              "CREAR_PERSONA",
+              "PERSONA",
+              created,
+              Map.of(),
+              Map.of("nombres", full));
           return new Receipt(201, repo.person(created).orElseThrow());
         });
   }
@@ -198,7 +208,12 @@ public class ManagePeopleAndAccounts {
     repo.requirePasswordChange(accountId);
     repo.revokeSessions(accountId, java.sql.Timestamp.from(clock.instant()));
     audit.write(
-        user.accountId(), "RESTABLECER_PASSWORD", "CUENTA", accountId, Map.of(), Map.of("temporal", true));
+        user.accountId(),
+        "RESTABLECER_PASSWORD",
+        "CUENTA",
+        accountId,
+        Map.of(),
+        Map.of("temporal", true));
     return Map.of("password_temporal", temp.toString());
   }
 }

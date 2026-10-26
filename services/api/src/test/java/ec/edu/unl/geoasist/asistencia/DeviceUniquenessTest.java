@@ -16,7 +16,8 @@ class DeviceUniquenessTest extends PostgresFixture {
   @Test
   void authenticatedDeviceIsUniquePerSessionAndNeverStoredInClear() throws Exception {
     var first = scenario("EVENTO", 200);
-    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", first[0]); // cuentas sin listado
+    db.update(
+        "UPDATE actividades SET acceso='ABIERTO' WHERE id=?", first[0]); // cuentas sin listado
     String owner = token(ScenarioFixtures.TEACHER);
     start(first[1], owner);
     UUID device = UUID.randomUUID();
@@ -35,11 +36,18 @@ class DeviceUniquenessTest extends PostgresFixture {
     String clear = device.toString();
     String protectedValue = secrets.hmac("device:" + clear);
     assertNotEquals(clear, protectedValue);
-    assertEquals(0, db.queryForObject(
-        "SELECT count(*) FROM intentos_asistencia WHERE dispositivo_hash=?", Integer.class, clear));
-    assertTrue(db.queryForObject(
-        "SELECT count(*) FROM intentos_asistencia WHERE dispositivo_hash=?", Integer.class,
-        protectedValue) >= 2);
+    assertEquals(
+        0,
+        db.queryForObject(
+            "SELECT count(*) FROM intentos_asistencia WHERE dispositivo_hash=?",
+            Integer.class,
+            clear));
+    assertTrue(
+        db.queryForObject(
+                "SELECT count(*) FROM intentos_asistencia WHERE dispositivo_hash=?",
+                Integer.class,
+                protectedValue)
+            >= 2);
   }
 
   @Test
@@ -63,9 +71,10 @@ class DeviceUniquenessTest extends PostgresFixture {
     String owner = token(ScenarioFixtures.TEACHER), student = token(ScenarioFixtures.STUDENT);
     start(ids[1], owner);
     String qr = qr(ids[1], owner);
-    for (String body : List.of(
-        json.writeValueAsString(Map.of("qr_token", qr)),
-        json.writeValueAsString(Map.of("qr_token", qr, "dispositivo_id", "no-es-uuid")))) {
+    for (String body :
+        List.of(
+            json.writeValueAsString(Map.of("qr_token", qr)),
+            json.writeValueAsString(Map.of("qr_token", qr, "dispositivo_id", "no-es-uuid")))) {
       api.perform(
               post("/api/v1/attendance/attempts")
                   .header("Authorization", "Bearer " + student)
@@ -79,16 +88,30 @@ class DeviceUniquenessTest extends PostgresFixture {
 
   @Test
   void selfRegistrationUsesTheSameDeviceUniquenessRule() throws Exception {
-    var ids=scenario("EVENTO",201);
-    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?",ids[0]);
-    db.update("INSERT INTO configuracion_invitados(actividad_id,habilitado,tolerancia_invitado_segundos) VALUES (?,true,120)",ids[0]);
-    String owner=token("encargado@example.test"); start(ids[1],owner);
-    GuestScenario event=new GuestScenario(ids[0],ids[1],owner,qr(ids[1],owner));
-    UUID device=UUID.randomUUID();
-    guestSubmit(open(event).get("registro_invitado_token").asText(),fictionalId(),"Primera",UUID.randomUUID(),device)
+    var ids = scenario("EVENTO", 201);
+    db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", ids[0]);
+    db.update(
+        "INSERT INTO configuracion_invitados(actividad_id,habilitado,tolerancia_invitado_segundos) VALUES (?,true,120)",
+        ids[0]);
+    String owner = token("encargado@example.test");
+    start(ids[1], owner);
+    GuestScenario event = new GuestScenario(ids[0], ids[1], owner, qr(ids[1], owner));
+    UUID device = UUID.randomUUID();
+    guestSubmit(
+            open(event).get("registro_invitado_token").asText(),
+            fictionalId(),
+            "Primera",
+            UUID.randomUUID(),
+            device)
         .andExpect(status().isCreated());
-    guestSubmit(open(event).get("registro_invitado_token").asText(),fictionalId(),"Segunda",UUID.randomUUID(),device)
-        .andExpect(status().isConflict()).andExpect(jsonPath("code").value("DISPOSITIVO_YA_REGISTRADO"));
+    guestSubmit(
+            open(event).get("registro_invitado_token").asText(),
+            fictionalId(),
+            "Segunda",
+            UUID.randomUUID(),
+            device)
+        .andExpect(status().isConflict())
+        .andExpect(jsonPath("code").value("DISPOSITIVO_YA_REGISTRADO"));
   }
 
   private org.springframework.test.web.servlet.ResultActions account(
@@ -98,8 +121,6 @@ class DeviceUniquenessTest extends PostgresFixture {
             .header("Authorization", "Bearer " + bearer)
             .header("Idempotency-Key", UUID.randomUUID())
             .contentType("application/json")
-            .content(
-                json.writeValueAsString(
-                    Map.of("qr_token", qr, "dispositivo_id", device))));
+            .content(json.writeValueAsString(Map.of("qr_token", qr, "dispositivo_id", device))));
   }
 }

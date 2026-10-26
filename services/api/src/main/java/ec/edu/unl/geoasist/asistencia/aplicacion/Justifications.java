@@ -106,7 +106,8 @@ public class Justifications {
 
   /** Estudiante solicita justificar su propia ausencia, dentro del mismo plazo. */
   @Transactional
-  public Receipt request(UserSession user, UUID sessionId, String motive, UUID key, Object payload) {
+  public Receipt request(
+      UserSession user, UUID sessionId, String motive, UUID key, Object payload) {
     UUID personId = user.personId();
     UUID activityId = activities.activityOfSession(sessionId);
     lock(activityId, sessionId, personId);
@@ -146,7 +147,8 @@ public class Justifications {
   private record Row(UUID session, UUID person, UUID activity) {}
 
   private Row row(UUID id) {
-    return db.query(
+    return db
+        .query(
             "SELECT j.sesion_id,j.persona_id,s.actividad_id FROM justificaciones j JOIN sesiones s ON s.id=j.sesion_id WHERE j.id=?",
             (r, n) ->
                 new Row(
@@ -224,7 +226,8 @@ public class Justifications {
               m.put("razon_decision", r.getString(9));
               m.put("solicitada_en", r.getTimestamp(10).toInstant());
               m.put(
-                  "decidida_en", r.getTimestamp(11) == null ? null : r.getTimestamp(11).toInstant());
+                  "decidida_en",
+                  r.getTimestamp(11) == null ? null : r.getTimestamp(11).toInstant());
               return m;
             },
             activityId,

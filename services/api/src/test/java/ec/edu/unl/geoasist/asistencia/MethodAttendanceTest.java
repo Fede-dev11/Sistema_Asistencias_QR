@@ -24,7 +24,8 @@ class MethodAttendanceTest extends ClassSupport {
             .get(0)
             .get("id")
             .asText();
-    if (method.contains("GPS")) ec.edu.unl.geoasist.sesiones.VerificationMethodTest.enableGps(db, session);
+    if (method.contains("GPS"))
+      ec.edu.unl.geoasist.sesiones.VerificationMethodTest.enableGps(db, session);
     ok(send("POST", "/api/v1/sessions/" + session + "/start", teacher, null), 200);
     return session;
   }
@@ -48,8 +49,16 @@ class MethodAttendanceTest extends ClassSupport {
     withToken.put("sesion_id", session);
     assertEquals(
         "METODO_NO_ADMITE_QR",
-        ok(send("POST", "/api/v1/attendance/attempts", student, withToken), 400).get("code").asText());
-    ok(send("POST", "/api/v1/attendance/attempts", student, Map.of("dispositivo_id", UUID.randomUUID().toString())), 400);
+        ok(send("POST", "/api/v1/attendance/attempts", student, withToken), 400)
+            .get("code")
+            .asText());
+    ok(
+        send(
+            "POST",
+            "/api/v1/attendance/attempts",
+            student,
+            Map.of("dispositivo_id", UUID.randomUUID().toString())),
+        400);
 
     ok(send("POST", "/api/v1/sessions/" + session + "/close", teacher, null), 200);
     assertEquals(
@@ -70,7 +79,10 @@ class MethodAttendanceTest extends ClassSupport {
         ok(send("POST", "/api/v1/attendance/attempts", student, attempt("sesion_id", session)), 400)
             .get("code")
             .asText());
-    String qr = ok(send("GET", "/api/v1/sessions/" + session + "/qr", teacher, null), 200).get("qr_token").asText();
+    String qr =
+        ok(send("GET", "/api/v1/sessions/" + session + "/qr", teacher, null), 200)
+            .get("qr_token")
+            .asText();
     ok(send("POST", "/api/v1/attendance/attempts", student, attempt("qr_token", qr)), 201);
   }
 
@@ -84,12 +96,18 @@ class MethodAttendanceTest extends ClassSupport {
     body.put(
         "ubicacion",
         Map.of(
-            "latitud", -4.0328,
-            "longitud", -79.2026,
-            "precision_m", 5,
-            "medido_en", clock.instant().toString()));
+            "latitud",
+            -4.0328,
+            "longitud",
+            -79.2026,
+            "precision_m",
+            5,
+            "medido_en",
+            clock.instant().toString()));
     var result = ok(send("POST", "/api/v1/attendance/attempts", student, body), 202);
-    assertEquals("REPETIR", result.get("resultado").asText()); // sin PostGIS no hay distancia: 001 pide repetir
+    assertEquals(
+        "REPETIR",
+        result.get("resultado").asText()); // sin PostGIS no hay distancia: 001 pide repetir
   }
 
   @Test
@@ -98,12 +116,24 @@ class MethodAttendanceTest extends ClassSupport {
     String teacher = token(ScenarioFixtures.TEACHER);
     String session = started(teacher, "NINGUNO");
     // Una clase no admite invitados: la sesión se resuelve (sin QR) y se rechaza por modalidad.
-    ok(api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/guest-registrations")
-        .contentType("application/json").content("{\"sesion_id\":\"" + session + "\"}")), 403);
+    ok(
+        api.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                    "/api/v1/guest-registrations")
+                .contentType("application/json")
+                .content("{\"sesion_id\":\"" + session + "\"}")),
+        403);
     String qrSession = started(teacher, "SOLO_QR");
     assertEquals(
         "QR_REQUERIDO",
-        ok(api.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/guest-registrations")
-            .contentType("application/json").content("{\"sesion_id\":\"" + qrSession + "\"}")), 400).get("code").asText());
+        ok(
+                api.perform(
+                    org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                            "/api/v1/guest-registrations")
+                        .contentType("application/json")
+                        .content("{\"sesion_id\":\"" + qrSession + "\"}")),
+                400)
+            .get("code")
+            .asText());
   }
 }

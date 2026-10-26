@@ -21,7 +21,13 @@ class AdminPeopleAccountsTest extends AdminSupport {
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("code").value("CEDULA_INVALIDA"));
     var renamed =
-        ok(send("PATCH", "/api/v1/admin/people/" + p.get("id").asText(), a, Map.of("nombres", "Ana B")), 200);
+        ok(
+            send(
+                "PATCH",
+                "/api/v1/admin/people/" + p.get("id").asText(),
+                a,
+                Map.of("nombres", "Ana B")),
+            200);
     assertEquals("Ana B", renamed.get("nombres").asText());
     var found = ok(send("GET", "/api/v1/admin/people?q=" + cedula, a, null), 200);
     assertEquals(1, found.get("total").asInt());
@@ -66,7 +72,8 @@ class AdminPeopleAccountsTest extends AdminSupport {
                 .header("Authorization", "Bearer " + a)
                 .header("Idempotency-Key", key.toString())
                 .contentType("application/json")
-                .content(json.writeValueAsString(Map.of("cedula", fictionalId(), "nombres", "Idem"))))
+                .content(
+                    json.writeValueAsString(Map.of("cedula", fictionalId(), "nombres", "Idem"))))
         .andExpect(status().isConflict());
   }
 
@@ -82,10 +89,14 @@ class AdminPeopleAccountsTest extends AdminSupport {
             "/api/v1/admin/accounts",
             a,
             Map.of(
-                "persona_id", p.get("id").asText(),
-                "correo", "otro-" + mail,
-                "password", "fixture-password",
-                "roles", List.of("ESTUDIANTE")))
+                "persona_id",
+                p.get("id").asText(),
+                "correo",
+                "otro-" + mail,
+                "password",
+                "fixture-password",
+                "roles",
+                List.of("ESTUDIANTE")))
         .andExpect(status().isConflict());
     String session = token(mail);
     long attendances = db.queryForObject("SELECT count(*) FROM asistencias", Long.class);
@@ -93,13 +104,22 @@ class AdminPeopleAccountsTest extends AdminSupport {
     api.perform(
             post("/api/v1/auth/login")
                 .contentType("application/json")
-                .content(json.writeValueAsString(Map.of("correo", mail, "password", "fixture-password"))))
+                .content(
+                    json.writeValueAsString(
+                        Map.of("correo", mail, "password", "fixture-password"))))
         .andExpect(status().isUnauthorized());
     api.perform(post("/api/v1/auth/logout").header("Authorization", "Bearer " + session))
         .andExpect(status().isUnauthorized());
     assertEquals(attendances, db.queryForObject("SELECT count(*) FROM asistencias", Long.class));
-    assertEquals(1L, db.queryForObject("SELECT count(*) FROM cuentas WHERE id=?", Long.class, account));
-    ok(send("PATCH", "/api/v1/admin/accounts/" + account, a, Map.of("roles", List.of("DOCENTE"), "activa", true)), 200);
+    assertEquals(
+        1L, db.queryForObject("SELECT count(*) FROM cuentas WHERE id=?", Long.class, account));
+    ok(
+        send(
+            "PATCH",
+            "/api/v1/admin/accounts/" + account,
+            a,
+            Map.of("roles", List.of("DOCENTE"), "activa", true)),
+        200);
     assertEquals(
         List.of("DOCENTE"),
         db.queryForList("SELECT rol FROM roles_cuenta WHERE cuenta_id=?", String.class, account));

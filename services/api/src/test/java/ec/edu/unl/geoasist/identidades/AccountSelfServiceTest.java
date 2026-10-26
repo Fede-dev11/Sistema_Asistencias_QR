@@ -31,7 +31,10 @@ class AccountSelfServiceTest extends PostgresFixture {
     String admin = admin();
     JsonNode person =
         json.readTree(
-            call(post("/api/v1/admin/people"), admin, Map.of("cedula", fictionalId(), "nombres", "Cuenta Ficticia"))
+            call(
+                    post("/api/v1/admin/people"),
+                    admin,
+                    Map.of("cedula", fictionalId(), "nombres", "Cuenta Ficticia"))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -42,10 +45,14 @@ class AccountSelfServiceTest extends PostgresFixture {
                     post("/api/v1/admin/accounts"),
                     admin,
                     Map.of(
-                        "persona_id", person.get("id").asText(),
-                        "correo", mail,
-                        "password", OLD,
-                        "roles", List.of("ESTUDIANTE")))
+                        "persona_id",
+                        person.get("id").asText(),
+                        "correo",
+                        mail,
+                        "password",
+                        OLD,
+                        "roles",
+                        List.of("ESTUDIANTE")))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
@@ -69,7 +76,9 @@ class AccountSelfServiceTest extends PostgresFixture {
   }
 
   String tokenOf(ResultActions r) throws Exception {
-    return json.readTree(r.andReturn().getResponse().getContentAsString()).get("access_token").asText();
+    return json.readTree(r.andReturn().getResponse().getContentAsString())
+        .get("access_token")
+        .asText();
   }
 
   ResultActions change(String bearer, String current, String next) throws Exception {
@@ -94,9 +103,14 @@ class AccountSelfServiceTest extends PostgresFixture {
     String mail = mail();
     account(mail);
     String t = tokenOf(login(mail, OLD).andExpect(status().isOk()));
-    change(t, OLD, "corta").andExpect(status().isBadRequest()).andExpect(jsonPath("code").value("PASSWORD_DEBIL"));
-    change(t, OLD, OLD).andExpect(status().isBadRequest()).andExpect(jsonPath("code").value("PASSWORD_DEBIL"));
-    // Cada intento con actual incorrecta cuenta para el límite de login (5 por minuto, incluido el login inicial).
+    change(t, OLD, "corta")
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("code").value("PASSWORD_DEBIL"));
+    change(t, OLD, OLD)
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("code").value("PASSWORD_DEBIL"));
+    // Cada intento con actual incorrecta cuenta para el límite de login (5 por minuto, incluido el
+    // login inicial).
     for (int i = 0; i < 4; i++)
       change(t, "equivocada-" + i, "otra-clave-larga-1")
           .andExpect(status().isBadRequest())
@@ -133,14 +147,18 @@ class AccountSelfServiceTest extends PostgresFixture {
                 String.class,
                 UUID.fromString(id))
             .contains(temp));
-    var res = login(mail, temp).andExpect(status().isOk()).andExpect(jsonPath("debe_cambiar_password").value(true));
+    var res =
+        login(mail, temp)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("debe_cambiar_password").value(true));
     String t = tokenOf(res);
     call(get("/api/v1/me"), t, null).andExpect(status().isOk());
     call(post("/api/v1/auth/renew"), t, null)
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("code").value("CAMBIO_PASSWORD_REQUERIDO"));
     change(t, temp, "definitiva-larga-1").andExpect(status().isNoContent());
-    call(post("/api/v1/admin/accounts/" + id + "/password-reset"), t, null).andExpect(status().isForbidden());
+    call(post("/api/v1/admin/accounts/" + id + "/password-reset"), t, null)
+        .andExpect(status().isForbidden());
     call(post("/api/v1/auth/renew"), t, null).andExpect(status().isOk());
   }
 

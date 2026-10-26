@@ -48,7 +48,10 @@ public abstract class CorrectionSupport extends AbsenceSupport {
     UUID id = UUID.randomUUID();
     db.update(
         "INSERT INTO intentos_asistencia(id,sesion_id,persona_id,nombres_referencia,resultado,code,mensaje,canal,recibido_en) VALUES (?,?,?,'Nombre ficticio','PENDIENTE_REVISION','UBICACION_INCIERTA','Pendiente','CREDENCIALES',?)",
-        id, session, person, Timestamp.from(clock.instant()));
+        id,
+        session,
+        person,
+        Timestamp.from(clock.instant()));
     return id;
   }
 

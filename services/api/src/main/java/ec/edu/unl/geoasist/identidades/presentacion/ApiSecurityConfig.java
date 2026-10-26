@@ -101,7 +101,9 @@ public class ApiSecurityConfig {
                         || path.equals("/api/v1/me")
                         || path.equals("/api/v1/auth/logout")))
                   throw new ApiFailure(
-                      403, "CAMBIO_PASSWORD_REQUERIDO", "Debes cambiar tu contraseña para continuar.");
+                      403,
+                      "CAMBIO_PASSWORD_REQUERIDO",
+                      "Debes cambiar tu contraseña para continuar.");
                 SecurityContextHolder.getContext()
                     .setAuthentication(
                         new UsernamePasswordAuthenticationToken(

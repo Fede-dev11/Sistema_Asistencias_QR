@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
-/** Ciclo automático (FR-010/FR-011): inicia y cierra sesiones; cada transición en su transacción. */
+/**
+ * Ciclo automático (FR-010/FR-011): inicia y cierra sesiones; cada transición en su transacción.
+ */
 @Service
 public class SessionCycle {
   static final long RETRY_SECONDS = 60;
@@ -60,7 +62,8 @@ public class SessionCycle {
     Timestamp now = Timestamp.from(clock.instant());
     while (Boolean.TRUE.equals(tx.execute(s -> startOne(now)))) {}
     while (Boolean.TRUE.equals(tx.execute(s -> closeOne(DUE_CLOSE, now, "SISTEMA_CIERRE")))) {}
-    while (Boolean.TRUE.equals(tx.execute(s -> closeOne(DUE_LATE, now, "SISTEMA_CIERRE_TARDIO")))) {}
+    while (Boolean.TRUE.equals(
+        tx.execute(s -> closeOne(DUE_LATE, now, "SISTEMA_CIERRE_TARDIO")))) {}
   }
 
   private boolean startOne(Timestamp now) {
@@ -100,8 +103,7 @@ public class SessionCycle {
   }
 
   private boolean closeOne(String due, Timestamp now, String action) {
-    var row =
-        db.queryForList(PICK.formatted(due), "ACTIVA", now).stream().findFirst().orElse(null);
+    var row = db.queryForList(PICK.formatted(due), "ACTIVA", now).stream().findFirst().orElse(null);
     if (row == null) return false;
     UUID id = (UUID) row.get("id");
     db.update("UPDATE sesiones SET estado='CERRADA',cerrada_en=? WHERE id=?", now, id);

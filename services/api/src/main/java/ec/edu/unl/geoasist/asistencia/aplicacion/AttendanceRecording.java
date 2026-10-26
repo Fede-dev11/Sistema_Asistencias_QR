@@ -19,7 +19,10 @@ public class AttendanceRecording {
   private final Clock clock;
 
   public AttendanceRecording(
-      AttemptRepository attempts, AttendanceGeography geography, OpaqueSecrets secrets, Clock clock) {
+      AttemptRepository attempts,
+      AttendanceGeography geography,
+      OpaqueSecrets secrets,
+      Clock clock) {
     this.attempts = attempts;
     this.geography = geography;
     this.secrets = secrets;
@@ -46,7 +49,13 @@ public class AttendanceRecording {
   }
 
   public Receipt reject(
-      UUID session, Person person, UUID deviceId, ApiFailure error, String channel, Instant received, UUID start) {
+      UUID session,
+      Person person,
+      UUID deviceId,
+      ApiFailure error,
+      String channel,
+      Instant received,
+      UUID start) {
     String deviceHash = deviceHash(deviceId);
     UUID attempt =
         attempts.record(
@@ -74,7 +83,8 @@ public class AttendanceRecording {
     geography.validatePayload(session, location);
     var existing = attempts.existing(session, person.id());
     if (existing.isPresent()) {
-      attempts.record(session, person, AttendanceOutcome.duplicate(), deviceHash, channel, received, start);
+      attempts.record(
+          session, person, AttendanceOutcome.duplicate(), deviceHash, channel, received, start);
       return new Receipt(
           200, AttemptRepository.receipt(existing.get(), "La asistencia ya estaba registrada."));
     }

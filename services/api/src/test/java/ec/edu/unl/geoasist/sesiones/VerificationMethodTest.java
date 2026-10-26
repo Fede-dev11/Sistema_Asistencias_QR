@@ -50,8 +50,7 @@ public class VerificationMethodTest extends ClassSupport {
             200);
     assertEquals("NINGUNO", edited.get("metodo_verificacion").asText());
     ok(
-        send(
-            "PATCH", "/api/v1/sessions/" + session, teacher, Map.of("metodo_verificacion", "X")),
+        send("PATCH", "/api/v1/sessions/" + session, teacher, Map.of("metodo_verificacion", "X")),
         400);
 
     String bare = UUID.randomUUID().toString();
@@ -83,7 +82,10 @@ public class VerificationMethodTest extends ClassSupport {
     enableGps(db, session);
     ok(
         send(
-            "PATCH", "/api/v1/sessions/" + session, teacher, Map.of("metodo_verificacion", "SOLO_QR")),
+            "PATCH",
+            "/api/v1/sessions/" + session,
+            teacher,
+            Map.of("metodo_verificacion", "SOLO_QR")),
         200);
     assertFalse(
         db.queryForObject(
@@ -92,7 +94,10 @@ public class VerificationMethodTest extends ClassSupport {
             session));
     ok(
         send(
-            "PATCH", "/api/v1/sessions/" + session, teacher, Map.of("metodo_verificacion", "SOLO_GPS")),
+            "PATCH",
+            "/api/v1/sessions/" + session,
+            teacher,
+            Map.of("metodo_verificacion", "SOLO_GPS")),
         200);
     enableGps(db, session);
     ok(send("POST", "/api/v1/sessions/" + session + "/start", teacher, null), 200);
@@ -108,7 +113,11 @@ public class VerificationMethodTest extends ClassSupport {
             .get("code")
             .asText());
     ok(
-        send("PUT", "/api/v1/sessions/" + session + "/geolocation", teacher, Map.of("habilitada", false)),
+        send(
+            "PUT",
+            "/api/v1/sessions/" + session + "/geolocation",
+            teacher,
+            Map.of("habilitada", false)),
         409);
     ok(send("GET", "/api/v1/sessions/" + session + "/qr", teacher, null), 409);
   }

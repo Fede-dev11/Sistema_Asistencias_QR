@@ -88,12 +88,21 @@ public class AttemptRepository {
   }
 
   public Optional<Attendance> existingDevice(UUID session, String deviceHash) {
-    return db.query(
+    return db
+        .query(
             "SELECT id,sesion_id,persona_id,intento_id,registrada_en,nombres_registro FROM asistencias WHERE sesion_id=? AND dispositivo_hash=?",
-            (r, n) -> new Attendance(r.getObject(1, UUID.class), r.getObject(2, UUID.class),
-                r.getObject(3, UUID.class), r.getObject(4, UUID.class),
-                r.getTimestamp(5).toInstant(), r.getString(6)), session, deviceHash)
-        .stream().findFirst();
+            (r, n) ->
+                new Attendance(
+                    r.getObject(1, UUID.class),
+                    r.getObject(2, UUID.class),
+                    r.getObject(3, UUID.class),
+                    r.getObject(4, UUID.class),
+                    r.getTimestamp(5).toInstant(),
+                    r.getString(6)),
+            session,
+            deviceHash)
+        .stream()
+        .findFirst();
   }
 
   public int consecutiveUncertainty(UUID session, UUID person) {

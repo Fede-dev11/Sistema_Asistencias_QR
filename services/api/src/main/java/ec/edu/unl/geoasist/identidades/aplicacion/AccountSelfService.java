@@ -44,11 +44,14 @@ public class AccountSelfService {
     String hash = (String) row.get("password_hash");
     if (hash == null || !encoder.matches(current, hash)) {
       budget.check("login-account:" + row.get("identificador"), 5);
-      throw new ApiFailure(400, "PASSWORD_ACTUAL_INCORRECTA", "La contraseña actual no es correcta.");
+      throw new ApiFailure(
+          400, "PASSWORD_ACTUAL_INCORRECTA", "La contraseña actual no es correcta.");
     }
     if (next.length() < 12 || next.length() > 128 || next.equals(current))
       throw new ApiFailure(
-          400, "PASSWORD_DEBIL", "La nueva contraseña debe tener 12 a 128 caracteres y ser distinta.");
+          400,
+          "PASSWORD_DEBIL",
+          "La nueva contraseña debe tener 12 a 128 caracteres y ser distinta.");
     accounts.setPassword(user.accountId(), encoder.encode(next));
     accounts.revokeOthers(user.accountId(), user.sessionId(), clock.instant());
   }

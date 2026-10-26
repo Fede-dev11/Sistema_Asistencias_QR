@@ -54,7 +54,9 @@ public class AuthenticationService {
         accounts.mustChangePassword(account));
   }
 
-  /** Rota el secreto: el anterior se revoca y el límite de 30 días cuenta desde el login original. */
+  /**
+   * Rota el secreto: el anterior se revoca y el límite de 30 días cuenta desde el login original.
+   */
   @Transactional
   public Map<String, Object> renew(UserSession user) {
     Instant original = accounts.loginOriginal(user.sessionId());

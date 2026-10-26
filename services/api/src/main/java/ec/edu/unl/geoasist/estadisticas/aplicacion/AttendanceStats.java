@@ -109,7 +109,8 @@ public class AttendanceStats {
   public Map<String, Object> parallels(UserSession user, UUID career, Instant from, Instant to) {
     Viewer v = viewer(user);
     range(from, to);
-    // Quien solo dirige otras carreras no puede pedir esta; un responsable ve únicamente sus clases.
+    // Quien solo dirige otras carreras no puede pedir esta; un responsable ve únicamente sus
+    // clases.
     if (career != null
         && !v.institutional()
         && !v.responsible()

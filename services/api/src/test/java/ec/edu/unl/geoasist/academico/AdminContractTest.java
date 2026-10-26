@@ -29,7 +29,8 @@ class AdminContractTest extends AdminSupport {
   @Test
   void withoutSessionIs401AndNonAdminRolesAre403() throws Exception {
     for (String[] r : ROUTES) send(r[0], r[1], null, Map.of()).andExpect(status().isUnauthorized());
-    for (String who : List.of("docente", "estudiante", "director", "director-carrera", "encargado")) {
+    for (String who :
+        List.of("docente", "estudiante", "director", "director-carrera", "encargado")) {
       String t = token(who + "@example.test");
       for (String[] r : ROUTES) send(r[0], r[1], t, Map.of()).andExpect(status().isForbidden());
       api.perform(
@@ -44,8 +45,7 @@ class AdminContractTest extends AdminSupport {
   void adminResponsesFollowTheContractShape() throws Exception {
     String a = admin();
     var page = ok(send("GET", "/api/v1/admin/people?size=5", a, null), 200);
-    assertTrue(
-        page.has("items") && page.has("page") && page.has("size") && page.has("total"));
+    assertTrue(page.has("items") && page.has("page") && page.has("size") && page.has("total"));
     assertTrue(page.get("items").get(0).has("cedula"));
     send("GET", "/api/v1/admin/people?size=101", a, null).andExpect(status().isBadRequest());
     var careers = ok(send("GET", "/api/v1/admin/careers", a, null), 200);
