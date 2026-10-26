@@ -46,9 +46,7 @@ class ActiveSessionsTest extends ClassSupport {
     ok(send("POST", "/api/v1/sessions/" + cancelled + "/cancel", teacher, null), 200);
 
     // La base es compartida entre clases de prueba: otras dejan eventos abiertos activos.
-    var page = ok(send("GET", "/api/v1/me/active-sessions?size=100", student, null), 200);
-    var byId = new HashMap<String, tools.jackson.databind.JsonNode>();
-    page.get("items").forEach(i -> byId.put(i.get("sesion_id").asText(), i));
+    var byId = all(student);
     assertTrue(byId.keySet().containsAll(Set.of(gps, none)));
     for (String excluded : List.of(scheduled, closed, cancelled))
       assertFalse(byId.containsKey(excluded), excluded);
@@ -57,8 +55,7 @@ class ActiveSessionsTest extends ClassSupport {
     assertFalse(byId.get(none).get("requiere_ubicacion").asBoolean());
 
     // El docente no está autorizado como estudiante en esas clases.
-    String forTeacher =
-        ok(send("GET", "/api/v1/me/active-sessions?size=100", teacher, null), 200).toString();
+    var forTeacher = all(teacher).keySet();
     assertFalse(forTeacher.contains(gps) || forTeacher.contains(none));
     ok(send("GET", "/api/v1/me/active-sessions?size=0", student, null), 400);
   }
@@ -78,24 +75,30 @@ class ActiveSessionsTest extends ClassSupport {
     var open = guests(120, fictionalId());
     db.update("UPDATE actividades SET acceso='ABIERTO' WHERE id=?", open.activity());
 
-    var forStudent = idsOf(ok(send("GET", "/api/v1/me/active-sessions", student, null), 200));
+    var forStudent = all(student).keySet();
     assertTrue(forStudent.contains(onList.session().toString()));
     assertTrue(forStudent.contains(open.session().toString()));
     assertFalse(forStudent.contains(offList.session().toString()));
-    var forTeacher = idsOf(ok(send("GET", "/api/v1/me/active-sessions", teacher, null), 200));
+    var forTeacher = all(teacher).keySet();
     assertTrue(forTeacher.contains(open.session().toString()));
     assertFalse(forTeacher.contains(onList.session().toString()));
     assertFalse(forTeacher.contains(offList.session().toString()));
 
     db.update("UPDATE invitados_evento SET activo=false WHERE actividad_id=?", onList.activity());
-    var after = idsOf(ok(send("GET", "/api/v1/me/active-sessions", student, null), 200));
+    var after = all(student).keySet();
     assertTrue(after.contains(open.session().toString()));
     assertFalse(after.contains(onList.session().toString()));
   }
 
-  private static Set<String> idsOf(tools.jackson.databind.JsonNode page) {
-    var ids = new HashSet<String>();
-    page.get("items").forEach(i -> ids.add(i.get("sesion_id").asText()));
-    return ids;
+  /** Recorre todas las páginas: la base es compartida y otras clases dejan sesiones activas. */
+  private Map<String, tools.jackson.databind.JsonNode> all(String token) throws Exception {
+    var byId = new HashMap<String, tools.jackson.databind.JsonNode>();
+    for (int page = 0; ; page++) {
+      var items =
+          ok(send("GET", "/api/v1/me/active-sessions?size=100&page=" + page, token, null), 200)
+              .get("items");
+      items.forEach(i -> byId.put(i.get("sesion_id").asText(), i));
+      if (items.size() < 100) return byId;
+    }
   }
 }
