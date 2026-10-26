@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -78,8 +77,12 @@ public class AuthController {
   }
 
   @PostMapping("/logout")
-  public ResponseEntity<Void> logout(@AuthenticationPrincipal UserSession user) {
+  public Map<String, String> logout(@AuthenticationPrincipal UserSession user) {
     auth.logout(user);
-    return ResponseEntity.noContent().build();
+    return Map.of(
+        "sso_logout_url",
+        publicUrl
+            + "/cas/logout?service="
+            + java.net.URLEncoder.encode(webService, java.nio.charset.StandardCharsets.UTF_8));
   }
 }

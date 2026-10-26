@@ -257,9 +257,9 @@
       "body": null,
       "responses": [
         {
-          "code": "204",
-          "desc": "Sesión revocada.",
-          "schema": null
+          "code": "200",
+          "desc": "Sesión revocada; incluye la URL para cerrar también la sesión universitaria.",
+          "schema": "object"
         },
         {
           "code": "401",

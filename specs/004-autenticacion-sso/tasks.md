@@ -43,7 +43,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 - [X] T012 [P] [US1] `AUTHT/cas/LoginTest.java`: login correcto → TGC + 302 a `service?ticket=ST-…`; credenciales erróneas → mismo mensaje genérico, sin redirección; usuario inactivo → mensaje; 6.º intento fallido en 1 min → 429 con `Retry-After`; `debe_cambiar_password` → 302 a `/cas/password` y luego al servicio; registro en `registro_ingresos` sin contraseña
 - [X] T013 [P] [US1] `AUTHT/cas/ServiceValidateTest.java`: JSON y XML con atributos `correo, cedula, nombres, roles, carreras, activo`; `INVALID_TICKET` reutilizado/vencido (reloj +11 s); `INVALID_SERVICE` con otro `service`; `INVALID_REQUEST` sin parámetros; 20 validaciones concurrentes del mismo ticket → exactamente 1 éxito
 - [X] T014 [P] [US1] `APIT/identidades/CasLoginTest.java` (GeoAsist, con servidor HTTP falso que responde JSON CAS grabado): canje válido → `LoginResult`; provisión crea persona `INSTITUCIONAL` y cuenta `CAS` sin contraseña; persona existente por cédula se enlaza (matrículas intactas); `EXTERNA` pasa a `INSTITUCIONAL`; roles reemplazados en el segundo ingreso; rol desconocido ignorado; cédula inválida → 422 `IDENTIDAD_INVALIDA`; `authenticationFailure` → 401 `TICKET_INVALIDO`; servicio caído → 502 `SSO_NO_DISPONIBLE`; `DIRECTOR_CARRERA` sincroniza `direcciones_carrera` por código de carrera; correo distinto para la misma cédula actualiza `cuentas.identificador`; `GET /auth/sso-config` devuelve URLs de configuración (prueba de integración y de contrato)
-- [ ] T015 [P] [US1] `apps/web/src/features/auth/CasCallback.test.tsx`: callback con `ticket` llama a `POST /auth/cas` con el mismo `service` y guarda la sesión en memoria; sin `ticket` muestra error y botón para reintentar
+- [X] T015 [P] [US1] `apps/web/src/features/auth/CasCallback.test.tsx`: callback con `ticket` llama a `POST /auth/cas` con el mismo `service` y guarda la sesión en memoria; sin `ticket` muestra error y botón para reintentar
 
 ### Implementation
 
@@ -56,7 +56,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 - [X] T022 [US1] `API/identidades/aplicacion/AccountProvisioning.java` según research R5 (transacción, `Cedula.of`, roles conocidos, `direcciones_carrera`, auditoría `SISTEMA_PROVISION_CUENTA`); migración `services/api/src/main/resources/db/migration/V019__cuentas_sso.sql` (`proveedor` admite `CAS`, CHECK `proveedor<>'CAS' OR password_hash IS NULL`, `sincronizada_en`)
 - [X] T023 [US1] `API/identidades/presentacion/AuthController.java`: `POST /auth/cas`, `GET /auth/sso-config`; `/auth/login` → 404 si `geoasist.auth.local-login=false`; `application.yml` con `geoasist.sso.*` y `local-login: ${GEOASIST_LOCAL_LOGIN:false}`; perfil de pruebas con `local-login: true` en `APIT/soporte/PostgresFixture.java`
 - [X] T024 [US1] YAML: `POST /auth/cas`, `GET /auth/sso-config`, nota en `/auth/login`, códigos `TICKET_INVALIDO`, `CUENTA_INACTIVA`, `IDENTIDAD_INVALIDA`, `SSO_NO_DISPONIBLE`; `npm run validate && npm run generate` en `tools/contracts` (regenera también la documentación `/documentacion`; actualizar roles en `tools/contracts/docs.mjs` para `/auth/cas` y `/auth/sso-config` = Público)
-- [ ] T025 [US1] Web: botón "Ingresar con cuenta universitaria" en `apps/web/src/features/auth/LoginForm.tsx` (lee `/auth/sso-config`), página `apps/web/src/app/auth/callback/page.tsx` con `features/auth/CasCallback.tsx`; el formulario de contraseña solo aparece si `/auth/login` responde (modo local)
+- [X] T025 [US1] Web: botón "Ingresar con cuenta universitaria" en `apps/web/src/features/auth/LoginForm.tsx` (lee `/auth/sso-config`), página `apps/web/src/app/auth/callback/page.tsx` con `features/auth/CasCallback.tsx`; el formulario de contraseña solo aparece si `/auth/login` responde (modo local)
 
 ## Phase 4: US2 — Una sola sesión para varios servicios (P1)
 
@@ -65,7 +65,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 - [X] T026 [P] [US2] `AUTHT/cas/SingleSignOnTest.java`: con TGC vigente `GET /cas/login?service=` → 302 inmediato con ticket nuevo; ticket de `geoasist-web` validado con `service` de `ejemplo` → `INVALID_SERVICE`; `service` no registrado → 400 sin `Location`; logout cierra TGT y el siguiente login pide credenciales; inactividad de 8 h y máximo 24 h (reloj)
 - [X] T027 [US2] `AUTH/cas/presentacion/LogoutController.java` (`GET /cas/logout?service=`, solo redirige a servicios registrados) + plantilla `logout.html`
 - [X] T028 [P] [US2] Script de demostración `infra/tests/sso_demo.py` (solo biblioteca estándar): con una cookie `CASTGC` de un ingreso previo pide `GET /cas/login?service=http://localhost:8082/` sin credenciales, toma el `ticket` del `Location` y lo valida como servicio `ejemplo`; imprime el usuario y sus roles (demuestra SSO hacia un segundo servicio sin levantar otro contenedor)
-- [ ] T029 [US2] GeoAsist: `POST /auth/logout` devuelve `sso_logout_url`; la web ofrece "Cerrar también la sesión universitaria" (`apps/web/src/features/auth/SessionProvider.tsx`)
+- [X] T029 [US2] GeoAsist: `POST /auth/logout` devuelve `sso_logout_url`; la web ofrece "Cerrar también la sesión universitaria" (`apps/web/src/features/auth/SessionProvider.tsx`)
 
 ## Phase 5: US3 — Ingresar desde la app móvil (P1)
 
@@ -74,7 +74,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 - [X] T030 [P] [US3] `apps/mobile/src/features/auth/casLogin.test.ts`: nonce generado y verificado; retorno con nonce ajeno se descarta; cancelación deja sin sesión; canje usa el mismo `service`
 - [X] T031 [US3] `apps/mobile/src/features/auth/casLogin.ts` con `expo-web-browser` `openAuthSessionAsync` y `expo-crypto` (nonce de 16 bytes), `service=geoasist://auth/callback?n=<nonce>`; `apps/mobile/app.json` `scheme: "geoasist"`; añadir dependencias con `npx expo install`
 - [X] T032 [US3] `apps/mobile/src/features/auth/LoginScreen.tsx`: botón "Ingresar con cuenta universitaria" como acción principal; token de GeoAsist en SecureStore como hoy
-- [ ] T033 [US3] `AUTHT/servicios/ServiceMatcherTest.java`: casos del esquema `geoasist://` (prefijo exacto, sin host ajeno)
+- [X] T033 [US3] `AUTHT/servicios/ServiceMatcherTest.java`: casos del esquema `geoasist://` (prefijo exacto, sin host ajeno)
 
 ## Phase 6: US4 — Administrar usuarios simulados (P2)
 
@@ -90,7 +90,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 ## Phase 7: US5 — Cambiar al servicio real sin reescribir GeoAsist (P3)
 
-- [ ] T041 [P] [US5] `APIT/soporte/ArchitectureDependencyTest.java`: ningún paquete fuera de `identidades` depende de `CasIdentityProvider` ni de clases HTTP del adaptador
+- [X] T041 [P] [US5] `APIT/soporte/ArchitectureDependencyTest.java`: ningún paquete fuera de `identidades` depende de `CasIdentityProvider` ni de clases HTTP del adaptador
 - [X] T042 [US5] `infra/README.md`: cómo apuntar a otro servicio CAS (variables `SSO_*`) y qué cambiar si el protocolo difiere (solo `CasIdentityProvider`)
 
 ## Phase 8: Polish
