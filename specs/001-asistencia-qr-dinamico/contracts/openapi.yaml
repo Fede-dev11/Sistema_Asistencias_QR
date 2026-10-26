@@ -125,8 +125,16 @@ paths:
       tags:
       - auth
       responses:
-        '204':
-          description: Sesión revocada.
+        '200':
+          description: Sesión revocada; incluye la URL para cerrar también la sesión universitaria.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [sso_logout_url]
+                properties:
+                  sso_logout_url: {type: string, format: uri}
         '401':
           $ref: '#/components/responses/Unauthorized'
         '429':
