@@ -19,7 +19,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirmar rama `feature/004-autenticacion-sso` (creada desde 003) y `.specify/feature.json` → `specs/004-autenticacion-sso`
+- [X] T001 Confirmar rama `feature/004-autenticacion-sso` (creada desde 003) y `.specify/feature.json` → `specs/004-autenticacion-sso`
 - [X] T002 Crear `services/auth` copiando la base de `services/api`: `pom.xml` (mismo parent Spring Boot 4.1.1, Java 21, spotless + google-java-format 1.28.0; dependencias web, jdbc, flyway, postgresql, security (cadena de filtros para CSRF en formularios, cabeceras y `PasswordEncoder`; sin login de Spring), thymeleaf, validation; test: spring-boot-starter-test, testcontainers postgresql), `mvnw`/`.mvn`, `Dockerfile` igual al de la API (puerto 8081), `AUTH/SsoApplication.java`, `AUTHR/application.yml` (`server.port=8081`, datasource `${AUTH_DATABASE_URL}`, `sso.ticket-ttl=10s`, `sso.session-idle=8h`, `sso.session-max=24h`, `sso.cookie-secure`, `sso.initial-password` desde `${DEV_SEED_PASSWORD}`)
 - [X] T003 [P] `infra/db-init/01-auth-db.sql` (`CREATE DATABASE geoasist_auth`) montado en `db` de `infra/docker-compose.yml`; servicio `auth` (perfil `api`, `127.0.0.1:${AUTH_PORT:-8081}:8081`, depende de `db` sano); `api` recibe `SSO_INTERNAL_URL=http://auth:8081`, `SSO_PUBLIC_URL`, `SSO_SERVICE_KEY`; `.env.example` con `AUTH_PORT`, `SSO_PUBLIC_URL=http://localhost:8081`, `SSO_SERVICE_KEY=`, `NEXT_PUBLIC_SSO_URL`
 - [X] T004 [P] `docs/adr/0006-servicio-autenticacion-simulado.md` (Propuesto): justificación Principio II y protocolo asumido Principio V (research R1, R2), alternativas (módulo en monolito, Apereo CAS, OIDC), condición de revisión del equipo
