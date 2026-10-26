@@ -2304,12 +2304,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Sesión revocada. */
-            204: {
+            /** @description Sesión revocada; incluye la URL para cerrar también la sesión universitaria. */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** Format: uri */
+                        sso_logout_url: string;
+                    };
+                };
             };
             401: components["responses"]["Unauthorized"];
             429: components["responses"]["RateLimited"];
