@@ -82,7 +82,7 @@ export function ApiDocsPage() {
     <section className="docs">
       <p className="eyebrow">REST {docs.server} · contrato {docs.version}</p>
       <h1>Documentación de la API</h1>
-      <p>{docs.ops.length} operaciones generadas desde el contrato OpenAPI que valida el CI. Envía el token de <code>POST /auth/login</code> como <code>Authorization: Bearer …</code>; los <code>POST</code> que crean registros aceptan <code>Idempotency-Key</code>; los errores llegan en formato Problem Details con un <code>code</code> estable.</p>
+      <p>{docs.ops.length} operaciones generadas desde el contrato OpenAPI que valida el CI. Obtén el token con <code>POST /auth/cas</code> tras ingresar en el servicio universitario y envíalo como <code>Authorization: Bearer …</code> (<code>POST /auth/login</code> solo existe en modo local o de pruebas); los <code>POST</code> que crean registros aceptan <code>Idempotency-Key</code>; los errores llegan en formato Problem Details con un <code>code</code> estable.</p>
 
       <div className="docs-bar">
         <div className="docs-seg" role="group" aria-label="Agrupar por">
