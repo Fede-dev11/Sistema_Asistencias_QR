@@ -1,6 +1,7 @@
 package ec.edu.unl.geoasist.academico.aplicacion;
 
 import ec.edu.unl.geoasist.academico.persistencia.AcademicRepository;
+import ec.edu.unl.geoasist.compartido.aplicacion.AcademicAudit;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
 import ec.edu.unl.geoasist.compartido.dominio.Cedula;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;

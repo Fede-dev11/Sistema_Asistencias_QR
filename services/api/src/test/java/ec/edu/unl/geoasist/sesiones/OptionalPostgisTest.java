@@ -23,6 +23,7 @@ import tools.jackson.databind.ObjectMapper;
     properties = {
       "geoasist.hmac-key=fixture-key-exclusivamente-para-pruebas-con-datos-ficticios",
       "geoasist.dev-seed-password=fixture-password",
+      "geoasist.auth.local-login=true",
       "spring.profiles.active=dev,geo",
       "geoasist.scheduling-enabled=false"
     })

@@ -20,7 +20,12 @@ public class AuthController {
   private final String webService;
   private final String mobileServicePrefix;
 
-  public AuthController(AuthenticationService auth, RequestBudget budget, @Value("${geoasist.sso.public-url}") String publicUrl, @Value("${geoasist.sso.web-service}") String webService, @Value("${geoasist.sso.mobile-service-prefix}") String mobileServicePrefix) {
+  public AuthController(
+      AuthenticationService auth,
+      RequestBudget budget,
+      @Value("${geoasist.sso.public-url}") String publicUrl,
+      @Value("${geoasist.sso.web-service}") String webService,
+      @Value("${geoasist.sso.mobile-service-prefix}") String mobileServicePrefix) {
     this.auth = auth;
     this.budget = budget;
     this.publicUrl = publicUrl.replaceAll("/+$", "");
@@ -28,16 +33,29 @@ public class AuthController {
     this.mobileServicePrefix = mobileServicePrefix;
   }
 
-  public record CasLogin(@NotBlank @Size(max = 256) String ticket, @NotBlank @Size(max = 2048) String service) {
-    public String toString() { return "CasLogin[ticket omitido, service=" + service + "]"; }
+  public record CasLogin(
+      @NotBlank @Size(max = 256) String ticket, @NotBlank @Size(max = 2048) String service) {
+    public String toString() {
+      return "CasLogin[ticket omitido, service=" + service + "]";
+    }
   }
 
   @PostMapping("/cas")
-  public Map<String, Object> cas(@Valid @RequestBody CasLogin body) { return auth.cas(body.ticket(), body.service()); }
+  public Map<String, Object> cas(@Valid @RequestBody CasLogin body) {
+    return auth.cas(body.ticket(), body.service());
+  }
 
   @GetMapping("/sso-config")
   public Map<String, String> ssoConfig() {
-    return Map.of("login_url", publicUrl + "/cas/login", "logout_url", publicUrl + "/cas/logout", "web_service", webService, "mobile_service_prefix", mobileServicePrefix);
+    return Map.of(
+        "login_url",
+        publicUrl + "/cas/login",
+        "logout_url",
+        publicUrl + "/cas/logout",
+        "web_service",
+        webService,
+        "mobile_service_prefix",
+        mobileServicePrefix);
   }
 
   public record Login(@NotBlank @Email String correo, @NotBlank String password) {
