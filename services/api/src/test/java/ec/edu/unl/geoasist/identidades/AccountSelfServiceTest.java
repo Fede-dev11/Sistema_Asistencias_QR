@@ -15,6 +15,12 @@ import tools.jackson.databind.JsonNode;
 class AccountSelfServiceTest extends PostgresFixture {
   static final String OLD = "fixture-password";
 
+  /** Los contadores viven en la base compartida y el reloj es fijo: otras clases los llenan. */
+  @org.junit.jupiter.api.BeforeEach
+  void resetRateLimitCounters() {
+    db.update("DELETE FROM contadores_limite");
+  }
+
   static String adminToken; // un solo login: el límite por cuenta es de 5 por minuto con reloj fijo
 
   String admin() throws Exception {
