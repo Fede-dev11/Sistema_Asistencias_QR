@@ -93,8 +93,6 @@ class AdminPeopleAccountsTest extends AdminSupport {
                 p.get("id").asText(),
                 "correo",
                 "otro-" + mail,
-                "password",
-                "fixture-password",
                 "roles",
                 List.of("ESTUDIANTE")))
         .andExpect(status().isConflict());
