@@ -8,8 +8,8 @@ type Status = components['schemas']['GeolocationStatus'];
 
 export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
   const [enabled, setEnabled] = useState(false);
-  const [radius, setRadius] = useState('30');
-  const [precision, setPrecision] = useState('20');
+  const [radius, setRadius] = useState('');
+  const [precision, setPrecision] = useState('');
   const [age, setAge] = useState('60');
   const [status, setStatus] = useState<Status | null>(null);
   const [error, setError] = useState('');
@@ -23,8 +23,8 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
       const body = enabled
         ? {
             habilitada: true,
-            radio_m: Number(radius),
-            precision_max_m: Number(precision),
+            ...(radius ? { radio_m: Number(radius) } : {}),
+            ...(precision ? { precision_max_m: Number(precision) } : {}),
             antiguedad_max_s: Number(age),
           }
         : { habilitada: false };
@@ -50,8 +50,8 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
       </label>
       {enabled && (
         <>
-          <label>Radio (m)<input aria-label="Radio (m)" type="number" min="0.01" step="0.01" required value={radius} onChange={event => setRadius(event.target.value)} /></label>
-          <label>Precisión máxima (m)<input aria-label="Precisión máxima (m)" type="number" min="0.01" step="0.01" required value={precision} onChange={event => setPrecision(event.target.value)} /></label>
+          <label>Radio (m)<input aria-label="Radio (m)" type="number" min="0.01" step="0.01" placeholder="Heredado del espacio" value={radius} onChange={event => setRadius(event.target.value)} /></label>
+          <label>Precisión máxima (m)<input aria-label="Precisión máxima (m)" type="number" min="0.01" step="0.01" placeholder="Heredado del espacio" value={precision} onChange={event => setPrecision(event.target.value)} /></label>
           <label>Antigüedad máxima (s)<input aria-label="Antigüedad máxima (s)" type="number" min="1" step="1" required value={age} onChange={event => setAge(event.target.value)} /></label>
         </>
       )}

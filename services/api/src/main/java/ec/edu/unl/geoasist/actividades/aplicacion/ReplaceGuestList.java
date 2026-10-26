@@ -39,6 +39,9 @@ public class ReplaceGuestList {
     var activity = scope.write(user, id);
     if (!activity.mode().equals("EVENTO") || !activity.state().equals("ABIERTA"))
       throw ApiFailure.conflict();
+    String access =
+        db.queryForObject("SELECT acceso FROM actividades WHERE id=?", String.class, id);
+    if ("ABIERTO".equals(access)) throw ApiFailure.conflict();
     if (entries.size() > 1000) throw ApiFailure.invalid();
     Set<String> seen = new HashSet<>();
     List<Integer> invalid = new ArrayList<>();
@@ -46,7 +49,9 @@ public class ReplaceGuestList {
       Entry e = entries.get(i);
       if (e == null
           || e.cedula() == null
-          || !e.cedula().matches("[0-9]{10}")
+          || !ec.edu.unl.geoasist.compartido.dominio.Cedula.of(e.cedula())
+              .value()
+              .equals(e.cedula())
           || e.nombres() == null
           || e.nombres().isBlank()
           || e.nombres().codePointCount(0, e.nombres().length()) > 200

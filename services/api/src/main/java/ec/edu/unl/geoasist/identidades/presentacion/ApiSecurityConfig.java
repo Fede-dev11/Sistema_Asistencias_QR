@@ -48,7 +48,7 @@ public class ApiSecurityConfig {
       throws Exception {
     CorsConfiguration cors = new CorsConfiguration();
     cors.setAllowedOrigins(List.of(origin));
-    cors.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS"));
+    cors.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "OPTIONS"));
     cors.setAllowedHeaders(List.of("Authorization", "Content-Type", "Idempotency-Key"));
     cors.setExposedHeaders(List.of("Retry-After", "X-Correlation-ID"));
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -64,8 +64,11 @@ public class ApiSecurityConfig {
             a.requestMatchers(
                     "/api/v1/auth/login",
                     "/api/v1/guest-registrations",
-                    "/api/v1/guest-registrations/submit")
+                    "/api/v1/guest-registrations/submit",
+                    "/api/v1/events/open/*")
                 .permitAll()
+                .requestMatchers("/api/v1/admin/**")
+                .hasAuthority("ADMINISTRADOR")
                 .anyRequest()
                 .authenticated());
     http.exceptionHandling(

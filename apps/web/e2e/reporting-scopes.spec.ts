@@ -24,7 +24,7 @@ async function login(page: Page, email: string) {
 test('responsable exporta y directores solo leen su ámbito', async ({ page, request }) => {
   test.setTimeout(90_000);
   const fixture = JSON.parse(
-    execFileSync('python3', [fileURLToPath(new URL('../../../tests/fixtures/create-activity.py', import.meta.url)), 'EVENTO'], { encoding: 'utf8' }),
+    execFileSync('python3', [fileURLToPath(new URL('../../../tests/fixtures/create-activity.py', import.meta.url)), 'EVENTO', 'ABIERTO'], { encoding: 'utf8' }),
   ) as { activity: string; session: string; name: string };
   const owner = await account(request, 'encargado@example.test');
   const student = await account(request, 'estudiante@example.test');
@@ -34,7 +34,7 @@ test('responsable exporta y directores solo leen su ámbito', async ({ page, req
   const qr = ((await qrResponse.json()) as { qr_token: string }).qr_token;
   const attendance = await request.post(`${API}/attendance/attempts`, {
     headers: { Authorization: `Bearer ${student}`, 'Idempotency-Key': crypto.randomUUID() },
-    data: { qr_token: qr },
+    data: { qr_token: qr, dispositivo_id: crypto.randomUUID() },
   });
   expect(attendance.status()).toBe(201);
 

@@ -52,7 +52,11 @@ export interface paths {
          */
         get: operations["listActivities"];
         put?: never;
-        post?: never;
+        /**
+         * Crear una clase (con horario recurrente opcional)
+         * @description DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). La modalidad EVENTO aún no se acepta aquí.
+         */
+        post: operations["createActivity"];
         delete?: never;
         options?: never;
         head?: never;
@@ -76,7 +80,11 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /**
+         * Editar nombre, espacio o método por defecto
+         * @description Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.
+         */
+        patch: operations["updateActivity"];
         trace?: never;
     };
     "/activities/{activityId}/close": {
@@ -279,6 +287,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/events/open/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Consultar datos publicos minimos de un evento abierto activo */
+        get: operations["getOpenEvent"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sessions/{sessionId}/attendances": {
         parameters: {
             query?: never;
@@ -359,6 +384,448 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/people": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar personas (ADMINISTRADOR) */
+        get: operations["adminListPeople"];
+        put?: never;
+        /** Crear persona (ADMINISTRADOR) */
+        post: operations["adminCreatePerson"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/people/{personId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                personId: string;
+            };
+            cookie?: never;
+        };
+        /** Ver persona (ADMINISTRADOR) */
+        get: operations["adminGetPerson"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Editar nombres de una persona (ADMINISTRADOR) */
+        patch: operations["adminRenamePerson"];
+        trace?: never;
+    };
+    "/admin/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crear cuenta de una persona (ADMINISTRADOR)
+         * @description La contraseña inicial tiene mínimo 12 caracteres y no se devuelve ni se audita.
+         */
+        post: operations["adminCreateAccount"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/accounts/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Cambiar roles, activar o desactivar, cambiar contraseña (ADMINISTRADOR)
+         * @description Desactivar revoca las sesiones y conserva el historial de asistencias. Un administrador no puede desactivarse ni quitarse su propio rol (409).
+         */
+        patch: operations["adminUpdateAccount"];
+        trace?: never;
+    };
+    "/admin/careers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Listar carreras (ADMINISTRADOR) */
+        get: operations["adminListCareers"];
+        put?: never;
+        /** Crear carrera (ADMINISTRADOR) */
+        post: operations["adminCreateCareer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/careers/{careerId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Editar nombre de carrera (ADMINISTRADOR) */
+        patch: operations["adminRenameCareer"];
+        trace?: never;
+    };
+    "/admin/careers/{careerId}/parallels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                careerId: string;
+            };
+            cookie?: never;
+        };
+        /** Paralelos de una carrera (ADMINISTRADOR) */
+        get: operations["adminListParallels"];
+        put?: never;
+        /** Crear paralelo (ADMINISTRADOR) */
+        post: operations["adminCreateParallel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/parallels/{parallelId}/enrollments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reemplazar matriculados de un paralelo (ADMINISTRADOR)
+         * @description Lista de cédulas; solo personas con rol ESTUDIANTE. Las demás vuelven en rechazadas.
+         */
+        put: operations["adminReplaceEnrollments"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/parallels/{parallelId}/teachers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reemplazar docentes de un paralelo (ADMINISTRADOR)
+         * @description Lista de correos de cuentas con rol DOCENTE o ENCARGADO.
+         */
+        put: operations["adminReplaceTeachers"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/imports/{kind}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Importar CSV de estudiantes, docentes o matrículas (ADMINISTRADOR)
+         * @description multipart/form-data, campo file, UTF-8, separador coma o punto y coma, máximo 2 MB y 5 000 filas. students: cedula,nombres,correo; teachers: cedula,nombres,correo,rol; enrollments: cedula,carrera,paralelo. Idempotente. Encabezado inválido: 400 sin cambios.
+         */
+        post: operations["adminImportCsv"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/parallels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Paralelos asignados al docente o encargado */
+        get: operations["listMyParallels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/active-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sesiones activas donde el participante puede registrar asistencia
+         * @description Clases donde está autorizado (vigente) y eventos abiertos o cerrados con cuenta. Nunca incluye sesiones PROGRAMADA, CERRADA ni CANCELADA.
+         */
+        get: operations["listMyActiveSessions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Buscar espacios
+         * @description Búsqueda paginada por código (normalizado) o nombre. Disponible para DOCENTE, ENCARGADO y ADMINISTRADOR.
+         */
+        get: operations["searchSpaces"];
+        put?: never;
+        /**
+         * Crear espacio
+         * @description Crea un espacio compartido. El código se normaliza (mayúsculas, sin espacios ni guiones); si ya existe responde 409 ESPACIO_CODIGO_EXISTE con el espacio_id existente. Latitud y longitud van juntas o ninguna.
+         */
+        post: operations["createSpace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/spaces/{spaceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Editar espacio
+         * @description Solo el creador o un ADMINISTRADOR. El código no cambia. Las sesiones ya configuradas conservan sus valores geográficos.
+         */
+        patch: operations["updateSpace"];
+        trace?: never;
+    };
+    "/activities/{activityId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancelar actividad
+         * @description Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
+         */
+        post: operations["cancelActivity"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reemplazar el horario recurrente
+         * @description Solo RESPONSABLE de una clase ABIERTA. Borra y regenera únicamente las sesiones PROGRAMADA futuras del horario sin intentos ni tokens QR; conserva las demás.
+         */
+        put: operations["replaceSchedule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lista autorizada
+         * @description Estudiantes autorizados (vigentes o quitados), paginada.
+         */
+        get: operations["listAuthorizedStudents"];
+        put?: never;
+        /**
+         * Añadir estudiante por cédula
+         * @description La cédula debe pertenecer a una persona con cuenta ESTUDIANTE; reactiva a quien fue quitado.
+         */
+        post: operations["addAuthorizedStudent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/students/{personId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Quitar estudiante de la lista autorizada
+         * @description Marca vigente=false; las asistencias existentes no se tocan y la sincronización no lo reincorpora.
+         */
+        delete: operations["removeAuthorizedStudent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/students/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sincronizar con los paralelos
+         * @description Añade los matriculados vigentes de los paralelos de la clase sin reincorporar a quienes fueron quitados.
+         */
+        post: operations["syncAuthorizedStudents"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/activities/{activityId}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Sesiones de la actividad
+         * @description Paginado por inicio de ventana.
+         */
+        get: operations["listActivitySessions"];
+        put?: never;
+        /**
+         * Crear una sesión suelta
+         * @description Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.
+         */
+        post: operations["createLooseSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Editar hora, espacio o método de una sesión programada
+         * @description Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+         */
+        patch: operations["updateScheduledSession"];
+        trace?: never;
+    };
+    "/sessions/{sessionId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancelar una sesión programada
+         * @description Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+         */
+        post: operations["cancelScheduledSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -377,7 +844,7 @@ export interface components {
             /** Format: uri-reference */
             instance?: string;
             /**
-             * @description Código estable para el cliente; no contiene cédulas ni secretos.
+             * @description Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO.
              * @example SESION_CERRADA
              */
             code: string;
@@ -385,7 +852,67 @@ export interface components {
             mensaje: string;
             /** Format: uuid */
             attempt_id?: string;
+            /**
+             * Format: uuid
+             * @description Espacio existente en ESPACIO_CODIGO_EXISTE.
+             */
+            espacio_id?: string;
             correlation_id?: string;
+        };
+        /** @enum {string} */
+        VerificationMethod: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+        /**
+         * Format: uuid
+         * @description Identificador de instalación generado por la app; el servidor solo guarda su HMAC.
+         */
+        DeviceId: string;
+        Space: {
+            /** Format: uuid */
+            id: string;
+            codigo: string;
+            nombre: string;
+            /** @enum {string} */
+            tipo: "AULA" | "LABORATORIO" | "AUDITORIO" | "EXTERIOR" | "OTRO";
+            latitud?: number;
+            longitud?: number;
+            radio_defecto_m: number;
+            precision_defecto_m: number;
+            editable: boolean;
+        };
+        SpacePage: {
+            items: components["schemas"]["Space"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        CreateSpaceRequest: {
+            codigo: string;
+            nombre: string;
+            tipo?: components["schemas"]["SpaceType"];
+            latitud?: number;
+            longitud?: number;
+            radio_defecto_m?: number;
+            precision_defecto_m?: number;
+        };
+        UpdateSpaceRequest: {
+            nombre?: string;
+            tipo?: components["schemas"]["SpaceType"];
+            latitud?: number;
+            longitud?: number;
+            radio_defecto_m?: number;
+            precision_defecto_m?: number;
+        };
+        /** @enum {string} */
+        SpaceType: "AULA" | "LABORATORIO" | "AUDITORIO" | "EXTERIOR" | "OTRO";
+        ImportReport: {
+            procesadas: number;
+            creadas: number;
+            actualizadas: number;
+            sin_cambios: number;
+            rechazadas: {
+                fila: number;
+                motivo: string;
+            }[];
         };
         LoginRequest: {
             /** Format: email */
@@ -400,7 +927,7 @@ export interface components {
             token_type: "Bearer";
             /** Format: date-time */
             vence_en: string;
-            roles: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA")[];
+            roles: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
         };
         /** @description Los eventos pueden vincular varias carreras y paralelos. El servidor calcula los ámbitos mediante estos vínculos y responsable_id; los filtros de lectura no los sustituyen. */
         Activity: {
@@ -410,7 +937,7 @@ export interface components {
             /** @enum {string} */
             tipo: "CLASE" | "EVENTO";
             /** @enum {string} */
-            estado: "ABIERTA" | "CERRADA";
+            estado: "ABIERTA" | "CERRADA" | "CANCELADA";
             /** Format: date-time */
             cerrada_en: string | null;
             /** Format: date-time */
@@ -471,7 +998,7 @@ export interface components {
             /** @enum {integer} */
             vigencia_segundos: 40;
         };
-        /** @description Al habilitar se requieren los tres parámetros; el servidor los valida conjuntamente. Si está apagada no se pide permiso ni se conserva ubicación. */
+        /** @description Al habilitar, radio_m y precision_max_m son opcionales y heredan los valores por defecto del espacio de la sesión; antiguedad_max_s por defecto es 60. Si está apagada no se pide permiso ni se conserva ubicación. */
         GeolocationSettings: {
             /** @default false */
             habilitada: boolean;
@@ -495,7 +1022,13 @@ export interface components {
         };
         AttendanceAttemptRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
-            qr_token: string;
+            qr_token?: string;
+            dispositivo_id: components["schemas"]["DeviceId"];
+            /**
+             * Format: uuid
+             * @description Identifica la sesión cuando su método no incluye QR (SOLO_GPS, NINGUNO). Se envía exactamente uno de qr_token o sesion_id; qr_token en método sin QR responde 400 METODO_NO_ADMITE_QR y sesion_id en método con QR responde 400 QR_REQUERIDO.
+             */
+            sesion_id?: string;
             ubicacion?: components["schemas"]["Location"];
         };
         /** @description Recibo mínimo compartido por ambos flujos. Sin cédula, nombres ni datos del listado. */
@@ -522,7 +1055,12 @@ export interface components {
         };
         GuestStartRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
-            qr_token: string;
+            qr_token?: string;
+            /**
+             * Format: uuid
+             * @description Alternativa a qr_token solo para sesiones cuyo método no incluye QR.
+             */
+            sesion_id?: string;
         };
         GuestStartResult: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
@@ -531,12 +1069,23 @@ export interface components {
             inicio_en: string;
             /** Format: date-time */
             vence_en: string;
+            evento_abierto: boolean;
         };
         GuestSubmitRequest: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             registro_invitado_token: string;
             cedula: string;
+            nombres?: string;
+            dispositivo_id: components["schemas"]["DeviceId"];
             ubicacion?: components["schemas"]["Location"];
+        };
+        OpenEvent: {
+            /** Format: uuid */
+            sesion_id: string;
+            nombre: string;
+            espacio?: string | null;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
         };
         /** @description Una fila por persona identificada en la sesión. Prevalece su asistencia confirmada; si no existe, mostrar su último intento identificado pendiente o rechazado. Nunca exponer intentos sin persona identificada ni cédulas desconocidas. El filtro estado se aplica después de esta proyección. */
         AttendanceRow: {
@@ -584,13 +1133,23 @@ export interface components {
             /** Format: date-time */
             revisada_en: string;
         };
-        /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. */
+        /** @description Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o copias completas de listados. Las claves listadas son las habituales; la fila puede incluir otras claves propias de la acción auditada. */
         AuditValues: {
             estado?: string;
             decision?: string;
             configuracion_invitados?: components["schemas"]["GuestSettings"];
             configuracion_geografica?: components["schemas"]["GeolocationSettings"];
             cantidad_invitados?: number;
+            sesion_id?: string;
+            persona_id?: string;
+            forma?: string;
+            nombre?: string;
+            metodo_verificacion?: string;
+            codigo?: string;
+            ciclo_automatico?: boolean;
+            umbral_asistencia?: number;
+        } & {
+            [key: string]: unknown;
         };
         AuditRow: {
             /** Format: uuid */
@@ -622,6 +1181,241 @@ export interface components {
         };
         AuditPage: {
             items: components["schemas"]["AuditRow"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        AdminAccount: {
+            /** Format: uuid */
+            id: string;
+            correo: string;
+            activa: boolean;
+            roles: string[];
+        };
+        AdminPerson: {
+            /** Format: uuid */
+            id: string;
+            cedula: string;
+            nombres: string;
+            /** @enum {string} */
+            tipo: "INSTITUCIONAL" | "EXTERNA";
+            cuenta: components["schemas"]["AdminAccount"] | null;
+        };
+        AdminPersonPage: {
+            items: components["schemas"]["AdminPerson"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        AdminPersonCreate: {
+            cedula: string;
+            nombres: string;
+        };
+        AdminAccountCreate: {
+            /** Format: uuid */
+            persona_id: string;
+            correo: string;
+            password: string;
+            roles: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
+        };
+        AdminAccountPatch: {
+            roles?: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
+            activa?: boolean;
+            password?: string;
+        };
+        AdminCareer: {
+            /** Format: uuid */
+            id: string;
+            codigo: string;
+            nombre: string;
+        };
+        AdminParallel: {
+            /** Format: uuid */
+            id: string;
+            codigo: string;
+            matriculados: number;
+            docentes: number;
+        };
+        AdminRejectedEntry: {
+            entrada: string;
+            motivo: string;
+        };
+        ActiveSession: {
+            /** Format: uuid */
+            sesion_id: string;
+            actividad: {
+                /** Format: uuid */
+                id: string;
+                nombre: string;
+                /** @enum {string} */
+                modalidad: "CLASE" | "EVENTO";
+            };
+            espacio?: {
+                /** Format: uuid */
+                id: string;
+                nombre: string;
+            } | null;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            requiere_ubicacion: boolean;
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+        };
+        ActiveSessionPage: {
+            items: components["schemas"]["ActiveSession"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        MyParallel: {
+            /** Format: uuid */
+            paralelo_id: string;
+            codigo: string;
+            /** Format: uuid */
+            carrera_id: string;
+            carrera_codigo: string;
+            carrera_nombre: string;
+            matriculados: number;
+        };
+        CreateActivityRequest: {
+            /** @enum {string} */
+            modalidad: "CLASE" | "EVENTO";
+            nombre: string;
+            /** Format: uuid */
+            espacio_id: string;
+            /** @enum {string} */
+            metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            paralelo_ids?: string[];
+            horario?: components["schemas"]["Schedule"];
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
+            /** Format: date-time */
+            inicio?: string;
+            /** Format: date-time */
+            fin?: string;
+            /** @default 120 */
+            tolerancia_invitado_segundos: number;
+            carrera_ids?: string[];
+        };
+        Schedule: {
+            dias: number[];
+            /** @example 08:00 */
+            hora_inicio: string;
+            /** @example 10:00 */
+            hora_fin: string;
+            /** Format: date */
+            desde: string;
+            /** Format: date */
+            hasta: string;
+        };
+        UpdateActivityRequest: {
+            nombre?: string;
+            /** Format: uuid */
+            espacio_id?: string;
+            /** @enum {string} */
+            metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
+        };
+        SessionSummary: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            estado: "PROGRAMADA" | "ACTIVA" | "CERRADA" | "CANCELADA";
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+        };
+        CreatedActivity: {
+            /** Format: uuid */
+            id: string;
+            nombre: string;
+            /** @enum {string} */
+            tipo: "CLASE" | "EVENTO";
+            /** @enum {string} */
+            estado: "ABIERTA" | "CERRADA" | "CANCELADA";
+            /** Format: uuid */
+            espacio_id: string;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            estudiantes_autorizados?: number;
+            /** @enum {string} */
+            acceso?: "CERRADO" | "ABIERTO";
+            tolerancia_invitado_segundos?: number;
+            paralelo_ids?: string[];
+            carrera_ids?: string[];
+            sesiones: components["schemas"]["SessionSummary"][];
+        };
+        ScheduleReplaced: {
+            /** Format: uuid */
+            activity_id?: string;
+            eliminadas: number;
+            generadas: number;
+        };
+        AddStudentRequest: {
+            cedula: string;
+        };
+        AuthorizedStudent: {
+            /** Format: uuid */
+            persona_id: string;
+            cedula?: string;
+            nombres?: string;
+            vigente: boolean;
+            /** Format: uuid */
+            activity_id?: string;
+        };
+        AuthorizedStudentPage: {
+            items: components["schemas"]["AuthorizedStudent"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        SyncResult: {
+            /** Format: uuid */
+            activity_id?: string;
+            agregados: number;
+        };
+        CreateSessionRequest: {
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+            /** Format: uuid */
+            espacio_id?: string;
+        };
+        UpdateSessionRequest: {
+            /** Format: date-time */
+            inicio?: string;
+            /** Format: date-time */
+            fin?: string;
+            /** Format: uuid */
+            espacio_id?: string;
+            /** @enum {string} */
+            metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+        };
+        ScheduledSession: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            activity_id: string;
+            /** @enum {string} */
+            estado: "PROGRAMADA" | "ACTIVA" | "CERRADA" | "CANCELADA";
+            /** Format: date-time */
+            inicio: string;
+            /** Format: date-time */
+            fin: string;
+            /** Format: uuid */
+            espacio_id?: string | null;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
+            /** Format: uuid */
+            horario_id?: string | null;
+        };
+        SessionPage: {
+            items: components["schemas"]["ScheduledSession"][];
             page: number;
             size: number;
             total: number;
@@ -887,6 +1681,47 @@ export interface operations {
             429: components["responses"]["RateLimited"];
         };
     };
+    createActivity: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateActivityRequest"];
+            };
+        };
+        responses: {
+            /** @description Replay idempotente de una actividad ya creada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedActivity"];
+                };
+            };
+            /** @description Actividad creada con sus sesiones generadas. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedActivity"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
     getActivity: {
         parameters: {
             query?: never;
@@ -913,6 +1748,38 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    updateActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateActivityRequest"];
+            };
+        };
+        responses: {
+            /** @description Actividad actualizada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
         };
     };
@@ -1266,7 +2133,8 @@ export interface operations {
                      * @example {
                      *       "registro_invitado_token": "ejemplo-formulario-opaco-no-real-00000001",
                      *       "inicio_en": "2026-10-19T16:00:20Z",
-                     *       "vence_en": "2026-10-19T16:02:20Z"
+                     *       "vence_en": "2026-10-19T16:02:20Z",
+                     *       "evento_abierto": true
                      *     }
                      */
                     "application/json": components["schemas"]["GuestStartResult"];
@@ -1359,6 +2227,29 @@ export interface operations {
             410: components["responses"]["Gone"];
             422: components["responses"]["BusinessRejected"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    getOpenEvent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evento abierto activo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OpenEvent"];
+                };
+            };
+            404: components["responses"]["NotFound"];
         };
     };
     listAttendances: {
@@ -1497,6 +2388,927 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    adminListPeople: {
+        parameters: {
+            query?: {
+                q?: string;
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de personas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPersonPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    adminCreatePerson: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminPersonCreate"];
+            };
+        };
+        responses: {
+            /** @description Reintento idempotente. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPerson"];
+                };
+            };
+            /** @description Persona creada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPerson"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    adminGetPerson: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                personId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Persona. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPerson"];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminRenamePerson: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                personId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    nombres: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Persona actualizada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPerson"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminCreateAccount: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAccountCreate"];
+            };
+        };
+        responses: {
+            /** @description Reintento idempotente. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPerson"];
+                };
+            };
+            /** @description Cuenta creada; devuelve la persona con su cuenta. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPerson"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    adminUpdateAccount: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminAccountPatch"];
+            };
+        };
+        responses: {
+            /** @description Persona con su cuenta actualizada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminPerson"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    adminListCareers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Carreras. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminCareer"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    adminCreateCareer: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    codigo: string;
+                    nombre: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Reintento idempotente. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCareer"];
+                };
+            };
+            /** @description Carrera creada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCareer"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    adminRenameCareer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                careerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    nombre: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Carrera actualizada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCareer"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminListParallels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                careerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paralelos con número de matriculados y docentes. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AdminParallel"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminCreateParallel: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                careerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    codigo: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Reintento idempotente. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminParallel"];
+                };
+            };
+            /** @description Paralelo creado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminParallel"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+        };
+    };
+    adminReplaceEnrollments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                parallelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    cedulas: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Resultado del reemplazo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        matriculados: number;
+                        rechazadas: components["schemas"]["AdminRejectedEntry"][];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminReplaceTeachers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                parallelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    correos: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Resultado del reemplazo. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        docentes: number;
+                        rechazadas: components["schemas"]["AdminRejectedEntry"][];
+                    };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminImportCsv: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                kind: "students" | "teachers" | "enrollments";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /** Format: binary */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Informe de importación. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportReport"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            /** @description Archivo de más de 2 MB o de más de 5 000 filas. */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    listMyParallels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Paralelos vigentes con número de matriculados. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MyParallel"][];
+                    };
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+        };
+    };
+    listMyActiveSessions: {
+        parameters: {
+            query?: {
+                page?: number;
+                size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de sesiones activas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActiveSessionPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+        };
+    };
+    searchSpaces: {
+        parameters: {
+            query?: {
+                /** @description Texto parcial del código o del nombre. */
+                q?: string;
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de espacios. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpacePage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    createSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSpaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Espacio creado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Space"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    updateSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSpaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Espacio actualizado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Space"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    cancelActivity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Actividad cancelada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Activity"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    replaceSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Schedule"];
+            };
+        };
+        responses: {
+            /** @description Horario reemplazado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleReplaced"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listAuthorizedStudents: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de estudiantes. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedStudentPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    addAuthorizedStudent: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddStudentRequest"];
+            };
+        };
+        responses: {
+            /** @description Estudiante autorizado. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthorizedStudent"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    removeAuthorizedStudent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+                personId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estudiante quitado. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    syncAuthorizedStudents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estudiantes añadidos. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listActivitySessions: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Página de sesiones. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    createLooseSession: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
+                "Idempotency-Key": components["parameters"]["IdempotencyKey"];
+            };
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Sesión creada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledSession"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    updateScheduledSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSessionRequest"];
+            };
+        };
+        responses: {
+            /** @description Sesión actualizada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledSession"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    cancelScheduledSession: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sesión cancelada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduledSession"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
         };
     };

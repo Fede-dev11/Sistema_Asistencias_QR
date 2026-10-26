@@ -23,6 +23,8 @@ tags:
 - name: attendance
 - name: guest-registrations
 - name: attempts
+- name: admin
+- name: spaces
 paths:
   /auth/login:
     post:
@@ -121,6 +123,43 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/RateLimited'
+    post:
+      operationId: createActivity
+      summary: Crear una clase (con horario recurrente opcional)
+      description: DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). La modalidad EVENTO aún no se acepta aquí.
+      tags:
+      - activities
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateActivityRequest'
+      responses:
+        '201':
+          description: Actividad creada con sus sesiones generadas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedActivity'
+        '200':
+          description: Replay idempotente de una actividad ya creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedActivity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
   /activities/{activityId}:
     get:
       operationId: getActivity
@@ -152,6 +191,39 @@ paths:
           $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+    patch:
+      operationId: updateActivity
+      summary: Editar nombre, espacio o método por defecto
+      description: Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.
+      tags:
+      - activities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateActivityRequest'
+      responses:
+        '200':
+          description: Actividad actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '429':
           $ref: '#/components/responses/RateLimited'
       parameters:
@@ -520,6 +592,7 @@ paths:
                 registro_invitado_token: ejemplo-formulario-opaco-no-real-00000001
                 inicio_en: '2026-10-19T16:00:20Z'
                 vence_en: '2026-10-19T16:02:20Z'
+                evento_abierto: true
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -616,6 +689,27 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/GuestSubmitRequest'
+  /events/open/{sessionId}:
+    get:
+      operationId: getOpenEvent
+      summary: Consultar datos publicos minimos de un evento abierto activo
+      tags:
+      - guest-registrations
+      security: []
+      parameters:
+      - name: sessionId
+        in: path
+        required: true
+        schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Evento abierto activo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenEvent'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /sessions/{sessionId}/attendances:
     get:
       operationId: listAttendances
@@ -782,6 +876,831 @@ paths:
       - $ref: '#/components/parameters/activityId'
       - $ref: '#/components/parameters/Page'
       - $ref: '#/components/parameters/Size'
+  /admin/people:
+    get:
+      operationId: adminListPeople
+      summary: Listar personas (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - name: q
+        in: query
+        schema: {type: string}
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de personas.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPersonPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+    post:
+      operationId: adminCreatePerson
+      summary: Crear persona (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminPersonCreate'}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '201':
+          description: Persona creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/people/{personId}:
+    parameters:
+    - {name: personId, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      operationId: adminGetPerson
+      summary: Ver persona (ADMINISTRADOR)
+      tags: [admin]
+      responses:
+        '200':
+          description: Persona.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: adminRenamePerson
+      summary: Editar nombres de una persona (ADMINISTRADOR)
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [nombres]
+              properties:
+                nombres: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Persona actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/accounts:
+    post:
+      operationId: adminCreateAccount
+      summary: Crear cuenta de una persona (ADMINISTRADOR)
+      description: La contraseña inicial tiene mínimo 12 caracteres y no se devuelve ni se audita.
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminAccountCreate'}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '201':
+          description: Cuenta creada; devuelve la persona con su cuenta.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/accounts/{accountId}:
+    patch:
+      operationId: adminUpdateAccount
+      summary: Cambiar roles, activar o desactivar, cambiar contraseña (ADMINISTRADOR)
+      description: Desactivar revoca las sesiones y conserva el historial de asistencias. Un administrador no puede
+        desactivarse ni quitarse su propio rol (409).
+      tags: [admin]
+      parameters:
+      - {name: accountId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminAccountPatch'}
+      responses:
+        '200':
+          description: Persona con su cuenta actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/careers:
+    get:
+      operationId: adminListCareers
+      summary: Listar carreras (ADMINISTRADOR)
+      tags: [admin]
+      responses:
+        '200':
+          description: Carreras.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminCareer'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+    post:
+      operationId: adminCreateCareer
+      summary: Crear carrera (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [codigo, nombre]
+              properties:
+                codigo: {type: string, minLength: 1, maxLength: 40}
+                nombre: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '201':
+          description: Carrera creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/careers/{careerId}:
+    patch:
+      operationId: adminRenameCareer
+      summary: Editar nombre de carrera (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - {name: careerId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [nombre]
+              properties:
+                nombre: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Carrera actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/careers/{careerId}/parallels:
+    parameters:
+    - {name: careerId, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      operationId: adminListParallels
+      summary: Paralelos de una carrera (ADMINISTRADOR)
+      tags: [admin]
+      responses:
+        '200':
+          description: Paralelos con número de matriculados y docentes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminParallel'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: adminCreateParallel
+      summary: Crear paralelo (ADMINISTRADOR)
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [codigo]
+              properties:
+                codigo: {type: string, minLength: 1, maxLength: 40}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminParallel'}
+        '201':
+          description: Paralelo creado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminParallel'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/parallels/{parallelId}/enrollments:
+    put:
+      operationId: adminReplaceEnrollments
+      summary: Reemplazar matriculados de un paralelo (ADMINISTRADOR)
+      description: Lista de cédulas; solo personas con rol ESTUDIANTE. Las demás vuelven en rechazadas.
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [cedulas]
+              properties:
+                cedulas:
+                  type: array
+                  maxItems: 5000
+                  items: {type: string}
+      responses:
+        '200':
+          description: Resultado del reemplazo.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [matriculados, rechazadas]
+                properties:
+                  matriculados: {type: integer, minimum: 0}
+                  rechazadas:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminRejectedEntry'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/parallels/{parallelId}/teachers:
+    put:
+      operationId: adminReplaceTeachers
+      summary: Reemplazar docentes de un paralelo (ADMINISTRADOR)
+      description: Lista de correos de cuentas con rol DOCENTE o ENCARGADO.
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [correos]
+              properties:
+                correos:
+                  type: array
+                  maxItems: 5000
+                  items: {type: string}
+      responses:
+        '200':
+          description: Resultado del reemplazo.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [docentes, rechazadas]
+                properties:
+                  docentes: {type: integer, minimum: 0}
+                  rechazadas:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminRejectedEntry'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/imports/{kind}:
+    post:
+      operationId: adminImportCsv
+      summary: Importar CSV de estudiantes, docentes o matrículas (ADMINISTRADOR)
+      description: 'multipart/form-data, campo file, UTF-8, separador coma o punto y coma, máximo 2 MB y 5 000 filas.
+        students: cedula,nombres,correo; teachers: cedula,nombres,correo,rol; enrollments: cedula,carrera,paralelo.
+        Idempotente. Encabezado inválido: 400 sin cambios.'
+      tags: [admin]
+      parameters:
+      - name: kind
+        in: path
+        required: true
+        schema: {type: string, enum: [students, teachers, enrollments]}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '200':
+          description: Informe de importación.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ImportReport'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '413':
+          description: Archivo de más de 2 MB o de más de 5 000 filas.
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /me/parallels:
+    get:
+      operationId: listMyParallels
+      summary: Paralelos asignados al docente o encargado
+      tags: [admin]
+      responses:
+        '200':
+          description: Paralelos vigentes con número de matriculados.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/MyParallel'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /me/active-sessions:
+    get:
+      operationId: listMyActiveSessions
+      summary: Sesiones activas donde el participante puede registrar asistencia
+      description: Clases donde está autorizado (vigente) y eventos abiertos o cerrados con cuenta. Nunca incluye
+        sesiones PROGRAMADA, CERRADA ni CANCELADA.
+      tags: [attendance]
+      parameters:
+      - {name: page, in: query, schema: {type: integer, minimum: 0, default: 0}}
+      - {name: size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 25}}
+      responses:
+        '200':
+          description: Página de sesiones activas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveSessionPage'
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /spaces:
+    get:
+      operationId: searchSpaces
+      summary: Buscar espacios
+      description: Búsqueda paginada por código (normalizado) o nombre. Disponible para DOCENTE, ENCARGADO y ADMINISTRADOR.
+      tags:
+      - spaces
+      parameters:
+      - name: q
+        in: query
+        description: Texto parcial del código o del nombre.
+        schema:
+          type: string
+          maxLength: 200
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de espacios.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpacePage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+    post:
+      operationId: createSpace
+      summary: Crear espacio
+      description: Crea un espacio compartido. El código se normaliza (mayúsculas, sin espacios ni guiones); si ya existe responde 409 ESPACIO_CODIGO_EXISTE con el espacio_id existente. Latitud y longitud van juntas o ninguna.
+      tags:
+      - spaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSpaceRequest'
+      responses:
+        '201':
+          description: Espacio creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /spaces/{spaceId}:
+    patch:
+      operationId: updateSpace
+      summary: Editar espacio
+      description: Solo el creador o un ADMINISTRADOR. El código no cambia. Las sesiones ya configuradas conservan sus valores geográficos.
+      tags:
+      - spaces
+      parameters:
+      - name: spaceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSpaceRequest'
+      responses:
+        '200':
+          description: Espacio actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /activities/{activityId}/cancel:
+    post:
+      operationId: cancelActivity
+      summary: Cancelar actividad
+      description: Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Actividad cancelada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/schedule:
+    put:
+      operationId: replaceSchedule
+      summary: Reemplazar el horario recurrente
+      description: Solo RESPONSABLE de una clase ABIERTA. Borra y regenera únicamente las sesiones PROGRAMADA futuras del horario sin intentos ni tokens QR; conserva las demás.
+      tags:
+      - activities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schedule'
+      responses:
+        '200':
+          description: Horario reemplazado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleReplaced'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/students:
+    get:
+      operationId: listAuthorizedStudents
+      summary: Lista autorizada
+      description: Estudiantes autorizados (vigentes o quitados), paginada.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Página de estudiantes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedStudentPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+    post:
+      operationId: addAuthorizedStudent
+      summary: Añadir estudiante por cédula
+      description: La cédula debe pertenecer a una persona con cuenta ESTUDIANTE; reactiva a quien fue quitado.
+      tags:
+      - activities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStudentRequest'
+      responses:
+        '201':
+          description: Estudiante autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedStudent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+  /activities/{activityId}/students/{personId}:
+    delete:
+      operationId: removeAuthorizedStudent
+      summary: Quitar estudiante de la lista autorizada
+      description: Marca vigente=false; las asistencias existentes no se tocan y la sincronización no lo reincorpora.
+      tags:
+      - activities
+      responses:
+        '204':
+          description: Estudiante quitado.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - name: personId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /activities/{activityId}/students/sync:
+    post:
+      operationId: syncAuthorizedStudents
+      summary: Sincronizar con los paralelos
+      description: Añade los matriculados vigentes de los paralelos de la clase sin reincorporar a quienes fueron quitados.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Estudiantes añadidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/sessions:
+    get:
+      operationId: listActivitySessions
+      summary: Sesiones de la actividad
+      description: Paginado por inicio de ventana.
+      tags:
+      - sessions
+      responses:
+        '200':
+          description: Página de sesiones.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+    post:
+      operationId: createLooseSession
+      summary: Crear una sesión suelta
+      description: Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.
+      tags:
+      - sessions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '201':
+          description: Sesión creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+  /sessions/{sessionId}:
+    patch:
+      operationId: updateScheduledSession
+      summary: Editar hora, espacio o método de una sesión programada
+      description: Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+      tags:
+      - sessions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSessionRequest'
+      responses:
+        '200':
+          description: Sesión actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
+  /sessions/{sessionId}/cancel:
+    post:
+      operationId: cancelScheduledSession
+      summary: Cancelar una sesión programada
+      description: Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+      tags:
+      - sessions
+      responses:
+        '200':
+          description: Sesión cancelada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
 components:
   securitySchemes:
     SessionBearer:
@@ -978,7 +1897,7 @@ components:
           format: uri-reference
         code:
           type: string
-          description: Código estable para el cliente; no contiene cédulas ni secretos.
+          description: Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO.
           example: SESION_CERRADA
         mensaje:
           type: string
@@ -986,6 +1905,10 @@ components:
         attempt_id:
           type: string
           format: uuid
+        espacio_id:
+          type: string
+          format: uuid
+          description: Espacio existente en ESPACIO_CODIGO_EXISTE.
         correlation_id:
           type: string
       required:
@@ -994,6 +1917,190 @@ components:
       - status
       - code
       - mensaje
+    VerificationMethod:
+      type: string
+      enum:
+      - QR_Y_GPS
+      - SOLO_QR
+      - SOLO_GPS
+      - NINGUNO
+    DeviceId:
+      type: string
+      format: uuid
+      description: Identificador de instalación generado por la app; el servidor solo guarda su HMAC.
+    Space:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+          maxLength: 40
+        nombre:
+          type: string
+          maxLength: 200
+        tipo:
+          type: string
+          enum:
+          - AULA
+          - LABORATORIO
+          - AUDITORIO
+          - EXTERIOR
+          - OTRO
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        editable:
+          type: boolean
+      required:
+      - id
+      - codigo
+      - nombre
+      - tipo
+      - radio_defecto_m
+      - precision_defecto_m
+      - editable
+    SpacePage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Space'
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - page
+      - size
+      - total
+    CreateSpaceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        codigo:
+          type: string
+          minLength: 1
+          maxLength: 40
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 200
+        tipo:
+          $ref: '#/components/schemas/SpaceType'
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+      required:
+      - codigo
+      - nombre
+    UpdateSpaceRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 200
+        tipo:
+          $ref: '#/components/schemas/SpaceType'
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+    SpaceType:
+      type: string
+      enum:
+      - AULA
+      - LABORATORIO
+      - AUDITORIO
+      - EXTERIOR
+      - OTRO
+    ImportReport:
+      type: object
+      additionalProperties: false
+      properties:
+        procesadas:
+          type: integer
+          minimum: 0
+        creadas:
+          type: integer
+          minimum: 0
+        actualizadas:
+          type: integer
+          minimum: 0
+        sin_cambios:
+          type: integer
+          minimum: 0
+        rechazadas:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              fila:
+                type: integer
+                minimum: 1
+              motivo:
+                type: string
+            required:
+            - fila
+            - motivo
+      required:
+      - procesadas
+      - creadas
+      - actualizadas
+      - sin_cambios
+      - rechazadas
     LoginRequest:
       type: object
       additionalProperties: false
@@ -1035,6 +2142,7 @@ components:
             - ESTUDIANTE
             - DIRECTOR_INSTITUCIONAL
             - DIRECTOR_CARRERA
+            - ADMINISTRADOR
       required:
       - access_token
       - token_type
@@ -1059,6 +2167,7 @@ components:
           enum:
           - ABIERTA
           - CERRADA
+          - CANCELADA
         cerrada_en:
           type: string
           format: date-time
@@ -1259,8 +2368,9 @@ components:
           minimum: 1
       required:
       - habilitada
-      description: Al habilitar se requieren los tres parámetros; el servidor los valida conjuntamente. Si está
-        apagada no se pide permiso ni se conserva ubicación.
+      description: Al habilitar, radio_m y precision_max_m son opcionales y heredan los valores por defecto del
+        espacio de la sesión; antiguedad_max_s por defecto es 60. Si está apagada no se pide permiso ni se conserva
+        ubicación.
     GeolocationStatus:
       type: object
       additionalProperties: false
@@ -1316,10 +2426,18 @@ components:
           description: 'Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente
             y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento
             tras leerlo.'
+        dispositivo_id:
+          $ref: '#/components/schemas/DeviceId'
+        sesion_id:
+          type: string
+          format: uuid
+          description: Identifica la sesión cuando su método no incluye QR (SOLO_GPS, NINGUNO). Se envía exactamente
+            uno de qr_token o sesion_id; qr_token en método sin QR responde 400 METODO_NO_ADMITE_QR y sesion_id en
+            método con QR responde 400 QR_REQUERIDO.
         ubicacion:
           $ref: '#/components/schemas/Location'
       required:
-      - qr_token
+      - dispositivo_id
     AttendanceReceipt:
       type: object
       additionalProperties: false
@@ -1382,8 +2500,10 @@ components:
           description: 'Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente
             y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento
             tras leerlo.'
-      required:
-      - qr_token
+        sesion_id:
+          type: string
+          format: uuid
+          description: Alternativa a qr_token solo para sesiones cuyo método no incluye QR.
     GuestStartResult:
       type: object
       additionalProperties: false
@@ -1399,10 +2519,13 @@ components:
         vence_en:
           type: string
           format: date-time
+        evento_abierto:
+          type: boolean
       required:
       - registro_invitado_token
       - inicio_en
       - vence_en
+      - evento_abierto
     GuestSubmitRequest:
       type: object
       additionalProperties: false
@@ -1415,11 +2538,27 @@ components:
         cedula:
           type: string
           pattern: ^[0-9]{10}$
+        nombres:
+          type: string
+          minLength: 1
+          maxLength: 200
+        dispositivo_id:
+          $ref: '#/components/schemas/DeviceId'
         ubicacion:
           $ref: '#/components/schemas/Location'
       required:
       - registro_invitado_token
       - cedula
+      - dispositivo_id
+    OpenEvent:
+      type: object
+      additionalProperties: false
+      required: [sesion_id, nombre, metodo_verificacion]
+      properties:
+        sesion_id: {type: string, format: uuid}
+        nombre: {type: string}
+        espacio: {type: string, nullable: true}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
     AttendanceRow:
       type: object
       additionalProperties: false
@@ -1534,7 +2673,7 @@ components:
       - revisada_en
     AuditValues:
       type: object
-      additionalProperties: false
+      additionalProperties: true
       properties:
         estado:
           type: string
@@ -1547,8 +2686,25 @@ components:
         cantidad_invitados:
           type: integer
           minimum: 0
+        sesion_id:
+          type: string
+        persona_id:
+          type: string
+        forma:
+          type: string
+        nombre:
+          type: string
+        metodo_verificacion:
+          type: string
+        codigo:
+          type: string
+        ciclo_automatico:
+          type: boolean
+        umbral_asistencia:
+          type: number
       description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o
-        copias completas de listados.
+        copias completas de listados. Las claves listadas son las habituales; la fila puede incluir otras
+        claves propias de la acción auditada.
     AuditRow:
       type: object
       additionalProperties: false
@@ -1636,3 +2792,273 @@ components:
       - page
       - size
       - total
+    AdminAccount:
+      type: object
+      required: [id, correo, activa, roles]
+      properties:
+        id: {type: string, format: uuid}
+        correo: {type: string}
+        activa: {type: boolean}
+        roles:
+          type: array
+          items: {type: string}
+    AdminPerson:
+      type: object
+      required: [id, cedula, nombres, tipo, cuenta]
+      properties:
+        id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        tipo: {type: string, enum: [INSTITUCIONAL, EXTERNA]}
+        cuenta:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/AdminAccount'
+    AdminPersonPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/AdminPerson'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    AdminPersonCreate:
+      type: object
+      additionalProperties: false
+      required: [cedula, nombres]
+      properties:
+        cedula: {type: string, pattern: '^[0-9]{10}$'}
+        nombres: {type: string, minLength: 1, maxLength: 200}
+    AdminAccountCreate:
+      type: object
+      additionalProperties: false
+      required: [persona_id, correo, password, roles]
+      properties:
+        persona_id: {type: string, format: uuid}
+        correo: {type: string, maxLength: 254}
+        password: {type: string, minLength: 12, maxLength: 128}
+        roles:
+          type: array
+          minItems: 1
+          items: {type: string, enum: [DOCENTE, ENCARGADO, ESTUDIANTE, DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA, ADMINISTRADOR]}
+    AdminAccountPatch:
+      type: object
+      additionalProperties: false
+      properties:
+        roles:
+          type: array
+          minItems: 1
+          items: {type: string, enum: [DOCENTE, ENCARGADO, ESTUDIANTE, DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA, ADMINISTRADOR]}
+        activa: {type: boolean}
+        password: {type: string, minLength: 12, maxLength: 128}
+    AdminCareer:
+      type: object
+      required: [id, codigo, nombre]
+      properties:
+        id: {type: string, format: uuid}
+        codigo: {type: string}
+        nombre: {type: string}
+    AdminParallel:
+      type: object
+      required: [id, codigo, matriculados, docentes]
+      properties:
+        id: {type: string, format: uuid}
+        codigo: {type: string}
+        matriculados: {type: integer, minimum: 0}
+        docentes: {type: integer, minimum: 0}
+    AdminRejectedEntry:
+      type: object
+      required: [entrada, motivo]
+      properties:
+        entrada: {type: string}
+        motivo: {type: string}
+    ActiveSession:
+      type: object
+      required: [sesion_id, actividad, metodo_verificacion, requiere_ubicacion, inicio, fin]
+      properties:
+        sesion_id: {type: string, format: uuid}
+        actividad:
+          type: object
+          required: [id, nombre, modalidad]
+          properties:
+            id: {type: string, format: uuid}
+            nombre: {type: string}
+            modalidad: {type: string, enum: [CLASE, EVENTO]}
+        espacio:
+          type: object
+          nullable: true
+          required: [id, nombre]
+          properties:
+            id: {type: string, format: uuid}
+            nombre: {type: string}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        requiere_ubicacion: {type: boolean}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+    ActiveSessionPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/ActiveSession'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1}
+        total: {type: integer, minimum: 0}
+    MyParallel:
+      type: object
+      required: [paralelo_id, codigo, carrera_id, carrera_codigo, carrera_nombre, matriculados]
+      properties:
+        paralelo_id: {type: string, format: uuid}
+        codigo: {type: string}
+        carrera_id: {type: string, format: uuid}
+        carrera_codigo: {type: string}
+        carrera_nombre: {type: string}
+        matriculados: {type: integer, minimum: 0}
+    CreateActivityRequest:
+      type: object
+      required: [modalidad, nombre, espacio_id]
+      properties:
+        modalidad: {type: string, enum: [CLASE, EVENTO]}
+        nombre: {type: string, minLength: 1, maxLength: 200}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        paralelo_ids:
+          type: array
+          minItems: 1
+          items: {type: string, format: uuid}
+        horario: {$ref: '#/components/schemas/Schedule'}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        tolerancia_invitado_segundos: {type: integer, minimum: 41, default: 120}
+        carrera_ids:
+          type: array
+          uniqueItems: true
+          items: {type: string, format: uuid}
+    Schedule:
+      type: object
+      required: [dias, hora_inicio, hora_fin, desde, hasta]
+      properties:
+        dias:
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          items: {type: integer, minimum: 1, maximum: 7}
+        hora_inicio: {type: string, example: '08:00'}
+        hora_fin: {type: string, example: '10:00'}
+        desde: {type: string, format: date}
+        hasta: {type: string, format: date}
+    UpdateActivityRequest:
+      type: object
+      properties:
+        nombre: {type: string, minLength: 1, maxLength: 200}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
+    SessionSummary:
+      type: object
+      required: [id, estado, inicio, fin]
+      properties:
+        id: {type: string, format: uuid}
+        estado: {type: string, enum: [PROGRAMADA, ACTIVA, CERRADA, CANCELADA]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+    CreatedActivity:
+      type: object
+      required: [id, nombre, tipo, estado, espacio_id, metodo_verificacion, sesiones]
+      properties:
+        id: {type: string, format: uuid}
+        nombre: {type: string}
+        tipo: {type: string, enum: [CLASE, EVENTO]}
+        estado: {type: string, enum: [ABIERTA, CERRADA, CANCELADA]}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        estudiantes_autorizados: {type: integer, minimum: 0}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
+        tolerancia_invitado_segundos: {type: integer, minimum: 41}
+        paralelo_ids:
+          type: array
+          items: {type: string, format: uuid}
+        carrera_ids:
+          type: array
+          items: {type: string, format: uuid}
+        sesiones:
+          type: array
+          items: {$ref: '#/components/schemas/SessionSummary'}
+    ScheduleReplaced:
+      type: object
+      required: [eliminadas, generadas]
+      properties:
+        activity_id: {type: string, format: uuid}
+        eliminadas: {type: integer, minimum: 0}
+        generadas: {type: integer, minimum: 0}
+    AddStudentRequest:
+      type: object
+      required: [cedula]
+      properties:
+        cedula: {type: string, pattern: '^[0-9]{10}$'}
+    AuthorizedStudent:
+      type: object
+      required: [persona_id, vigente]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        vigente: {type: boolean}
+        activity_id: {type: string, format: uuid}
+    AuthorizedStudentPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/AuthorizedStudent'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    SyncResult:
+      type: object
+      required: [agregados]
+      properties:
+        activity_id: {type: string, format: uuid}
+        agregados: {type: integer, minimum: 0}
+    CreateSessionRequest:
+      type: object
+      required: [inicio, fin]
+      properties:
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid}
+    UpdateSessionRequest:
+      type: object
+      properties:
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+    ScheduledSession:
+      type: object
+      required: [id, activity_id, estado, inicio, fin, metodo_verificacion]
+      properties:
+        id: {type: string, format: uuid}
+        activity_id: {type: string, format: uuid}
+        estado: {type: string, enum: [PROGRAMADA, ACTIVA, CERRADA, CANCELADA]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid, nullable: true}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        horario_id: {type: string, format: uuid, nullable: true}
+    SessionPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/ScheduledSession'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}

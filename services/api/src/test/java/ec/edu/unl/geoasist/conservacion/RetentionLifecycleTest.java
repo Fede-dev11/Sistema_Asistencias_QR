@@ -247,6 +247,48 @@ class RetentionLifecycleTest extends PostgresFixture {
         0, db.queryForObject("SELECT count(*) FROM actividades WHERE id=?", Integer.class, ids[0]));
   }
 
+  @Test
+  void sharedSpacesSurviveRetention() {
+    var ids = scenario("EVENTO", 201);
+    UUID space = UUID.randomUUID();
+    db.update(
+        "INSERT INTO espacios(id,nombre,tipo,codigo,codigo_normalizado) VALUES (?,'Aula compartida','AULA','RET1','RET1')",
+        space);
+    db.update("UPDATE sesiones SET espacio_id=? WHERE id=?", space, ids[1]);
+    expire(ids[0]);
+    runBatch();
+    assertEquals(
+        0, db.queryForObject("SELECT count(*) FROM actividades WHERE id=?", Integer.class, ids[0]));
+    assertEquals(
+        1, db.queryForObject("SELECT count(*) FROM espacios WHERE id=?", Integer.class, space));
+  }
+
+  @Test
+  void orphanSelfRegisteredExternalIsRemovedWithExpiredEvent() {
+    var ids = scenario("EVENTO", 201);
+    UUID person = UUID.randomUUID();
+    UUID attempt = UUID.randomUUID();
+    db.update(
+        "INSERT INTO personas VALUES (?,?,?,'EXTERNA')", person, fictionalId(), "Autorregistrada");
+    db.update(
+        "INSERT INTO intentos_asistencia(id,sesion_id,persona_id,nombres_referencia,resultado,code,mensaje,canal,recibido_en) VALUES (?,?,?,'Nombre escrito','ACEPTADO','ASISTENCIA_CONFIRMADA','Registrada','AUTORREGISTRO',?)",
+        attempt,
+        ids[1],
+        person,
+        Timestamp.from(clock.instant()));
+    db.update(
+        "INSERT INTO asistencias(id,sesion_id,persona_id,intento_id,registrada_en,forma,nombres_registro) VALUES (?,?,?,?,?,'AUTORREGISTRO','Nombre escrito')",
+        UUID.randomUUID(),
+        ids[1],
+        person,
+        attempt,
+        Timestamp.from(clock.instant()));
+    expire(ids[0]);
+    runBatch();
+    assertEquals(
+        0, db.queryForObject("SELECT count(*) FROM personas WHERE id=?", Integer.class, person));
+  }
+
   private void expire(UUID activity) {
     db.update(
         "UPDATE actividades SET estado='CERRADA',cerrada_en=?,anonimizar_en=? WHERE id=?",

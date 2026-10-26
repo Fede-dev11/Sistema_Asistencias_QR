@@ -14,6 +14,7 @@ public final class ProblemDetails {
     out.put("mensaje", error.getMessage());
     out.put("correlation_id", RequestCorrelation.id().toString());
     if (error.detail() != null) out.put("detail", error.detail());
+    out.putAll(error.extras());
     return out;
   }
 }

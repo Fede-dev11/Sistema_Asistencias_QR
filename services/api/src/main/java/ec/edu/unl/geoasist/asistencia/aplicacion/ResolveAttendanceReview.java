@@ -23,7 +23,13 @@ public class ResolveAttendanceReview {
   public record Command(String decision, String reason) {}
 
   private record Pending(
-      UUID session, UUID person, UUID guestStart, String channel, String result, String name) {}
+      UUID session,
+      UUID person,
+      UUID guestStart,
+      String channel,
+      String result,
+      String name,
+      String deviceHash) {}
 
   private final JdbcTemplate db;
   private final Clock clock;
@@ -100,7 +106,15 @@ public class ResolveAttendanceReview {
       Person person = eligible(pending, activityId);
       var existing = attempts.existing(pending.session(), pending.person());
       if (existing.isEmpty()) {
-        attempts.confirm(pending.session(), person, attemptId, reviewedAt, "REVISION");
+        var deviceAttendance = attempts.existingDevice(pending.session(), pending.deviceHash());
+        if (deviceAttendance.isPresent()
+            && !deviceAttendance.get().person().equals(pending.person()))
+          throw AttendanceRecording.deviceConflict();
+        boolean confirmed =
+            attempts.confirm(
+                pending.session(), person, attemptId, reviewedAt, "REVISION", pending.deviceHash());
+        if (!confirmed && attempts.existing(pending.session(), pending.person()).isEmpty())
+          throw AttendanceRecording.deviceConflict();
         existing = attempts.existing(pending.session(), pending.person());
       }
       attendanceId = existing.orElseThrow(ApiFailure::conflict).id();
@@ -178,7 +192,7 @@ public class ResolveAttendanceReview {
   private Pending find(UUID attemptId) {
     return db
         .query(
-            "SELECT sesion_id,persona_id,inicio_invitado_id,canal,resultado,nombres_referencia FROM intentos_asistencia WHERE id=?",
+            "SELECT sesion_id,persona_id,inicio_invitado_id,canal,resultado,nombres_referencia,dispositivo_hash FROM intentos_asistencia WHERE id=?",
             (r, n) ->
                 new Pending(
                     r.getObject(1, UUID.class),
@@ -186,7 +200,8 @@ public class ResolveAttendanceReview {
                     r.getObject(3, UUID.class),
                     r.getString(4),
                     r.getString(5),
-                    r.getString(6)),
+                    r.getString(6),
+                    r.getString(7)),
             attemptId)
         .stream()
         .findFirst()

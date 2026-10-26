@@ -22,7 +22,9 @@ class ParticipantEligibilityTest extends PostgresFixture {
                 .header("Authorization", "Bearer " + student)
                 .header("Idempotency-Key", UUID.randomUUID().toString())
                 .contentType("application/json")
-                .content(json.writeValueAsString(Map.of("qr_token", qr))))
+                .content(
+                    json.writeValueAsString(
+                        Map.of("qr_token", qr, "dispositivo_id", UUID.randomUUID()))))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("code").value("NO_AUTORIZADO"));
     api.perform(
@@ -35,8 +37,8 @@ class ParticipantEligibilityTest extends PostgresFixture {
   @Test
   void anyAccountEvenInactiveMustUseCredentialsAndUnknownIdsCannotSelfRegister() throws Exception {
     String allowed = fictionalId(), unknown = fictionalId();
-    var event = guests(120, allowed, "0000000003", "0000000008");
-    for (String registered : List.of("0000000003", "0000000008"))
+    var event = guests(120, allowed, "0100000033", "0100000082");
+    for (String registered : List.of("0100000033", "0100000082"))
       guestSubmit(
               open(event).get("registro_invitado_token").asText(), registered, UUID.randomUUID())
           .andExpect(status().isForbidden())
@@ -54,7 +56,9 @@ class ParticipantEligibilityTest extends PostgresFixture {
                 .header("Authorization", "Bearer " + student)
                 .header("Idempotency-Key", UUID.randomUUID().toString())
                 .contentType("application/json")
-                .content(json.writeValueAsString(Map.of("qr_token", event.qr()))))
+                .content(
+                    json.writeValueAsString(
+                        Map.of("qr_token", event.qr(), "dispositivo_id", UUID.randomUUID()))))
         .andExpect(status().isCreated());
   }
 }

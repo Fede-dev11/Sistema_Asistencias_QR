@@ -56,7 +56,7 @@ public class CloseActivity {
           if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
           var now = clock.instant();
           db.update(
-              "UPDATE sesiones SET estado='CERRADA',cerrada_en=? WHERE actividad_id=? AND estado<>'CERRADA'",
+              "UPDATE sesiones SET estado='CERRADA',cerrada_en=? WHERE actividad_id=? AND estado NOT IN ('CERRADA','CANCELADA')",
               java.sql.Timestamp.from(now),
               id);
           db.update(

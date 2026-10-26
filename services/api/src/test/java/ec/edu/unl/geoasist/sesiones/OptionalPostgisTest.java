@@ -55,19 +55,36 @@ class OptionalPostgisTest {
     assertEquals(
         1,
         db.queryForObject(
-            "SELECT count(*) FROM flyway_geo_schema_history WHERE success AND version='001'",
+            "SELECT count(*) FROM flyway_geo_schema_history WHERE success AND version='002'",
             Integer.class));
 
     UUID session = ScenarioFixtures.id(402);
     UUID space = UUID.randomUUID();
     db.update(
-        "INSERT INTO espacios(id,nombre,tipo,centro) VALUES (?,?,'AULA',ST_SetSRID(ST_MakePoint(-79.2026,-4.0328),4326)::geography)",
+        "INSERT INTO espacios(id,nombre,tipo,latitud,longitud) VALUES (?,?,'AULA',-4.0328,-79.2026)",
         space,
         "Espacio ficticio PostGIS");
     db.update("UPDATE sesiones SET espacio_id=? WHERE id=?", space, session);
+    db.update(
+        "UPDATE actividades SET acceso='ABIERTO' WHERE id=(SELECT actividad_id FROM sesiones WHERE id=?)",
+        session);
 
     String owner = token("encargado@example.test");
     String student = token("estudiante@example.test");
+    var inherited =
+        json.readTree(
+            api.perform(
+                    put("/api/v1/sessions/" + session + "/geolocation")
+                        .header("Authorization", "Bearer " + owner)
+                        .contentType("application/json")
+                        .content("{\"habilitada\":true}"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString());
+    assertEquals(20.0, inherited.get("configuracion").get("radio_m").asDouble());
+    assertEquals(30.0, inherited.get("configuracion").get("precision_max_m").asDouble());
+    assertEquals(60, inherited.get("configuracion").get("antiguedad_max_s").asInt());
     String settings =
         api.perform(
                 put("/api/v1/sessions/" + session + "/geolocation")
@@ -109,6 +126,8 @@ class OptionalPostgisTest {
                             Map.of(
                                 "qr_token",
                                 qr,
+                                "dispositivo_id",
+                                UUID.randomUUID(),
                                 "ubicacion",
                                 Map.of(
                                     "latitud",
