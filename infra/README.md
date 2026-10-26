@@ -11,7 +11,7 @@ UUID sintéticos: prefijo `00000000-0000-0000-0000-` seguido de doce dígitos. C
 
 Semillas de 002 (solo `dev`): administrador `admin@dev.geoasist.local` (persona 108, cuenta 208, rol ADMINISTRADOR, misma contraseña local). Espacio 501 "UNL" (-4.0328, -79.2026). Matrículas: personas 102 y 107 en paralelo 11, persona 106 en paralelo 12. Docentes de paralelo: cuenta 200 en paralelo 11, cuenta 205 en paralelo 12. Las cédulas sembradas son ficticias pero cumplen el módulo 10 (`0100000017` a `0100000082` para las personas 100..107, `2400000002` para la 108).
 
-Los listados de invitados se precargan mediante la operación contractual; no se publican ni se habilitan por defecto. Para capturar QR o elegir sesión en este incremento se utiliza el ID de sesión sembrado: todavía no existe un endpoint de descubrimiento de sesiones.
+Los listados de invitados se precargan mediante la operación contractual; no se publican ni se habilitan por defecto. Las sesiones se consultan con `GET /api/v1/activities/{id}/sessions` (responsable) y `GET /api/v1/me/active-sessions` (participante).
 
 No borrar volúmenes de Docker para reiniciar pruebas: Testcontainers usa una base independiente efímera. `.env` nunca se incluye en backups compartidos ni en Git.
 
@@ -59,8 +59,8 @@ docker compose --env-file .env -f infra/docker-compose.yml exec db psql -U geoas
 
 1. Cambiar `SSO_INTERNAL_URL` (dirección que usa la API para validar tickets), `SSO_PUBLIC_URL` (dirección que usa el navegador) y `SSO_SERVICE_KEY`.
 2. Registrar en ese servicio las URL de retorno de GeoAsist (`geoasist-web` y `geoasist-movil`).
-3. Si el protocolo institucional es distinto, solo cambia `CasIdentityProvider` en `services/api/src/main/java/ec/edu/unl/geoasist/identidades/aplicacion/`. El dominio depende únicamente del puerto `IdentityProvider`. (Pendiente: `CasIdentityProvider` aún no existe en el código.)
+3. Si el protocolo institucional es distinto, solo cambia `CasIdentityProvider` en `services/api/src/main/java/ec/edu/unl/geoasist/identidades/aplicacion/`. El dominio depende únicamente del puerto `IdentityProvider`.
 
 ### Inicio de sesión local (`GEOASIST_LOCAL_LOGIN`)
 
-`GEOASIST_LOCAL_LOGIN` vale `false` por defecto: `POST /auth/login` de GeoAsist responde 404 y el ingreso es solo por SSO. Las pruebas automáticas lo activan para obtener tokens por contraseña. (Pendiente: la variable aún no aparece en `.env.example` ni en la configuración de `services/api`.)
+`GEOASIST_LOCAL_LOGIN` vale `false` por defecto: `POST /auth/login` de GeoAsist responde 404 y el ingreso es solo por SSO. Las pruebas automáticas lo activan para obtener tokens por contraseña.
