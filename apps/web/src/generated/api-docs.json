@@ -183,6 +183,158 @@
       ]
     },
     {
+      "id": "renewSession",
+      "method": "POST",
+      "path": "/auth/renew",
+      "summary": "Renovar la sesión por 8 horas rotando el secreto",
+      "desc": "Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401 RENOVACION_VENCIDA si pasaron más de 30 días desde el login original.",
+      "group": "auth",
+      "roles": [
+        "cta"
+      ],
+      "note": null,
+      "params": [],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Sesión renovada.",
+          "schema": "LoginResult"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getMe",
+      "method": "GET",
+      "path": "/me",
+      "summary": "Perfil propio sin secretos",
+      "desc": "",
+      "group": "auth",
+      "roles": [
+        "cta"
+      ],
+      "note": null,
+      "params": [],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Perfil.",
+          "schema": "MeProfile"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "changeMyPassword",
+      "method": "PUT",
+      "path": "/me/password",
+      "summary": "Cambiar la contraseña propia",
+      "desc": "Mínimo 12 caracteres y distinta de la actual (400 PASSWORD_DEBIL). Actual incorrecta (400 PASSWORD_ACTUAL_INCORRECTA) cuenta para el límite de login. Cierra las demás sesiones.",
+      "group": "auth",
+      "roles": [
+        "cta"
+      ],
+      "note": null,
+      "params": [],
+      "body": {
+        "contentType": "application/json",
+        "schema": "PasswordChange",
+        "fields": [
+          {
+            "name": "actual",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "máx. long. 128"
+          },
+          {
+            "name": "nueva",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 12; máx. long. 128"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "204",
+          "desc": "Contraseña cambiada.",
+          "schema": null
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminResetPassword",
+      "method": "POST",
+      "path": "/admin/accounts/{accountId}/password-reset",
+      "summary": "Restablecer contraseña con una temporal de un solo uso (ADMINISTRADOR)",
+      "desc": "Genera 16 caracteres aleatorios mostrados una vez, revoca las sesiones de la cuenta y exige cambio en el siguiente ingreso.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "accountId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Contraseña temporal.",
+          "schema": "TemporaryPassword"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
       "id": "listActivities",
       "method": "GET",
       "path": "/activities",
@@ -549,6 +701,20 @@
             "required": false,
             "desc": "",
             "rules": "QR_Y_GPS | SOLO_QR | SOLO_GPS | NINGUNO"
+          },
+          {
+            "name": "ciclo_automatico",
+            "type": "boolean",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "umbral_asistencia",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 0; máx. 100"
           },
           {
             "name": "acceso",
@@ -1725,7 +1891,7 @@
       "method": "POST",
       "path": "/attempts/{attemptId}/review",
       "summary": "Resolver intento pendiente",
-      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA y actividad abierta; si están cerradas devolver 409. Una aprobación no duplica asistencia. Rechazar una revisión no crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA o CERRADA dentro del plazo de corrección (geoasist.correccion.dias, 7); fuera de plazo 409 PLAZO_CORRECCION_VENCIDO. Aprobar tras el cierre elimina la ausencia. Una aprobación no duplica asistencia. Rechazar una revisión no crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.",
       "group": "attempts",
       "roles": [
         "doc",
@@ -1775,6 +1941,486 @@
           "code": "200",
           "desc": "Revisión aplicada o repetida de forma idempotente.",
           "schema": "ReviewResult"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "registerManualAttendance",
+      "method": "POST",
+      "path": "/sessions/{sessionId}/manual-attendances",
+      "summary": "Registrar asistencia manual",
+      "desc": "Solo RESPONSABLE de la actividad. Estudiante autorizado vigente (422 NO_AUTORIZADO_EN_SESION). Sesión ACTIVA o CERRADA dentro de geoasist.correccion.dias (7) días; después 409 PLAZO_CORRECCION_VENCIDO. Duplicado 409 ASISTENCIA_DUPLICADA. Elimina la ausencia, resuelve como rechazado un intento pendiente del estudiante y audita. No aplica la regla de dispositivo.",
+      "group": "corrections",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "ManualAttendanceRequest",
+        "fields": [
+          {
+            "name": "persona_id",
+            "type": "string (uuid)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "razon",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 2000"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "201",
+          "desc": "Asistencia MANUAL creada (o repetida con la misma clave).",
+          "schema": "ManualAttendanceResult"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "justifyAbsence",
+      "method": "POST",
+      "path": "/sessions/{sessionId}/absences/{personId}/justify",
+      "summary": "Justificar una ausencia",
+      "desc": "Solo RESPONSABLE, mismo plazo de corrección. Crea una justificación origen RESPONSABLE aprobada y la ausencia pasa a JUSTIFICADA. 409 SIN_AUSENCIA si no hay ausencia; 409 JUSTIFICACION_PENDIENTE_EXISTE si hay una solicitud pendiente.",
+      "group": "corrections",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "personId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "JustifyAbsenceRequest",
+        "fields": [
+          {
+            "name": "razon",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 2000"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "201",
+          "desc": "Justificación registrada.",
+          "schema": "JustificationSummary"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "requestJustification",
+      "method": "POST",
+      "path": "/me/absences/{sessionId}/justification-requests",
+      "summary": "Solicitar justificación de la propia ausencia",
+      "desc": "Solo ESTUDIANTE con ausencia propia en la sesión, dentro del plazo de corrección. Una solicitud pendiente por ausencia (409 JUSTIFICACION_PENDIENTE_EXISTE); sin ausencia 409 SIN_AUSENCIA. El motivo no se copia a la auditoría ni al CSV.",
+      "group": "corrections",
+      "roles": [
+        "est"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "JustificationRequestBody",
+        "fields": [
+          {
+            "name": "motivo",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 2000"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "201",
+          "desc": "Solicitud pendiente creada.",
+          "schema": "JustificationSummary"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listJustificationRequests",
+      "method": "GET",
+      "path": "/activities/{activityId}/justification-requests",
+      "summary": "Bandeja de justificaciones",
+      "desc": "Responsable y directores según el ámbito de consulta. Incluye el motivo, que solo se muestra a quien puede leer la actividad.",
+      "group": "corrections",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "estado",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "desc": "",
+          "rules": "PENDIENTE | APROBADA | RECHAZADA"
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado.",
+          "schema": "JustificationPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "decideJustification",
+      "method": "POST",
+      "path": "/justification-requests/{requestId}/decision",
+      "summary": "Decidir una solicitud de justificación",
+      "desc": "Solo RESPONSABLE de la actividad. Razón obligatoria; la decisión es inmutable (409 si ya fue decidida). APROBAR pasa la ausencia a JUSTIFICADA.",
+      "group": "corrections",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "requestId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "JustificationDecisionRequest",
+        "fields": [
+          {
+            "name": "decision",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "APROBAR | RECHAZAR"
+          },
+          {
+            "name": "razon",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 2000"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Decisión registrada o repetida.",
+          "schema": "JustificationSummary"
         },
         {
           "code": "400",
@@ -3910,9 +4556,408 @@
           "schema": "Problem"
         }
       ]
+    },
+    {
+      "id": "getActivityStats",
+      "method": "GET",
+      "path": "/activities/{activityId}/stats",
+      "summary": "Estadísticas de asistencia por estudiante de una clase",
+      "desc": "Solo sesiones CERRADAS. Responsable, DIRECTOR_INSTITUCIONAL y DIRECTOR_CARRERA de su carrera (mismo ámbito que la consulta de asistencias). porcentaje es null (sin datos) sin sesiones computables. 409 si la actividad no es una CLASE.",
+      "group": "stats",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado.",
+          "schema": "ActivityStatsPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getParallelStats",
+      "method": "GET",
+      "path": "/stats/parallels",
+      "summary": "Estadísticas por paralelo en un periodo",
+      "desc": "Responsable (sus clases), DIRECTOR_CARRERA (carreras que dirige) y DIRECTOR_INSTITUCIONAL (todas). Cuenta las asistencias y ausencias de los estudiantes matriculados vigentes del paralelo. 403 si careerId no está en el ámbito.",
+      "group": "stats",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "careerId",
+          "in": "query",
+          "required": false,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "desde",
+          "in": "query",
+          "required": false,
+          "type": "string (date-time)",
+          "desc": "Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión.",
+          "rules": ""
+        },
+        {
+          "name": "hasta",
+          "in": "query",
+          "required": false,
+          "type": "string (date-time)",
+          "desc": "Fin del periodo (exclusivo); debe ser posterior a desde.",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado.",
+          "schema": "StatsGroupList"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getCareerStats",
+      "method": "GET",
+      "path": "/stats/careers",
+      "summary": "Estadísticas por carrera en un periodo",
+      "desc": "Mismo ámbito que las estadísticas por paralelo.",
+      "group": "stats",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "desde",
+          "in": "query",
+          "required": false,
+          "type": "string (date-time)",
+          "desc": "Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión.",
+          "rules": ""
+        },
+        {
+          "name": "hasta",
+          "in": "query",
+          "required": false,
+          "type": "string (date-time)",
+          "desc": "Fin del periodo (exclusivo); debe ser posterior a desde.",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado.",
+          "schema": "StatsGroupList"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listSessionAbsences",
+      "method": "GET",
+      "path": "/sessions/{sessionId}/absences",
+      "summary": "Ausencias registradas al cerrar una sesión",
+      "desc": "Responsable y directores según el ámbito de consulta. Lista vigente al momento del cierre.",
+      "group": "stats",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado.",
+          "schema": "AbsencePage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listMyAttendances",
+      "method": "GET",
+      "path": "/me/attendances",
+      "summary": "Historial propio por sesión cerrada",
+      "desc": "Solo datos de la persona autenticada. Sesiones cerradas con su resultado y el estado de su última solicitud de justificación; las actividades anonimizadas no aparecen.",
+      "group": "stats",
+      "roles": [
+        "est"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado.",
+          "schema": "MyAttendancePage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getMyStats",
+      "method": "GET",
+      "path": "/me/stats",
+      "summary": "Porcentajes propios por actividad de clase",
+      "desc": "",
+      "group": "stats",
+      "roles": [
+        "est"
+      ],
+      "note": null,
+      "params": [],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado.",
+          "schema": "MyStatsList"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        }
+      ]
     }
   ],
   "codes": [
+    "CAMBIO_PASSWORD_REQUERIDO",
     "CEDULA_INVALIDA",
     "DISPOSITIVO_REQUERIDO",
     "DISPOSITIVO_YA_REGISTRADO",
@@ -3921,15 +4966,22 @@
     "ESTADO_INCOMPATIBLE",
     "FORMULARIO_EXPIRADO",
     "HORARIO_DEMASIADO_LARGO",
+    "JUSTIFICACION_PENDIENTE_EXISTE",
     "LIMITE_SOLICITUDES",
     "METODO_NO_ADMITE_QR",
     "NO_AUTENTICADO",
     "NO_AUTORIZADO",
+    "NO_AUTORIZADO_EN_SESION",
     "PARALELO_NO_ASIGNADO",
+    "PASSWORD_ACTUAL_INCORRECTA",
+    "PASSWORD_DEBIL",
+    "PLAZO_CORRECCION_VENCIDO",
     "QR_EXPIRADO",
     "QR_REQUERIDO",
     "RECURSO_NO_ENCONTRADO",
+    "RENOVACION_VENCIDA",
     "SESION_NO_EDITABLE",
+    "SIN_AUSENCIA",
     "SOLICITUD_INVALIDA",
     "UBICACION_INCIERTA",
     "UBICACION_NO_DISPONIBLE"
