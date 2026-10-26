@@ -144,7 +144,9 @@ paths:
       operationId: renewSession
       summary: Renovar la sesión por 8 horas rotando el secreto
       description: Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401
-        RENOVACION_VENCIDA si pasaron más de 30 días desde el login original.
+        RENOVACION_VENCIDA si pasaron más de 30 días desde el login original. Para cuentas CAS consulta al SSO
+        si la cuenta sigue activa; si no, revoca la sesión y responde 403 CUENTA_INACTIVA; si el SSO no responde
+        falla cerrado con 502 SSO_NO_DISPONIBLE.
       tags: [auth]
       responses:
         '200':
@@ -159,6 +161,11 @@ paths:
             application/problem+json:
               schema: {$ref: '#/components/schemas/Problem'}
               example: {type: 'urn:unl:problem:cuenta-inactiva', title: Cuenta inactiva, status: 403, code: CUENTA_INACTIVA, mensaje: Cuenta inactiva.}
+        '502':
+          description: SSO no disponible (SSO_NO_DISPONIBLE); no se renueva.
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
   /me:
     get:
       operationId: getMe
@@ -171,41 +178,6 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/MeProfile'}
         '401': {$ref: '#/components/responses/Unauthorized'}
-  /me/password:
-    put:
-      operationId: changeMyPassword
-      summary: Cambiar la contraseña propia
-      description: Mínimo 12 caracteres y distinta de la actual (400 PASSWORD_DEBIL). Actual incorrecta
-        (400 PASSWORD_ACTUAL_INCORRECTA) cuenta para el límite de login. Cierra las demás sesiones.
-      tags: [auth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: {$ref: '#/components/schemas/PasswordChange'}
-      responses:
-        '204': {description: Contraseña cambiada.}
-        '400': {$ref: '#/components/responses/BadRequest'}
-        '401': {$ref: '#/components/responses/Unauthorized'}
-        '429': {$ref: '#/components/responses/RateLimited'}
-  /admin/accounts/{accountId}/password-reset:
-    post:
-      operationId: adminResetPassword
-      summary: Restablecer contraseña con una temporal de un solo uso (ADMINISTRADOR)
-      description: Genera 16 caracteres aleatorios mostrados una vez, revoca las sesiones de la cuenta y exige
-        cambio en el siguiente ingreso.
-      tags: [admin]
-      parameters:
-      - {name: accountId, in: path, required: true, schema: {type: string, format: uuid}}
-      responses:
-        '200':
-          description: Contraseña temporal.
-          content:
-            application/json:
-              schema: {$ref: '#/components/schemas/TemporaryPassword'}
-        '401': {$ref: '#/components/responses/Unauthorized'}
-        '403': {$ref: '#/components/responses/Forbidden'}
-        '404': {$ref: '#/components/responses/NotFound'}
   /activities:
     get:
       operationId: listActivities
@@ -2649,25 +2621,12 @@ components:
             - ADMINISTRADOR
         debe_cambiar_password:
           type: boolean
-          description: true si solo puede usar PUT /me/password, GET /me y logout.
+          description: Siempre false para cuentas CAS (conservado por compatibilidad).
       required:
       - access_token
       - token_type
       - vence_en
       - roles
-    PasswordChange:
-      type: object
-      additionalProperties: false
-      required: [actual, nueva]
-      properties:
-        actual: {type: string, maxLength: 128}
-        nueva: {type: string, minLength: 12, maxLength: 128}
-    TemporaryPassword:
-      type: object
-      additionalProperties: false
-      required: [password_temporal]
-      properties:
-        password_temporal: {type: string, minLength: 16, maxLength: 16}
     MeProfile:
       type: object
       additionalProperties: false
@@ -3468,11 +3427,10 @@ components:
     AdminAccountCreate:
       type: object
       additionalProperties: false
-      required: [persona_id, correo, password, roles]
+      required: [persona_id, correo, roles]
       properties:
         persona_id: {type: string, format: uuid}
         correo: {type: string, maxLength: 254}
-        password: {type: string, minLength: 12, maxLength: 128}
         roles:
           type: array
           minItems: 1
@@ -3486,7 +3444,6 @@ components:
           minItems: 1
           items: {type: string, enum: [DOCENTE, ENCARGADO, ESTUDIANTE, DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA, ADMINISTRADOR]}
         activa: {type: boolean}
-        password: {type: string, minLength: 12, maxLength: 128}
     AdminCareer:
       type: object
       required: [id, codigo, nombre]

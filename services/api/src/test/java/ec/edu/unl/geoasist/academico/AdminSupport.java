@@ -43,17 +43,23 @@ abstract class AdminSupport extends PostgresFixture {
 
   JsonNode createAccount(String bearer, String person, String mail, List<String> roles)
       throws Exception {
-    return ok(
-        send(
-            "POST",
-            "/api/v1/admin/accounts",
-            bearer,
-            Map.of(
-                "persona_id", person,
-                "correo", mail,
-                "password", "fixture-password",
-                "roles", roles)),
-        201);
+    var created =
+        ok(
+            send(
+                "POST",
+                "/api/v1/admin/accounts",
+                bearer,
+                Map.of(
+                    "persona_id", person,
+                    "correo", mail,
+                    "roles", roles)),
+            201);
+    // Las cuentas creadas por la API son CAS sin contraseña; las pruebas necesitan iniciar sesión
+    // local.
+    db.update(
+        "UPDATE cuentas SET proveedor='DEV',password_hash=(SELECT password_hash FROM cuentas WHERE identificador='docente@example.test') WHERE identificador=?",
+        mail);
+    return created;
   }
 
   JsonNode importCsv(String bearer, String kind, String csv, int status) throws Exception {

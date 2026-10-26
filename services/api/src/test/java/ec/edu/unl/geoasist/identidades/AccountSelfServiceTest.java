@@ -55,14 +55,17 @@ class AccountSelfServiceTest extends PostgresFixture {
                         person.get("id").asText(),
                         "correo",
                         mail,
-                        "password",
-                        OLD,
                         "roles",
                         List.of("ESTUDIANTE")))
                 .andExpect(status().isCreated())
                 .andReturn()
                 .getResponse()
                 .getContentAsString());
+    // Las cuentas creadas por la API son CAS sin contraseña; las pruebas necesitan iniciar sesión
+    // local.
+    db.update(
+        "UPDATE cuentas SET proveedor='DEV',password_hash=(SELECT password_hash FROM cuentas WHERE identificador='docente@example.test') WHERE identificador=?",
+        mail);
     return db.queryForObject("SELECT id FROM cuentas WHERE identificador=?", String.class, mail);
   }
 
@@ -85,87 +88,6 @@ class AccountSelfServiceTest extends PostgresFixture {
     return json.readTree(r.andReturn().getResponse().getContentAsString())
         .get("access_token")
         .asText();
-  }
-
-  ResultActions change(String bearer, String current, String next) throws Exception {
-    return call(put("/api/v1/me/password"), bearer, Map.of("actual", current, "nueva", next));
-  }
-
-  @Test
-  void changesPasswordKeepsCurrentSessionAndClosesOthers() throws Exception {
-    String mail = mail();
-    account(mail);
-    String a = tokenOf(login(mail, OLD).andExpect(status().isOk()));
-    String b = tokenOf(login(mail, OLD).andExpect(status().isOk()));
-    change(a, OLD, "otra-clave-larga-1").andExpect(status().isNoContent());
-    call(get("/api/v1/me"), a, null).andExpect(status().isOk());
-    call(get("/api/v1/me"), b, null).andExpect(status().isUnauthorized());
-    login(mail, OLD).andExpect(status().isUnauthorized());
-    login(mail, "otra-clave-larga-1").andExpect(status().isOk());
-  }
-
-  @Test
-  void weakOrSamePasswordAndWrongCurrentAreRejected() throws Exception {
-    String mail = mail();
-    account(mail);
-    String t = tokenOf(login(mail, OLD).andExpect(status().isOk()));
-    change(t, OLD, "corta")
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("code").value("PASSWORD_DEBIL"));
-    change(t, OLD, OLD)
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("code").value("PASSWORD_DEBIL"));
-    // Cada intento con actual incorrecta cuenta para el límite de login (5 por minuto, incluido el
-    // login inicial).
-    for (int i = 0; i < 4; i++)
-      change(t, "equivocada-" + i, "otra-clave-larga-1")
-          .andExpect(status().isBadRequest())
-          .andExpect(jsonPath("code").value("PASSWORD_ACTUAL_INCORRECTA"));
-    change(t, "equivocada-5", "otra-clave-larga-1").andExpect(status().isTooManyRequests());
-    login(mail, OLD).andExpect(status().isTooManyRequests());
-  }
-
-  @Test
-  void adminResetForcesChangeAndBlocksOtherEndpoints() throws Exception {
-    String mail = mail();
-    String id = account(mail);
-    String old = tokenOf(login(mail, OLD).andExpect(status().isOk()));
-    String admin = admin();
-    JsonNode reset =
-        json.readTree(
-            call(post("/api/v1/admin/accounts/" + id + "/password-reset"), admin, null)
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString());
-    String temp = reset.get("password_temporal").asText();
-    assertEquals(16, temp.length());
-    call(get("/api/v1/me"), old, null).andExpect(status().isUnauthorized());
-    assertEquals(
-        1L,
-        db.queryForObject(
-            "SELECT count(*) FROM auditoria_academica WHERE accion='RESTABLECER_PASSWORD' AND entidad_id=?",
-            Long.class,
-            UUID.fromString(id)));
-    assertFalse(
-        db.queryForObject(
-                "SELECT nuevo::text FROM auditoria_academica WHERE accion='RESTABLECER_PASSWORD' AND entidad_id=?",
-                String.class,
-                UUID.fromString(id))
-            .contains(temp));
-    var res =
-        login(mail, temp)
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("debe_cambiar_password").value(true));
-    String t = tokenOf(res);
-    call(get("/api/v1/me"), t, null).andExpect(status().isOk());
-    call(post("/api/v1/auth/renew"), t, null)
-        .andExpect(status().isForbidden())
-        .andExpect(jsonPath("code").value("CAMBIO_PASSWORD_REQUERIDO"));
-    change(t, temp, "definitiva-larga-1").andExpect(status().isNoContent());
-    call(post("/api/v1/admin/accounts/" + id + "/password-reset"), t, null)
-        .andExpect(status().isForbidden());
-    call(post("/api/v1/auth/renew"), t, null).andExpect(status().isOk());
   }
 
   @Test

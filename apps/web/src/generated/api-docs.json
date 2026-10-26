@@ -278,7 +278,7 @@
       "method": "POST",
       "path": "/auth/renew",
       "summary": "Renovar la sesión por 8 horas rotando el secreto",
-      "desc": "Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401 RENOVACION_VENCIDA si pasaron más de 30 días desde el login original.",
+      "desc": "Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401 RENOVACION_VENCIDA si pasaron más de 30 días desde el login original. Para cuentas CAS consulta al SSO si la cuenta sigue activa; si no, revoca la sesión y responde 403 CUENTA_INACTIVA; si el SSO no responde falla cerrado con 502 SSO_NO_DISPONIBLE.",
       "group": "auth",
       "roles": [
         "cta"
@@ -300,6 +300,11 @@
         {
           "code": "403",
           "desc": "Cuenta universitaria inactiva (CUENTA_INACTIVA).",
+          "schema": "Problem"
+        },
+        {
+          "code": "502",
+          "desc": "SSO no disponible (SSO_NO_DISPONIBLE); no se renueva.",
           "schema": "Problem"
         }
       ]
@@ -326,106 +331,6 @@
         {
           "code": "401",
           "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
-          "schema": "Problem"
-        }
-      ]
-    },
-    {
-      "id": "changeMyPassword",
-      "method": "PUT",
-      "path": "/me/password",
-      "summary": "Cambiar la contraseña propia",
-      "desc": "Mínimo 12 caracteres y distinta de la actual (400 PASSWORD_DEBIL). Actual incorrecta (400 PASSWORD_ACTUAL_INCORRECTA) cuenta para el límite de login. Cierra las demás sesiones.",
-      "group": "auth",
-      "roles": [
-        "cta"
-      ],
-      "note": null,
-      "params": [],
-      "body": {
-        "contentType": "application/json",
-        "schema": "PasswordChange",
-        "fields": [
-          {
-            "name": "actual",
-            "type": "string",
-            "required": true,
-            "desc": "",
-            "rules": "máx. long. 128"
-          },
-          {
-            "name": "nueva",
-            "type": "string",
-            "required": true,
-            "desc": "",
-            "rules": "mín. long. 12; máx. long. 128"
-          }
-        ]
-      },
-      "responses": [
-        {
-          "code": "204",
-          "desc": "Contraseña cambiada.",
-          "schema": null
-        },
-        {
-          "code": "400",
-          "desc": "Datos mal formados o parámetros inválidos.",
-          "schema": "Problem"
-        },
-        {
-          "code": "401",
-          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
-          "schema": "Problem"
-        },
-        {
-          "code": "429",
-          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
-          "schema": "Problem"
-        }
-      ]
-    },
-    {
-      "id": "adminResetPassword",
-      "method": "POST",
-      "path": "/admin/accounts/{accountId}/password-reset",
-      "summary": "Restablecer contraseña con una temporal de un solo uso (ADMINISTRADOR)",
-      "desc": "Genera 16 caracteres aleatorios mostrados una vez, revoca las sesiones de la cuenta y exige cambio en el siguiente ingreso.",
-      "group": "admin",
-      "roles": [
-        "adm"
-      ],
-      "note": null,
-      "params": [
-        {
-          "name": "accountId",
-          "in": "path",
-          "required": true,
-          "type": "string (uuid)",
-          "desc": "",
-          "rules": ""
-        }
-      ],
-      "body": null,
-      "responses": [
-        {
-          "code": "200",
-          "desc": "Contraseña temporal.",
-          "schema": "TemporaryPassword"
-        },
-        {
-          "code": "401",
-          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
-          "schema": "Problem"
-        },
-        {
-          "code": "403",
-          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
-          "schema": "Problem"
-        },
-        {
-          "code": "404",
-          "desc": "Recurso inexistente.",
           "schema": "Problem"
         }
       ]
@@ -2925,13 +2830,6 @@
             "rules": "máx. long. 254"
           },
           {
-            "name": "password",
-            "type": "string",
-            "required": true,
-            "desc": "",
-            "rules": "mín. long. 12; máx. long. 128"
-          },
-          {
             "name": "roles",
             "type": "lista de string",
             "required": true,
@@ -3016,13 +2914,6 @@
             "required": false,
             "desc": "",
             "rules": ""
-          },
-          {
-            "name": "password",
-            "type": "string",
-            "required": false,
-            "desc": "",
-            "rules": "mín. long. 12; máx. long. 128"
           }
         ]
       },

@@ -71,7 +71,7 @@ function PeopleContent() {
       const person = await post('/admin/people', { cedula: String(f.get('cedula')).trim(), nombres: String(f.get('nombres')).trim() });
       const correo = String(f.get('correo')).trim();
       const roles = String(f.get('rol'));
-      if (correo) await post('/admin/accounts', { persona_id: person.id, correo, password: String(f.get('password')), roles: [roles] });
+      if (correo) await post('/admin/accounts', { persona_id: person.id, correo, roles: [roles] });
       form.reset();
     }, 'Persona registrada.');
   }

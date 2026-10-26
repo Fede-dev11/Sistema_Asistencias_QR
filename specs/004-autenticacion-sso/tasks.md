@@ -85,8 +85,8 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 - [X] T036 [P] [US4] `AUTHT/usuarios/StatusEndpointTest.java`: `GET /api/v1/users/status?correo=` con `X-Service-Key` válida → `{activo}`; clave inválida → 401; correo inexistente → 404
 - [X] T037 [US4] `AUTH/usuarios/aplicacion/ManageUsers.java`, `CsvUserImport.java` (parser estándar como el de GeoAsist 002), `AUTH/usuarios/presentacion/AdminController.java` + plantillas `admin/usuarios.html`, `admin/usuario.html`, `admin/importar.html`, `admin/servicios.html`
 - [X] T038 [US4] `AUTH/usuarios/presentacion/StatusController.java` y cambio de contraseña propio (T018) que cierra las demás sesiones SSO
-- [ ] T039 [US4] GeoAsist: `/auth/renew` consulta `isActive` y responde 403 `CUENTA_INACTIVA` (prueba en `APIT/identidades/SessionRenewalTest.java` con el servidor falso)
-- [ ] T040 [US4] GeoAsist (FR-017): retirar `PUT /me/password` y `POST /admin/accounts/{id}/password-reset` (código, pruebas de 003 que los cubrían y YAML), quitar `password` de `POST/PATCH /admin/accounts`; la importación CSV de 002 crea cuentas de docentes **y estudiantes** sin contraseña (`proveedor='CAS'`); ajustar `APIT/academico/CsvImportTest.java`; actualizar `apps/web` admin si usa esos campos; documentar en `specs/003-ausencias-reportes-cuenta/spec.md` que US5 de 003 queda reemplazada por 004
+- [X] T039 [US4] GeoAsist: `/auth/renew` consulta `isActive` y responde 403 `CUENTA_INACTIVA` (prueba en `APIT/identidades/SessionRenewalTest.java` con el servidor falso)
+- [X] T040 [US4] GeoAsist (FR-017): retirar `PUT /me/password` y `POST /admin/accounts/{id}/password-reset` (código, pruebas de 003 que los cubrían y YAML), quitar `password` de `POST/PATCH /admin/accounts`; la importación CSV de 002 crea cuentas de docentes **y estudiantes** sin contraseña (`proveedor='CAS'`); ajustar `APIT/academico/CsvImportTest.java`; actualizar `apps/web` admin si usa esos campos; documentar en `specs/003-ausencias-reportes-cuenta/spec.md` que US5 de 003 queda reemplazada por 004
 
 ## Phase 7: US5 — Cambiar al servicio real sin reescribir GeoAsist (P3)
 
