@@ -91,7 +91,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 ## Phase 7: US5 — Cambiar al servicio real sin reescribir GeoAsist (P3)
 
 - [ ] T041 [P] [US5] `APIT/soporte/ArchitectureDependencyTest.java`: ningún paquete fuera de `identidades` depende de `CasIdentityProvider` ni de clases HTTP del adaptador
-- [ ] T042 [US5] `infra/README.md`: cómo apuntar a otro servicio CAS (variables `SSO_*`) y qué cambiar si el protocolo difiere (solo `CasIdentityProvider`)
+- [X] T042 [US5] `infra/README.md`: cómo apuntar a otro servicio CAS (variables `SSO_*`) y qué cambiar si el protocolo difiere (solo `CasIdentityProvider`)
 
 ## Phase 8: Polish
 
