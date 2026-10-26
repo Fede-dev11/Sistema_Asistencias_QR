@@ -95,11 +95,11 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 ## Phase 8: Polish
 
-- [ ] T043 [P] E2E `apps/web/e2e/sso-login.spec.ts`: login por el servicio → `/auth/callback` → "Mis clases"; segundo ingreso sin contraseña; adaptar `apps/web/e2e/*` existentes para ingresar por SSO (o activar `GEOASIST_LOCAL_LOGIN=true` en el job `browser` si se decide mantenerlos con login local) y añadir el servicio `auth` al job `browser` de `.github/workflows/ci.yml`; registrar la duración del ingreso de punta a punta (SC-001 < 30 s)
+- [X] T043 [P] E2E `apps/web/e2e/sso-login.spec.ts`: login por el servicio → `/auth/callback` → "Mis clases"; segundo ingreso sin contraseña; adaptar `apps/web/e2e/*` existentes para ingresar por SSO (o activar `GEOASIST_LOCAL_LOGIN=true` en el job `browser` si se decide mantenerlos con login local) y añadir el servicio `auth` al job `browser` de `.github/workflows/ci.yml`; registrar la duración del ingreso de punta a punta (SC-001 < 30 s)
 - [X] T044 [P] Actualizar `README.md`, `infra/README.md` (puertos, usuarios, `SSO_*`) y la página `/documentacion`
 - [X] T047 [P] Limpieza diaria de `registro_ingresos` con más de 90 días y de tickets vencidos en `AUTH/compartido/RetentionJob.java` (`@Scheduled`, desactivable en pruebas) con prueba `AUTHT/compartido/RetentionJobTest.java`
 - [X] T045 Prueba de privacidad `AUTHT/compartido/NoSecretsInLogsTest.java` y en GeoAsist (SC-004): ningún `ticket`, `password` ni `CASTGC` en logs capturados
-- [ ] T046 Ejecutar quickstart y registrar resultados reales en `docs/validation/revision-incremento-004.md`; `/speckit-analyze`; PR a `develop` tras integrar 002 y 003, declarando IA y ADR 0006 pendiente
+- [X] T046 Ejecutar quickstart y registrar resultados reales en `docs/validation/revision-incremento-004.md`; `/speckit-analyze`; PR a `develop` tras integrar 002 y 003, declarando IA y ADR 0006 pendiente
 
 ## Dependencies & Execution Order
 

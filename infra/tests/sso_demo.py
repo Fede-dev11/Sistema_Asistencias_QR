@@ -10,6 +10,7 @@ Uso:
 import argparse
 import json
 import os
+import re
 import sys
 import urllib.error
 import urllib.parse
@@ -42,15 +43,18 @@ def cookies(response):
 
 def login(base, correo, password, service):
     first = request(f"{base}/cas/login?service={urllib.parse.quote(service, safe='')}")
-    csrf = cookies(first).get("XSRF-TOKEN")
-    if not csrf:
+    cookie = cookies(first).get("XSRF-TOKEN")
+    # Spring enmascara el token en el formulario; la cookie lleva el valor sin enmascarar.
+    found = re.search(r'name="_csrf" value="([^"]+)"', first.read().decode())
+    if not (cookie and found):
         sys.exit("No se obtuvo el token CSRF del servicio.")
+    csrf = found.group(1)
     body = urllib.parse.urlencode(
         {"correo": correo, "password": password, "service": service, "_csrf": csrf}
     ).encode()
     res = request(
         f"{base}/cas/login",
-        {"Cookie": f"XSRF-TOKEN={csrf}", "Content-Type": "application/x-www-form-urlencoded"},
+        {"Cookie": f"XSRF-TOKEN={cookie}", "Content-Type": "application/x-www-form-urlencoded"},
         body,
     )
     tgc = cookies(res).get("CASTGC")
@@ -72,7 +76,7 @@ def main():
         password = os.environ.get("SSO_DEMO_PASSWORD")
         if not (args.correo and password):
             sys.exit("Indica --tgc, o --correo con SSO_DEMO_PASSWORD.")
-        tgc = login(args.base, args.correo, password, "http://localhost:3000/auth/callback")
+        tgc = login(args.base, args.correo, password, os.environ.get("SSO_DEMO_LOGIN_SERVICE", "http://localhost:3000/auth/callback"))
 
     # Sin credenciales: solo la cookie CASTGC.
     res = request(
