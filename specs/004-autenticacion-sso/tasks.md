@@ -20,7 +20,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 ## Phase 1: Setup
 
 - [ ] T001 Confirmar rama `feature/004-autenticacion-sso` (creada desde 003) y `.specify/feature.json` → `specs/004-autenticacion-sso`
-- [ ] T002 Crear `services/auth` copiando la base de `services/api`: `pom.xml` (mismo parent Spring Boot 4.1.1, Java 21, spotless + google-java-format 1.28.0; dependencias web, jdbc, flyway, postgresql, security (solo crypto/cabeceras), thymeleaf, validation; test: spring-boot-starter-test, testcontainers postgresql), `mvnw`/`.mvn`, `Dockerfile` igual al de la API (puerto 8081), `AUTH/SsoApplication.java`, `AUTHR/application.yml` (`server.port=8081`, datasource `${AUTH_DATABASE_URL}`, `sso.ticket-ttl=10s`, `sso.session-idle=8h`, `sso.session-max=24h`, `sso.cookie-secure`, `sso.initial-password` desde `${DEV_SEED_PASSWORD}`)
+- [ ] T002 Crear `services/auth` copiando la base de `services/api`: `pom.xml` (mismo parent Spring Boot 4.1.1, Java 21, spotless + google-java-format 1.28.0; dependencias web, jdbc, flyway, postgresql, security (cadena de filtros para CSRF en formularios, cabeceras y `PasswordEncoder`; sin login de Spring), thymeleaf, validation; test: spring-boot-starter-test, testcontainers postgresql), `mvnw`/`.mvn`, `Dockerfile` igual al de la API (puerto 8081), `AUTH/SsoApplication.java`, `AUTHR/application.yml` (`server.port=8081`, datasource `${AUTH_DATABASE_URL}`, `sso.ticket-ttl=10s`, `sso.session-idle=8h`, `sso.session-max=24h`, `sso.cookie-secure`, `sso.initial-password` desde `${DEV_SEED_PASSWORD}`)
 - [ ] T003 [P] `infra/db-init/01-auth-db.sql` (`CREATE DATABASE geoasist_auth`) montado en `db` de `infra/docker-compose.yml`; servicio `auth` (perfil `api`, `127.0.0.1:${AUTH_PORT:-8081}:8081`, depende de `db` sano); `api` recibe `SSO_INTERNAL_URL=http://auth:8081`, `SSO_PUBLIC_URL`, `SSO_SERVICE_KEY`; `.env.example` con `AUTH_PORT`, `SSO_PUBLIC_URL=http://localhost:8081`, `SSO_SERVICE_KEY=`, `NEXT_PUBLIC_SSO_URL`
 - [ ] T004 [P] `docs/adr/0006-servicio-autenticacion-simulado.md` (Propuesto): justificación Principio II y protocolo asumido Principio V (research R1, R2), alternativas (módulo en monolito, Apereo CAS, OIDC), condición de revisión del equipo
 - [ ] T005 [P] Job `auth` en `.github/workflows/ci.yml`: `./mvnw -B spotless:check verify` en `services/auth`
@@ -42,7 +42,7 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 - [ ] T012 [P] [US1] `AUTHT/cas/LoginTest.java`: login correcto → TGC + 302 a `service?ticket=ST-…`; credenciales erróneas → mismo mensaje genérico, sin redirección; usuario inactivo → mensaje; 6.º intento fallido en 1 min → 429 con `Retry-After`; `debe_cambiar_password` → 302 a `/cas/password` y luego al servicio; registro en `registro_ingresos` sin contraseña
 - [ ] T013 [P] [US1] `AUTHT/cas/ServiceValidateTest.java`: JSON y XML con atributos `correo, cedula, nombres, roles, carreras, activo`; `INVALID_TICKET` reutilizado/vencido (reloj +11 s); `INVALID_SERVICE` con otro `service`; `INVALID_REQUEST` sin parámetros; 20 validaciones concurrentes del mismo ticket → exactamente 1 éxito
-- [ ] T014 [P] [US1] `APIT/identidades/CasLoginTest.java` (GeoAsist, con servidor HTTP falso que responde JSON CAS grabado): canje válido → `LoginResult`; provisión crea persona `INSTITUCIONAL` y cuenta `CAS` sin contraseña; persona existente por cédula se enlaza (matrículas intactas); `EXTERNA` pasa a `INSTITUCIONAL`; roles reemplazados en el segundo ingreso; rol desconocido ignorado; cédula inválida → 422 `IDENTIDAD_INVALIDA`; `authenticationFailure` → 401 `TICKET_INVALIDO`; servicio caído → 502 `SSO_NO_DISPONIBLE`; `DIRECTOR_CARRERA` sincroniza `direcciones_carrera` por código de carrera
+- [ ] T014 [P] [US1] `APIT/identidades/CasLoginTest.java` (GeoAsist, con servidor HTTP falso que responde JSON CAS grabado): canje válido → `LoginResult`; provisión crea persona `INSTITUCIONAL` y cuenta `CAS` sin contraseña; persona existente por cédula se enlaza (matrículas intactas); `EXTERNA` pasa a `INSTITUCIONAL`; roles reemplazados en el segundo ingreso; rol desconocido ignorado; cédula inválida → 422 `IDENTIDAD_INVALIDA`; `authenticationFailure` → 401 `TICKET_INVALIDO`; servicio caído → 502 `SSO_NO_DISPONIBLE`; `DIRECTOR_CARRERA` sincroniza `direcciones_carrera` por código de carrera; correo distinto para la misma cédula actualiza `cuentas.identificador`; `GET /auth/sso-config` devuelve URLs de configuración (prueba de integración y de contrato)
 - [ ] T015 [P] [US1] `apps/web/src/features/auth/CasCallback.test.tsx`: callback con `ticket` llama a `POST /auth/cas` con el mismo `service` y guarda la sesión en memoria; sin `ticket` muestra error y botón para reintentar
 
 ### Implementation
@@ -80,13 +80,13 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 **Independent Test**: importar CSV, ingresar con un usuario, desactivarlo; su siguiente ingreso y su renovación en GeoAsist se rechazan.
 
-- [ ] T034 [P] [US4] `AUTHT/usuarios/AdminUsersTest.java`: alta (correo único en minúsculas, cédula módulo 10 única, roles válidos, `debe_cambiar_password=true`); duplicados rechazados; desactivar cierra sesiones SSO; restablecer genera temporal de 16 caracteres mostrada una vez y cierra sesiones; acciones en `auditoria_admin` sin contraseñas; solo `ADMINISTRADOR` accede a `/admin/**`
+- [ ] T034 [P] [US4] `AUTHT/usuarios/AdminUsersTest.java`: alta (correo único en minúsculas, cédula módulo 10 única, roles válidos, `debe_cambiar_password=true`); duplicados rechazados; desactivar cierra sesiones SSO; restablecer genera temporal de 16 caracteres mostrada una vez y cierra sesiones; acciones en `auditoria_admin` sin contraseñas; solo `ADMINISTRADOR` accede a `/admin/**`; alta/edición de servicios registrados valida prefijos de retorno (FR-010)
 - [ ] T035 [P] [US4] `AUTHT/usuarios/CsvImportTest.java`: `correo,cedula,nombres,roles,carreras` (separador `|` en roles y carreras), informe por fila, idempotente por correo, encabezado inválido → error sin cambios, máx. 5 000 filas / 2 MB
 - [ ] T036 [P] [US4] `AUTHT/usuarios/StatusEndpointTest.java`: `GET /api/v1/users/status?correo=` con `X-Service-Key` válida → `{activo}`; clave inválida → 401; correo inexistente → 404
 - [ ] T037 [US4] `AUTH/usuarios/aplicacion/ManageUsers.java`, `CsvUserImport.java` (parser estándar como el de GeoAsist 002), `AUTH/usuarios/presentacion/AdminController.java` + plantillas `admin/usuarios.html`, `admin/usuario.html`, `admin/importar.html`, `admin/servicios.html`
 - [ ] T038 [US4] `AUTH/usuarios/presentacion/StatusController.java` y cambio de contraseña propio (T018) que cierra las demás sesiones SSO
 - [ ] T039 [US4] GeoAsist: `/auth/renew` consulta `isActive` y responde 403 `CUENTA_INACTIVA` (prueba en `APIT/identidades/SessionRenewalTest.java` con el servidor falso)
-- [ ] T040 [US4] GeoAsist (FR-017): retirar `PUT /me/password` y `POST /admin/accounts/{id}/password-reset` (código, pruebas de 003 que los cubrían y YAML), quitar `password` de `POST/PATCH /admin/accounts`; la importación CSV de 002 crea cuentas de docentes sin contraseña (`proveedor='CAS'`); actualizar `apps/web` admin si usa esos campos; documentar en `specs/003-ausencias-reportes-cuenta/spec.md` que US5 de 003 queda reemplazada por 004
+- [ ] T040 [US4] GeoAsist (FR-017): retirar `PUT /me/password` y `POST /admin/accounts/{id}/password-reset` (código, pruebas de 003 que los cubrían y YAML), quitar `password` de `POST/PATCH /admin/accounts`; la importación CSV de 002 crea cuentas de docentes **y estudiantes** sin contraseña (`proveedor='CAS'`); ajustar `APIT/academico/CsvImportTest.java`; actualizar `apps/web` admin si usa esos campos; documentar en `specs/003-ausencias-reportes-cuenta/spec.md` que US5 de 003 queda reemplazada por 004
 
 ## Phase 7: US5 — Cambiar al servicio real sin reescribir GeoAsist (P3)
 
@@ -95,8 +95,9 @@ description: "Tareas de 004: servicio de autenticación universitaria simulado (
 
 ## Phase 8: Polish
 
-- [ ] T043 [P] E2E `apps/web/e2e/sso-login.spec.ts`: login por el servicio → `/auth/callback` → "Mis clases"; segundo ingreso sin contraseña; adaptar `apps/web/e2e/*` existentes para ingresar por SSO (o activar `GEOASIST_LOCAL_LOGIN=true` en el job `browser` si se decide mantenerlos con login local) y añadir el servicio `auth` al job `browser` de `.github/workflows/ci.yml`
+- [ ] T043 [P] E2E `apps/web/e2e/sso-login.spec.ts`: login por el servicio → `/auth/callback` → "Mis clases"; segundo ingreso sin contraseña; adaptar `apps/web/e2e/*` existentes para ingresar por SSO (o activar `GEOASIST_LOCAL_LOGIN=true` en el job `browser` si se decide mantenerlos con login local) y añadir el servicio `auth` al job `browser` de `.github/workflows/ci.yml`; registrar la duración del ingreso de punta a punta (SC-001 < 30 s)
 - [ ] T044 [P] Actualizar `README.md`, `infra/README.md` (puertos, usuarios, `SSO_*`) y la página `/documentacion`
+- [ ] T047 [P] Limpieza diaria de `registro_ingresos` con más de 90 días y de tickets vencidos en `AUTH/compartido/RetentionJob.java` (`@Scheduled`, desactivable en pruebas) con prueba `AUTHT/compartido/RetentionJobTest.java`
 - [ ] T045 Prueba de privacidad `AUTHT/compartido/NoSecretsInLogsTest.java` y en GeoAsist (SC-004): ningún `ticket`, `password` ni `CASTGC` en logs capturados
 - [ ] T046 Ejecutar quickstart y registrar resultados reales en `docs/validation/revision-incremento-004.md`; `/speckit-analyze`; PR a `develop` tras integrar 002 y 003, declarando IA y ADR 0006 pendiente
 
@@ -125,7 +126,7 @@ Línea C (clientes):   T015, T025, T029–T032 (tras T024)
 
 | FR | Tareas |
 |---|---|
-| FR-001, FR-006, FR-007 | T008, T012, T017, T018, T045 |
+| FR-001, FR-006, FR-007 | T008, T012, T017, T018, T045, T047 |
 | FR-002 | T009, T026, T033 |
 | FR-003, FR-004 | T013, T017, T019, T020 |
 | FR-005 | T026, T027 |
