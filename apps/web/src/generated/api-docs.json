@@ -1,0 +1,3937 @@
+{
+  "version": "0.2.0-draft",
+  "server": "/api/v1",
+  "groups": [
+    {
+      "key": "auth",
+      "label": "Autenticación y cuenta",
+      "desc": "Inicio de sesión, renovación, perfil y contraseña propia."
+    },
+    {
+      "key": "admin",
+      "label": "Administración académica",
+      "desc": "Sección simulada del sistema académico: personas, cuentas, carreras, paralelos e importación CSV."
+    },
+    {
+      "key": "spaces",
+      "label": "Espacios",
+      "desc": "Aulas y lugares compartidos con coordenadas y tolerancia geográfica por defecto."
+    },
+    {
+      "key": "activities",
+      "label": "Clases y eventos",
+      "desc": "Crear y gestionar clases con horario, eventos cerrados o abiertos, listas autorizadas e invitados."
+    },
+    {
+      "key": "sessions",
+      "label": "Sesiones y QR",
+      "desc": "Ciclo de cada sesión: programar, iniciar, proyectar el QR, configurar GPS y cerrar."
+    },
+    {
+      "key": "attendance",
+      "label": "Registro de asistencia",
+      "desc": "Lo que usa la app móvil para que un participante con cuenta registre su asistencia."
+    },
+    {
+      "key": "guest-registrations",
+      "label": "Invitados y eventos abiertos",
+      "desc": "Flujo sin cuenta: invitados precargados en eventos cerrados y autorregistro en eventos abiertos."
+    },
+    {
+      "key": "attempts",
+      "label": "Revisión de intentos",
+      "desc": "Decisión del responsable sobre intentos pendientes por ubicación imprecisa."
+    },
+    {
+      "key": "corrections",
+      "label": "Correcciones y justificaciones",
+      "desc": "Asistencia manual, justificación de ausencias y solicitudes del estudiante."
+    },
+    {
+      "key": "stats",
+      "label": "Estadísticas e historial",
+      "desc": "Ausencias, porcentajes por estudiante, paralelo y carrera, e historial propio."
+    }
+  ],
+  "roles": [
+    {
+      "key": "pub",
+      "label": "Público",
+      "desc": "Sin autenticación."
+    },
+    {
+      "key": "inv",
+      "label": "Invitado sin cuenta",
+      "desc": "Persona externa: cédula en el listado (evento cerrado) o autorregistro (evento abierto)."
+    },
+    {
+      "key": "cta",
+      "label": "Cualquier cuenta",
+      "desc": "Cualquier usuario autenticado, sea cual sea su rol."
+    },
+    {
+      "key": "est",
+      "label": "Estudiante / participante",
+      "desc": "Registra su asistencia desde la app y consulta su historial."
+    },
+    {
+      "key": "doc",
+      "label": "Docente",
+      "desc": "Responsable de clases; también puede crear eventos."
+    },
+    {
+      "key": "enc",
+      "label": "Encargado",
+      "desc": "Responsable de eventos."
+    },
+    {
+      "key": "dir",
+      "label": "Directores",
+      "desc": "Director de carrera (su carrera) e institucional (todo). Solo lectura."
+    },
+    {
+      "key": "adm",
+      "label": "Administrador",
+      "desc": "Gestiona la sección académica simulada."
+    }
+  ],
+  "ops": [
+    {
+      "id": "login",
+      "method": "POST",
+      "path": "/auth/login",
+      "summary": "Iniciar sesión con credenciales",
+      "desc": "Proveedor local semilla solo en desarrollo; CAS detrás del proveedor de identidad queda pendiente de confirmación institucional. Bearer opaco revocable respaldado en PostgreSQL; sin JWT ni almacenamiento web persistente.",
+      "group": "auth",
+      "roles": [
+        "pub"
+      ],
+      "note": null,
+      "params": [],
+      "body": {
+        "contentType": "application/json",
+        "schema": "LoginRequest",
+        "fields": [
+          {
+            "name": "correo",
+            "type": "string (email)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "password",
+            "type": "string (password)",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Sesión autenticada creada.",
+          "schema": "LoginResult"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "logout",
+      "method": "POST",
+      "path": "/auth/logout",
+      "summary": "Revocar sesión autenticada",
+      "desc": "Revoca en PostgreSQL el bearer presentado. No registrar su valor.",
+      "group": "auth",
+      "roles": [
+        "cta"
+      ],
+      "note": null,
+      "params": [],
+      "body": null,
+      "responses": [
+        {
+          "code": "204",
+          "desc": "Sesión revocada.",
+          "schema": null
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listActivities",
+      "method": "GET",
+      "path": "/activities",
+      "summary": "Descubrir actividades autorizadas",
+      "desc": "Lista paginada y filtrada en servidor. RESPONSABLE solo descubre sus actividades; DIRECTOR_INSTITUCIONAL todas; DIRECTOR_CARRERA solo las vinculadas a su carrera y paralelos. Los filtros restringen el ámbito autorizado y nunca lo amplían. Una carrera fuera del ámbito devuelve 403. Excluir actividades cuyo plazo nominal de cinco años calendario ya venció; los agregados anónimos no se exponen aquí. Sin filtros, devolver solo actividades autorizadas.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        },
+        {
+          "name": "modalidad",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "desc": "Restringir por tipo de actividad dentro del ámbito autorizado.",
+          "rules": "CLASE | EVENTO"
+        },
+        {
+          "name": "carrera_id",
+          "in": "query",
+          "required": false,
+          "type": "string (uuid)",
+          "desc": "Restringir por vínculo de carrera verificado en servidor; no concede permisos.",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Página de actividades visibles, incluso vacía; sin datos de otros ámbitos.",
+          "schema": "ActivityPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "createActivity",
+      "method": "POST",
+      "path": "/activities",
+      "summary": "Crear una clase o un evento",
+      "desc": "DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). Con modalidad EVENTO (DOCENTE o ENCARGADO) exige acceso CERRADO o ABIERTO, inicio y fin, y crea una sesión programada y la configuración de invitados (tolerancia_invitado_segundos, por defecto 120).",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "CLASE: solo DOCENTE. EVENTO: DOCENTE o ENCARGADO.",
+      "params": [
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "CreateActivityRequest",
+        "fields": [
+          {
+            "name": "modalidad",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "CLASE | EVENTO"
+          },
+          {
+            "name": "nombre",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          },
+          {
+            "name": "espacio_id",
+            "type": "string (uuid)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "metodo_verificacion",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "QR_Y_GPS | SOLO_QR | SOLO_GPS | NINGUNO"
+          },
+          {
+            "name": "paralelo_ids",
+            "type": "lista de string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": "mín. elementos 1"
+          },
+          {
+            "name": "horario",
+            "type": "Schedule",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "horario.dias",
+            "type": "lista de integer",
+            "required": true,
+            "desc": "",
+            "rules": "mín. elementos 1; máx. elementos 7"
+          },
+          {
+            "name": "horario.hora_inicio",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "horario.hora_fin",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "horario.desde",
+            "type": "string (date)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "horario.hasta",
+            "type": "string (date)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "acceso",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "CERRADO | ABIERTO"
+          },
+          {
+            "name": "inicio",
+            "type": "string (date-time)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "fin",
+            "type": "string (date-time)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "tolerancia_invitado_segundos",
+            "type": "integer",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 41; por defecto 120"
+          },
+          {
+            "name": "carrera_ids",
+            "type": "lista de string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Replay idempotente de una actividad ya creada.",
+          "schema": "CreatedActivity"
+        },
+        {
+          "code": "201",
+          "desc": "Actividad creada con sus sesiones generadas.",
+          "schema": "CreatedActivity"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getActivity",
+      "method": "GET",
+      "path": "/activities/{activityId}",
+      "summary": "Consultar actividad",
+      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer cinco años calendario desde su cierre definitivo, la consulta nominal devuelve 410; estadísticas anónimas no se exponen aquí. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Actividad autorizada.",
+          "schema": "Activity"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "updateActivity",
+      "method": "PATCH",
+      "path": "/activities/{activityId}",
+      "summary": "Editar nombre, espacio o método por defecto",
+      "desc": "Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "UpdateActivityRequest",
+        "fields": [
+          {
+            "name": "nombre",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          },
+          {
+            "name": "espacio_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "metodo_verificacion",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "QR_Y_GPS | SOLO_QR | SOLO_GPS | NINGUNO"
+          },
+          {
+            "name": "acceso",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "CERRADO | ABIERTO"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Actividad actualizada.",
+          "schema": "Activity"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "closeActivity",
+      "method": "POST",
+      "path": "/activities/{activityId}/close",
+      "summary": "Cerrar definitivamente una actividad",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Cierre definitivo distinto del cierre de una sesión. Cierra las sesiones activas, invalida QR e inicios invitados y fija cerrada_en y anonimizar_en a cinco años calendario. No permite reabrir ni crear nuevas sesiones.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Actividad cerrada y plazo de conservación calculado.",
+          "schema": "Activity"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "setGuestSettings",
+      "method": "PUT",
+      "path": "/activities/{activityId}/guest-settings",
+      "summary": "Configurar acceso de invitados",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo EVENTO abierto. Formulario exclusivo de personas sin cuenta precargadas. La tolerancia se copia al crear cada inicio; cambios posteriores no prolongan inicios ya emitidos. Deshabilitar impide nuevos envíos.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "GuestSettings",
+        "fields": [
+          {
+            "name": "habilitado",
+            "type": "boolean",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "tolerancia_invitado_segundos",
+            "type": "integer",
+            "required": true,
+            "desc": "Solo para el formulario de invitados sin cuenta precargados. No modifica la vigencia ordinaria del QR.",
+            "rules": "mín. 41"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Configuración validada.",
+          "schema": "GuestSettings"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "replaceGuestList",
+      "method": "PUT",
+      "path": "/activities/{activityId}/guest-list",
+      "summary": "Reemplazar listado de invitados",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo EVENTO abierto. Reemplazo atómico; validar todo antes de guardar. Cada cédula identifica una persona sin crear cuenta. No autorregistro. Una cuenta existente, incluso inactiva, exige credenciales y no habilita la vía invitada. El límite inicial de 1000 entradas es técnico y fijo en este contrato; cambiarlo requiere actualizar el contrato y su versión. No es una regla institucional. Eliminar una entrada no elimina asistencias ya registradas.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "GuestListReplacement",
+        "fields": [
+          {
+            "name": "invitados",
+            "type": "lista de GuestEntry",
+            "required": true,
+            "desc": "Límite técnico inicial fijo de 1000 entradas en este contrato; cambiarlo requiere actualizar el contrato y su versión. No es una regla institucional. Reemplazo completo y atómico; rechazar cédulas duplicadas y cualquier fila inválida.",
+            "rules": "máx. elementos 1000"
+          },
+          {
+            "name": "invitados[].cedula",
+            "type": "string",
+            "required": true,
+            "desc": "Diez dígitos ASCII como cadena; conservar ceros iniciales. Identifica la entrada del listado, no acredita titularidad.",
+            "rules": "patrón ^[0-9]{10}$"
+          },
+          {
+            "name": "invitados[].nombres",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Listado reemplazado sin exponer su contenido.",
+          "schema": "GuestListResult"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "startSession",
+      "method": "POST",
+      "path": "/sessions/{sessionId}/start",
+      "summary": "Iniciar sesión de asistencia",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Transición PROGRAMADA a ACTIVA solo si la actividad permanece abierta. Transacción coordinada con sus cierres.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Sesión activa.",
+          "schema": "Session"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "closeSession",
+      "method": "POST",
+      "path": "/sessions/{sessionId}/close",
+      "summary": "Cerrar sesión de asistencia",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Invalida inmediatamente nuevos registros e inicios de invitados, aunque QR o formularios tengan plazo restante. No inicia por sí mismo los cinco años: el origen es el cierre definitivo de la actividad.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Sesión cerrada.",
+          "schema": "Session"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getSessionQr",
+      "method": "GET",
+      "path": "/sessions/{sessionId}/qr",
+      "summary": "Obtener QR vigente",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo sesión ACTIVA y actividad abierta. Rotación cada 30 segundos; cada token vence a los 40 segundos desde su emisión. El servidor comprueba la hora de recepción, no la hora declarada por el dispositivo. No incluye datos personales. Responder Cache-Control: no-store. Representación permitida del cliente: URL con fragmento #qr=token; nunca ruta o query.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "QR actual.",
+          "schema": "Qr"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "setSessionGeolocation",
+      "method": "PUT",
+      "path": "/sessions/{sessionId}/geolocation",
+      "summary": "Configurar GPS opcional",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo PROGRAMADA. Habilitar exige capacidad geográfica disponible y radio_m, precision_max_m y antiguedad_max_s válidos. El servidor determina el modo: piloto/revisión permitido; rechazo automático solo con evidencia de campo verificada, sin aceptar una declaración del cliente como prueba. Sin GPS no se solicitan permisos ni se almacenan coordenadas. Capacidad ausente: 409 CAPACIDAD_GPS_NO_DISPONIBLE.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "GeolocationSettings",
+        "fields": [
+          {
+            "name": "habilitada",
+            "type": "boolean",
+            "required": true,
+            "desc": "",
+            "rules": "por defecto false"
+          },
+          {
+            "name": "radio_m",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 0"
+          },
+          {
+            "name": "precision_max_m",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 0"
+          },
+          {
+            "name": "antiguedad_max_s",
+            "type": "integer",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 1"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Configuración y modo efectivo.",
+          "schema": "GeolocationStatus"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "recordAuthenticatedAttendance",
+      "method": "POST",
+      "path": "/attendance/attempts",
+      "summary": "Registrar asistencia autenticada",
+      "desc": "Cuenta autenticada obligatoria. En CLASE comprobar vínculo autorizado a la clase; en EVENTO comprobar autorización del evento. No aceptar una cédula cliente para elegir identidad. Comprobar QR vigente, sesión activa, actividad abierta, GPS si corresponde y unicidad persona/sesión. El plazo exclusivo de invitados nunca aplica aquí. Con GPS deshabilitado, rechazar ubicación innecesaria sin guardarla.",
+      "group": "attendance",
+      "roles": [
+        "est"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "AttendanceAttemptRequest",
+        "fields": [
+          {
+            "name": "qr_token",
+            "type": "string",
+            "required": false,
+            "desc": "Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo.",
+            "rules": "mín. long. 32; máx. long. 512"
+          },
+          {
+            "name": "dispositivo_id",
+            "type": "string (uuid)",
+            "required": true,
+            "desc": "Identificador de instalación generado por la app; el servidor solo guarda su HMAC.",
+            "rules": ""
+          },
+          {
+            "name": "sesion_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "Identifica la sesión cuando su método no incluye QR (SOLO_GPS, NINGUNO). Se envía exactamente uno de qr_token o sesion_id; qr_token en método sin QR responde 400 METODO_NO_ADMITE_QR y sesion_id en método con QR responde 400 QR_REQUERIDO.",
+            "rules": ""
+          },
+          {
+            "name": "ubicacion",
+            "type": "Location",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "ubicacion.latitud",
+            "type": "number",
+            "required": true,
+            "desc": "",
+            "rules": "mín. -90; máx. 90"
+          },
+          {
+            "name": "ubicacion.longitud",
+            "type": "number",
+            "required": true,
+            "desc": "",
+            "rules": "mín. -180; máx. 180"
+          },
+          {
+            "name": "ubicacion.precision_m",
+            "type": "number",
+            "required": true,
+            "desc": "",
+            "rules": "mín. 0"
+          },
+          {
+            "name": "ubicacion.medido_en",
+            "type": "string (date-time)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Asistencia existente o repetición idempotente autorizada.",
+          "schema": "AttendanceReceipt"
+        },
+        {
+          "code": "201",
+          "desc": "Nueva asistencia confirmada.",
+          "schema": "AttendanceReceipt"
+        },
+        {
+          "code": "202",
+          "desc": "Repetir medición o esperar revisión.",
+          "schema": "PendingReceipt"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "startGuestRegistration",
+      "method": "POST",
+      "path": "/guest-registrations",
+      "summary": "Abrir formulario exclusivo de invitados",
+      "desc": "Sin cuenta autenticada; exige QR ordinario vigente, sesión ACTIVA, actividad EVENTO abierta y flujo invitado habilitado. Emite capacidad opaca asociada al formulario y a una sola persona al consumirse. inicio_en se fija al validar el QR en servidor; vence_en usa la tolerancia del evento tomada como instantánea. No extiende el QR ni la ventana de cuentas. No devuelve listado o datos personales. Rate limit obligatorio; no requiere Idempotency-Key. Recargar recupera el mismo inicio en sessionStorage de la pestaña sin volver a invocar esta operación ni extender vence_en. Un nuevo escaneo explícito de QR vigente puede abrir otro inicio, sin reiniciar el anterior.",
+      "group": "guest-registrations",
+      "roles": [
+        "inv"
+      ],
+      "note": null,
+      "params": [],
+      "body": {
+        "contentType": "application/json",
+        "schema": "GuestStartRequest",
+        "fields": [
+          {
+            "name": "qr_token",
+            "type": "string",
+            "required": false,
+            "desc": "Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo.",
+            "rules": "mín. long. 32; máx. long. 512"
+          },
+          {
+            "name": "sesion_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "Alternativa a qr_token solo para sesiones cuyo método no incluye QR.",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "201",
+          "desc": "Inicio temporal creado.",
+          "schema": "GuestStartResult"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "submitGuestAttendance",
+      "method": "POST",
+      "path": "/guest-registrations/submit",
+      "summary": "Enviar cédula de invitado precargado",
+      "desc": "Sin bearer de cuenta; autenticar capacidad registro_invitado_token. Validar vencimiento con recepción del servidor, sesión/actividad abiertas y flujo habilitado. Volver a consultar existencia de cuenta y pertenencia actual al listado dentro de la transacción; cuenta existente: 403 USAR_CREDENCIALES, fuera del listado: 403 NO_AUTORIZADO. Usar exclusivamente datos precargados. No OTP, verificación presencial ni autorregistro. Consumir capacidad para una sola persona y registrar una sola asistencia. GPS según sesión. Recibo mínimo sin nombres, cédula ni contenido del listado. Vencimiento: 410 FORMULARIO_EXPIRADO. Con GPS apagado rechazar ubicación innecesaria sin conservarla. El comportamiento de identificación por listado es una excepción constitucional propuesta, pendiente de revisión.",
+      "group": "guest-registrations",
+      "roles": [
+        "inv"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "GuestSubmitRequest",
+        "fields": [
+          {
+            "name": "registro_invitado_token",
+            "type": "string",
+            "required": true,
+            "desc": "Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría.",
+            "rules": "mín. long. 32; máx. long. 512"
+          },
+          {
+            "name": "cedula",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "patrón ^[0-9]{10}$"
+          },
+          {
+            "name": "nombres",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          },
+          {
+            "name": "dispositivo_id",
+            "type": "string (uuid)",
+            "required": true,
+            "desc": "Identificador de instalación generado por la app; el servidor solo guarda su HMAC.",
+            "rules": ""
+          },
+          {
+            "name": "ubicacion",
+            "type": "Location",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "ubicacion.latitud",
+            "type": "number",
+            "required": true,
+            "desc": "",
+            "rules": "mín. -90; máx. 90"
+          },
+          {
+            "name": "ubicacion.longitud",
+            "type": "number",
+            "required": true,
+            "desc": "",
+            "rules": "mín. -180; máx. 180"
+          },
+          {
+            "name": "ubicacion.precision_m",
+            "type": "number",
+            "required": true,
+            "desc": "",
+            "rules": "mín. 0"
+          },
+          {
+            "name": "ubicacion.medido_en",
+            "type": "string (date-time)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Asistencia existente o replay autorizado por la misma capacidad y cédula.",
+          "schema": "AttendanceReceipt"
+        },
+        {
+          "code": "201",
+          "desc": "Nueva asistencia invitada confirmada.",
+          "schema": "AttendanceReceipt"
+        },
+        {
+          "code": "202",
+          "desc": "Repetición o revisión necesaria.",
+          "schema": "PendingReceipt"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getOpenEvent",
+      "method": "GET",
+      "path": "/events/open/{sessionId}",
+      "summary": "Consultar datos publicos minimos de un evento abierto activo",
+      "desc": "",
+      "group": "guest-registrations",
+      "roles": [
+        "inv"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Evento abierto activo.",
+          "schema": "OpenEvent"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listAttendances",
+      "method": "GET",
+      "path": "/sessions/{sessionId}/attendances",
+      "summary": "Consultar asistencias paginadas",
+      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer retención de la actividad: 410 sin datos nominales; estadísticas agregadas se definirán por separado. Una fila por persona identificada: confirmación prevalece; sin asistencia, último intento identificado. Excluir intentos sin persona identificada y cédulas desconocidas. Aplicar estado después de esta proyección. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        },
+        {
+          "name": "estado",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "desc": "",
+          "rules": "CONFIRMADA | PENDIENTE_REVISION | RECHAZADA"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Página de asistencias permitidas.",
+          "schema": "AttendancePage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "exportAttendances",
+      "method": "GET",
+      "path": "/sessions/{sessionId}/attendances/export",
+      "summary": "Exportar asistencias CSV",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. La lectura global o por carrera no concede exportación a los directores. Auditar la exportación. Al vencer retención: 410. No exportar secretos ni coordenadas exactas; neutralizar fórmulas en campos de texto. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "estado",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "desc": "",
+          "rules": "CONFIRMADA | PENDIENTE_REVISION | RECHAZADA"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "CSV de asistencias del ámbito autorizado. Cache-Control: no-store.",
+          "schema": "string"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "reviewAttempt",
+      "method": "POST",
+      "path": "/attempts/{attemptId}/review",
+      "summary": "Resolver intento pendiente",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA y actividad abierta; si están cerradas devolver 409. Una aprobación no duplica asistencia. Rechazar una revisión no crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.",
+      "group": "attempts",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "attemptId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "ReviewRequest",
+        "fields": [
+          {
+            "name": "decision",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "APROBAR | RECHAZAR"
+          },
+          {
+            "name": "razon",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 2000"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Revisión aplicada o repetida de forma idempotente.",
+          "schema": "ReviewResult"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Intento rechazado por una regla de negocio; motivo legible y attempt_id cuando se registró el intento.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listActivityAudit",
+      "method": "GET",
+      "path": "/activities/{activityId}/audit",
+      "summary": "Consultar auditoría paginada",
+      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Incluye acciones administrativas, cambios manuales, configuración, listados y exportaciones con sus valores pertinentes. No devuelve credenciales, tokens ni ubicación exacta. Auditoría nominal sujeta al mismo vencimiento: 410; evidencia estadística anónima fuera de este endpoint. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Auditoría del ámbito permitido.",
+          "schema": "AuditPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "410",
+          "desc": "Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminListPeople",
+      "method": "GET",
+      "path": "/admin/people",
+      "summary": "Listar personas (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "q",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Página de personas.",
+          "schema": "AdminPersonPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminCreatePerson",
+      "method": "POST",
+      "path": "/admin/people",
+      "summary": "Crear persona (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "AdminPersonCreate",
+        "fields": [
+          {
+            "name": "cedula",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "patrón ^[0-9]{10}$"
+          },
+          {
+            "name": "nombres",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Reintento idempotente.",
+          "schema": "AdminPerson"
+        },
+        {
+          "code": "201",
+          "desc": "Persona creada.",
+          "schema": "AdminPerson"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminGetPerson",
+      "method": "GET",
+      "path": "/admin/people/{personId}",
+      "summary": "Ver persona (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "personId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Persona.",
+          "schema": "AdminPerson"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminRenamePerson",
+      "method": "PATCH",
+      "path": "/admin/people/{personId}",
+      "summary": "Editar nombres de una persona (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "personId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "nombres",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Persona actualizada.",
+          "schema": "AdminPerson"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminCreateAccount",
+      "method": "POST",
+      "path": "/admin/accounts",
+      "summary": "Crear cuenta de una persona (ADMINISTRADOR)",
+      "desc": "La contraseña inicial tiene mínimo 12 caracteres y no se devuelve ni se audita.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "AdminAccountCreate",
+        "fields": [
+          {
+            "name": "persona_id",
+            "type": "string (uuid)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "correo",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "máx. long. 254"
+          },
+          {
+            "name": "password",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 12; máx. long. 128"
+          },
+          {
+            "name": "roles",
+            "type": "lista de string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. elementos 1"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Reintento idempotente.",
+          "schema": "AdminPerson"
+        },
+        {
+          "code": "201",
+          "desc": "Cuenta creada; devuelve la persona con su cuenta.",
+          "schema": "AdminPerson"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminUpdateAccount",
+      "method": "PATCH",
+      "path": "/admin/accounts/{accountId}",
+      "summary": "Cambiar roles, activar o desactivar, cambiar contraseña (ADMINISTRADOR)",
+      "desc": "Desactivar revoca las sesiones y conserva el historial de asistencias. Un administrador no puede desactivarse ni quitarse su propio rol (409).",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "accountId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "AdminAccountPatch",
+        "fields": [
+          {
+            "name": "roles",
+            "type": "lista de string",
+            "required": false,
+            "desc": "",
+            "rules": "mín. elementos 1"
+          },
+          {
+            "name": "activa",
+            "type": "boolean",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "password",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "mín. long. 12; máx. long. 128"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Persona con su cuenta actualizada.",
+          "schema": "AdminPerson"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminListCareers",
+      "method": "GET",
+      "path": "/admin/careers",
+      "summary": "Listar carreras (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Carreras.",
+          "schema": "object"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminCreateCareer",
+      "method": "POST",
+      "path": "/admin/careers",
+      "summary": "Crear carrera (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "codigo",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 40"
+          },
+          {
+            "name": "nombre",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Reintento idempotente.",
+          "schema": "AdminCareer"
+        },
+        {
+          "code": "201",
+          "desc": "Carrera creada.",
+          "schema": "AdminCareer"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminRenameCareer",
+      "method": "PATCH",
+      "path": "/admin/careers/{careerId}",
+      "summary": "Editar nombre de carrera (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "careerId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "nombre",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Carrera actualizada.",
+          "schema": "AdminCareer"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminListParallels",
+      "method": "GET",
+      "path": "/admin/careers/{careerId}/parallels",
+      "summary": "Paralelos de una carrera (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "careerId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Paralelos con número de matriculados y docentes.",
+          "schema": "object"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminCreateParallel",
+      "method": "POST",
+      "path": "/admin/careers/{careerId}/parallels",
+      "summary": "Crear paralelo (ADMINISTRADOR)",
+      "desc": "",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "careerId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "codigo",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 40"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Reintento idempotente.",
+          "schema": "AdminParallel"
+        },
+        {
+          "code": "201",
+          "desc": "Paralelo creado.",
+          "schema": "AdminParallel"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminReplaceEnrollments",
+      "method": "PUT",
+      "path": "/admin/parallels/{parallelId}/enrollments",
+      "summary": "Reemplazar matriculados de un paralelo (ADMINISTRADOR)",
+      "desc": "Lista de cédulas; solo personas con rol ESTUDIANTE. Las demás vuelven en rechazadas.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "parallelId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "cedulas",
+            "type": "lista de string",
+            "required": true,
+            "desc": "",
+            "rules": "máx. elementos 5000"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado del reemplazo.",
+          "schema": "object"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminReplaceTeachers",
+      "method": "PUT",
+      "path": "/admin/parallels/{parallelId}/teachers",
+      "summary": "Reemplazar docentes de un paralelo (ADMINISTRADOR)",
+      "desc": "Lista de correos de cuentas con rol DOCENTE o ENCARGADO.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "parallelId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "correos",
+            "type": "lista de string",
+            "required": true,
+            "desc": "",
+            "rules": "máx. elementos 5000"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado del reemplazo.",
+          "schema": "object"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminImportCsv",
+      "method": "POST",
+      "path": "/admin/imports/{kind}",
+      "summary": "Importar CSV de estudiantes, docentes o matrículas (ADMINISTRADOR)",
+      "desc": "multipart/form-data, campo file, UTF-8, separador coma o punto y coma, máximo 2 MB y 5 000 filas. students: cedula,nombres,correo; teachers: cedula,nombres,correo,rol; enrollments: cedula,carrera,paralelo. Idempotente. Encabezado inválido: 400 sin cambios.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "kind",
+          "in": "path",
+          "required": true,
+          "type": "string",
+          "desc": "",
+          "rules": "students | teachers | enrollments"
+        }
+      ],
+      "body": {
+        "contentType": "multipart/form-data",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "file",
+            "type": "string (binary)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Informe de importación.",
+          "schema": "ImportReport"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "413",
+          "desc": "Archivo de más de 2 MB o de más de 5 000 filas.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listMyParallels",
+      "method": "GET",
+      "path": "/me/parallels",
+      "summary": "Paralelos asignados al docente o encargado",
+      "desc": "",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": null,
+      "params": [],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Paralelos vigentes con número de matriculados.",
+          "schema": "object"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listMyActiveSessions",
+      "method": "GET",
+      "path": "/me/active-sessions",
+      "summary": "Sesiones activas donde el participante puede registrar asistencia",
+      "desc": "Clases donde está autorizado (vigente) y eventos abiertos o cerrados con cuenta. Nunca incluye sesiones PROGRAMADA, CERRADA ni CANCELADA.",
+      "group": "attendance",
+      "roles": [
+        "est"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 25"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Página de sesiones activas.",
+          "schema": "ActiveSessionPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "searchSpaces",
+      "method": "GET",
+      "path": "/spaces",
+      "summary": "Buscar espacios",
+      "desc": "Búsqueda paginada por código (normalizado) o nombre. Disponible para DOCENTE, ENCARGADO y ADMINISTRADOR.",
+      "group": "spaces",
+      "roles": [
+        "doc",
+        "enc",
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "q",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "desc": "Texto parcial del código o del nombre.",
+          "rules": "máx. long. 200"
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Página de espacios.",
+          "schema": "SpacePage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "createSpace",
+      "method": "POST",
+      "path": "/spaces",
+      "summary": "Crear espacio",
+      "desc": "Crea un espacio compartido. El código se normaliza (mayúsculas, sin espacios ni guiones); si ya existe responde 409 ESPACIO_CODIGO_EXISTE con el espacio_id existente. Latitud y longitud van juntas o ninguna.",
+      "group": "spaces",
+      "roles": [
+        "doc",
+        "enc",
+        "adm"
+      ],
+      "note": null,
+      "params": [],
+      "body": {
+        "contentType": "application/json",
+        "schema": "CreateSpaceRequest",
+        "fields": [
+          {
+            "name": "codigo",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 40"
+          },
+          {
+            "name": "nombre",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          },
+          {
+            "name": "tipo",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "AULA | LABORATORIO | AUDITORIO | EXTERIOR | OTRO"
+          },
+          {
+            "name": "latitud",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. -90; máx. 90"
+          },
+          {
+            "name": "longitud",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. -180; máx. 180"
+          },
+          {
+            "name": "radio_defecto_m",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 0"
+          },
+          {
+            "name": "precision_defecto_m",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 0"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "201",
+          "desc": "Espacio creado.",
+          "schema": "Space"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "updateSpace",
+      "method": "PATCH",
+      "path": "/spaces/{spaceId}",
+      "summary": "Editar espacio",
+      "desc": "Solo el creador o un ADMINISTRADOR. El código no cambia. Las sesiones ya configuradas conservan sus valores geográficos.",
+      "group": "spaces",
+      "roles": [
+        "doc",
+        "enc",
+        "adm"
+      ],
+      "note": "Solo el creador del espacio o un administrador puede editarlo.",
+      "params": [
+        {
+          "name": "spaceId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "UpdateSpaceRequest",
+        "fields": [
+          {
+            "name": "nombre",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 200"
+          },
+          {
+            "name": "tipo",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "AULA | LABORATORIO | AUDITORIO | EXTERIOR | OTRO"
+          },
+          {
+            "name": "latitud",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. -90; máx. 90"
+          },
+          {
+            "name": "longitud",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. -180; máx. 180"
+          },
+          {
+            "name": "radio_defecto_m",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 0"
+          },
+          {
+            "name": "precision_defecto_m",
+            "type": "number",
+            "required": false,
+            "desc": "",
+            "rules": "mín. 0"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Espacio actualizado.",
+          "schema": "Space"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "cancelActivity",
+      "method": "POST",
+      "path": "/activities/{activityId}/cancel",
+      "summary": "Cancelar actividad",
+      "desc": "Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Actividad cancelada.",
+          "schema": "Activity"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "replaceSchedule",
+      "method": "PUT",
+      "path": "/activities/{activityId}/schedule",
+      "summary": "Reemplazar el horario recurrente",
+      "desc": "Solo RESPONSABLE de una clase ABIERTA. Borra y regenera únicamente las sesiones PROGRAMADA futuras del horario sin intentos ni tokens QR; conserva las demás.",
+      "group": "activities",
+      "roles": [
+        "doc"
+      ],
+      "note": "Solo clases; el responsable es el docente que la creó.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "Schedule",
+        "fields": [
+          {
+            "name": "dias",
+            "type": "lista de integer",
+            "required": true,
+            "desc": "",
+            "rules": "mín. elementos 1; máx. elementos 7"
+          },
+          {
+            "name": "hora_inicio",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "hora_fin",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "desde",
+            "type": "string (date)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "hasta",
+            "type": "string (date)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Horario reemplazado.",
+          "schema": "ScheduleReplaced"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listAuthorizedStudents",
+      "method": "GET",
+      "path": "/activities/{activityId}/students",
+      "summary": "Lista autorizada",
+      "desc": "Estudiantes autorizados (vigentes o quitados), paginada.",
+      "group": "activities",
+      "roles": [
+        "doc"
+      ],
+      "note": "Solo clases; el responsable es el docente que la creó.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Página de estudiantes.",
+          "schema": "AuthorizedStudentPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "addAuthorizedStudent",
+      "method": "POST",
+      "path": "/activities/{activityId}/students",
+      "summary": "Añadir estudiante por cédula",
+      "desc": "La cédula debe pertenecer a una persona con cuenta ESTUDIANTE; reactiva a quien fue quitado.",
+      "group": "activities",
+      "roles": [
+        "doc"
+      ],
+      "note": "Solo clases; el responsable es el docente que la creó.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "AddStudentRequest",
+        "fields": [
+          {
+            "name": "cedula",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "patrón ^[0-9]{10}$"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "201",
+          "desc": "Estudiante autorizado.",
+          "schema": "AuthorizedStudent"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "removeAuthorizedStudent",
+      "method": "DELETE",
+      "path": "/activities/{activityId}/students/{personId}",
+      "summary": "Quitar estudiante de la lista autorizada",
+      "desc": "Marca vigente=false; las asistencias existentes no se tocan y la sincronización no lo reincorpora.",
+      "group": "activities",
+      "roles": [
+        "doc"
+      ],
+      "note": "Solo clases; el responsable es el docente que la creó.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "personId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "204",
+          "desc": "Estudiante quitado.",
+          "schema": null
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "syncAuthorizedStudents",
+      "method": "POST",
+      "path": "/activities/{activityId}/students/sync",
+      "summary": "Sincronizar con los paralelos",
+      "desc": "Añade los matriculados vigentes de los paralelos de la clase sin reincorporar a quienes fueron quitados.",
+      "group": "activities",
+      "roles": [
+        "doc"
+      ],
+      "note": "Solo clases; el responsable es el docente que la creó.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Estudiantes añadidos.",
+          "schema": "SyncResult"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listActivitySessions",
+      "method": "GET",
+      "path": "/activities/{activityId}/sessions",
+      "summary": "Sesiones de la actividad",
+      "desc": "Paginado por inicio de ventana.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Página de sesiones.",
+          "schema": "SessionPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "createLooseSession",
+      "method": "POST",
+      "path": "/activities/{activityId}/sessions",
+      "summary": "Crear una sesión suelta",
+      "desc": "Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "Idempotency-Key",
+          "in": "header",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "CreateSessionRequest",
+        "fields": [
+          {
+            "name": "inicio",
+            "type": "string (date-time)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "fin",
+            "type": "string (date-time)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "espacio_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "201",
+          "desc": "Sesión creada.",
+          "schema": "ScheduledSession"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "updateScheduledSession",
+      "method": "PATCH",
+      "path": "/sessions/{sessionId}",
+      "summary": "Editar hora, espacio o método de una sesión programada",
+      "desc": "Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "UpdateSessionRequest",
+        "fields": [
+          {
+            "name": "inicio",
+            "type": "string (date-time)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "fin",
+            "type": "string (date-time)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "espacio_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "metodo_verificacion",
+            "type": "string",
+            "required": false,
+            "desc": "",
+            "rules": "QR_Y_GPS | SOLO_QR | SOLO_GPS | NINGUNO"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Sesión actualizada.",
+          "schema": "ScheduledSession"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "cancelScheduledSession",
+      "method": "POST",
+      "path": "/sessions/{sessionId}/cancel",
+      "summary": "Cancelar una sesión programada",
+      "desc": "Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Sesión cancelada.",
+          "schema": "ScheduledSession"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "Estado incompatible o reutilización de Idempotency-Key con otra carga.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    }
+  ],
+  "codes": [
+    "CEDULA_INVALIDA",
+    "DISPOSITIVO_REQUERIDO",
+    "DISPOSITIVO_YA_REGISTRADO",
+    "ESPACIO_CODIGO_EXISTE",
+    "ESPACIO_SIN_UBICACION",
+    "ESTADO_INCOMPATIBLE",
+    "FORMULARIO_EXPIRADO",
+    "HORARIO_DEMASIADO_LARGO",
+    "LIMITE_SOLICITUDES",
+    "METODO_NO_ADMITE_QR",
+    "NO_AUTENTICADO",
+    "NO_AUTORIZADO",
+    "PARALELO_NO_ASIGNADO",
+    "QR_EXPIRADO",
+    "QR_REQUERIDO",
+    "RECURSO_NO_ENCONTRADO",
+    "SESION_NO_EDITABLE",
+    "SOLICITUD_INVALIDA",
+    "UBICACION_INCIERTA",
+    "UBICACION_NO_DISPONIBLE"
+  ]
+}
