@@ -32,8 +32,10 @@ function Fields({ rows, title, showIn }: { rows: Field[]; title: string; showIn?
 }
 
 function Operation({ op, open }: { op: Op; open: boolean }) {
+  // El detalle de 65 operaciones es pesado: se dibuja solo al abrir cada una.
+  const [opened, setOpened] = useState(false);
   return (
-    <details className="docs-op" open={open || undefined}>
+    <details className="docs-op" open={open || undefined} onToggle={(e) => { if (e.currentTarget.open) setOpened(true); }}>
       <summary>
         <span className={`docs-method docs-${op.method.toLowerCase()}`}>{op.method}</span>
         <code className="docs-path">{op.path}</code>
@@ -41,7 +43,7 @@ function Operation({ op, open }: { op: Op; open: boolean }) {
           <span className="docs-roles">{op.roles.map((r) => <span key={r} className="docs-role">{roleLabel[r]}</span>)}</span>
         </span>
       </summary>
-      <div className="docs-body">
+      {(open || opened) && <div className="docs-body">
         {op.desc && <p>{op.desc}</p>}
         {op.note && <p className="docs-note">{op.note}</p>}
         {op.params.length > 0 && <Fields rows={op.params} title="Parámetros" showIn />}
@@ -53,7 +55,7 @@ function Operation({ op, open }: { op: Op; open: boolean }) {
             <div key={r.code}><dt className={Number(r.code) < 400 ? 'docs-ok' : 'docs-err'}>{r.code}</dt><dd>{r.desc}{r.schema && <> <code>{r.schema}</code></>}</dd></div>
           ))}
         </dl>
-      </div>
+      </div>}
     </details>
   );
 }
