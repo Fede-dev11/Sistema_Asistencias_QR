@@ -366,6 +366,23 @@ paths:
       - $ref: '#/components/parameters/activityId'
       - $ref: '#/components/parameters/IdempotencyKey'
   /activities/{activityId}/guest-settings:
+    get:
+      operationId: getGuestSettings
+      summary: Consultar acceso de invitados
+      description: 'Responsable de la actividad; los directores leen dentro de su ámbito.'
+      tags: [activities]
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GuestSettings'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: setGuestSettings
       summary: Configurar acceso de invitados
@@ -408,6 +425,25 @@ paths:
             schema:
               $ref: '#/components/schemas/GuestSettings'
   /activities/{activityId}/guest-list:
+    get:
+      operationId: listGuests
+      summary: Consultar listado de invitados
+      description: 'Responsable de la actividad; los directores leen dentro de su ámbito. Paginado; evento abierto o clase devuelven página vacía.'
+      tags: [activities]
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GuestPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: replaceGuestList
       summary: Reemplazar listado de invitados
@@ -560,6 +596,23 @@ paths:
       parameters:
       - $ref: '#/components/parameters/sessionId'
   /sessions/{sessionId}/geolocation:
+    get:
+      operationId: getSessionGeolocation
+      summary: Consultar configuración GPS de la sesión
+      description: 'Responsable de la actividad; los directores leen dentro de su ámbito. Legible en cualquier estado de la sesión. Sin configuración guardada devuelve habilitada=false, modo OFF y nulos.'
+      tags: [sessions]
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GeolocationConfig'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: setSessionGeolocation
       summary: Configurar GPS opcional
@@ -1444,6 +1497,25 @@ paths:
         '404': {$ref: '#/components/responses/NotFound'}
         '409': {$ref: '#/components/responses/Conflict'}
   /admin/parallels/{parallelId}/enrollments:
+    get:
+      operationId: adminListEnrollments
+      summary: Listar matriculados de un paralelo (ADMINISTRADOR)
+      description: 'Paginado, incluye matrículas no vigentes.'
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, schema: {type: string, format: uuid}}
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/EnrollmentPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: adminReplaceEnrollments
       summary: Reemplazar matriculados de un paralelo (ADMINISTRADOR)
@@ -1482,6 +1554,25 @@ paths:
         '403': {$ref: '#/components/responses/Forbidden'}
         '404': {$ref: '#/components/responses/NotFound'}
   /admin/parallels/{parallelId}/teachers:
+    get:
+      operationId: adminListTeachers
+      summary: Listar docentes de un paralelo (ADMINISTRADOR)
+      description: 'Paginado, incluye asignaciones no vigentes.'
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, schema: {type: string, format: uuid}}
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TeacherPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: adminReplaceTeachers
       summary: Reemplazar docentes de un paralelo (ADMINISTRADOR)
@@ -1768,6 +1859,23 @@ paths:
       parameters:
       - $ref: '#/components/parameters/activityId'
   /activities/{activityId}/schedule:
+    get:
+      operationId: getSchedule
+      summary: Consultar el horario recurrente
+      description: 'Responsable de la actividad; los directores leen dentro de su ámbito. Clase sin horario: 404 SIN_HORARIO.'
+      tags: [activities]
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ScheduleCurrent'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: replaceSchedule
       summary: Reemplazar el horario recurrente
@@ -3668,6 +3776,81 @@ components:
         sesiones:
           type: array
           items: {$ref: '#/components/schemas/SessionSummary'}
+    GuestPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/GuestRow'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    GuestRow:
+      type: object
+      required: [persona_id, cedula, nombres, activo]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        activo: {type: boolean}
+    GeolocationConfig:
+      type: object
+      required: [habilitada, radio_m, precision_max_m, antiguedad_max_s, modo, evidencia_id, evidencia_vigente]
+      properties:
+        habilitada: {type: boolean}
+        radio_m: {type: number, nullable: true}
+        precision_max_m: {type: number, nullable: true}
+        antiguedad_max_s: {type: integer, nullable: true}
+        modo: {type: string, enum: [OFF, REVIEW_ONLY, AUTO]}
+        evidencia_id: {type: string, format: uuid, nullable: true}
+        evidencia_vigente:
+          type: boolean
+          description: El espacio de la sesión tiene al menos una evidencia de campo registrada.
+    ScheduleCurrent:
+      allOf:
+      - $ref: '#/components/schemas/Schedule'
+      - type: object
+        required: [espacio_id, zona]
+        properties:
+          espacio_id: {type: string, format: uuid, nullable: true}
+          zona: {type: string, example: America/Guayaquil}
+    EnrollmentPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/EnrollmentRow'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    EnrollmentRow:
+      type: object
+      required: [persona_id, cedula, nombres, vigente]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        vigente: {type: boolean}
+    TeacherPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/TeacherRow'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    TeacherRow:
+      type: object
+      required: [cuenta_id, correo, nombres, vigente]
+      properties:
+        cuenta_id: {type: string, format: uuid}
+        correo: {type: string}
+        nombres: {type: string}
+        vigente: {type: boolean}
     ScheduleReplaced:
       type: object
       required: [eliminadas, generadas]

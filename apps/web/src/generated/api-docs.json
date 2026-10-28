@@ -839,6 +839,58 @@
       ]
     },
     {
+      "id": "getGuestSettings",
+      "method": "GET",
+      "path": "/activities/{activityId}/guest-settings",
+      "summary": "Consultar acceso de invitados",
+      "desc": "Responsable de la actividad; los directores leen dentro de su ámbito.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Estado actual.",
+          "schema": "GuestSettings"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
       "id": "setGuestSettings",
       "method": "PUT",
       "path": "/activities/{activityId}/guest-settings",
@@ -919,6 +971,74 @@
         {
           "code": "429",
           "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "listGuests",
+      "method": "GET",
+      "path": "/activities/{activityId}/guest-list",
+      "summary": "Consultar listado de invitados",
+      "desc": "Responsable de la actividad; los directores leen dentro de su ámbito. Paginado; evento abierto o clase devuelven página vacía.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Estado actual.",
+          "schema": "GuestPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
           "schema": "Problem"
         }
       ]
@@ -1225,6 +1345,58 @@
         {
           "code": "429",
           "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getSessionGeolocation",
+      "method": "GET",
+      "path": "/sessions/{sessionId}/geolocation",
+      "summary": "Consultar configuración GPS de la sesión",
+      "desc": "Responsable de la actividad; los directores leen dentro de su ámbito. Legible en cualquier estado de la sesión. Sin configuración guardada devuelve habilitada=false, modo OFF y nulos.",
+      "group": "sessions",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "sessionId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Estado actual.",
+          "schema": "GeolocationConfig"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
           "schema": "Problem"
         }
       ]
@@ -3243,6 +3415,72 @@
       ]
     },
     {
+      "id": "adminListEnrollments",
+      "method": "GET",
+      "path": "/admin/parallels/{parallelId}/enrollments",
+      "summary": "Listar matriculados de un paralelo (ADMINISTRADOR)",
+      "desc": "Paginado, incluye matrículas no vigentes.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "parallelId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Estado actual.",
+          "schema": "EnrollmentPage"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
       "id": "adminReplaceEnrollments",
       "method": "PUT",
       "path": "/admin/parallels/{parallelId}/enrollments",
@@ -3281,6 +3519,72 @@
           "code": "200",
           "desc": "Resultado del reemplazo.",
           "schema": "object"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminListTeachers",
+      "method": "GET",
+      "path": "/admin/parallels/{parallelId}/teachers",
+      "summary": "Listar docentes de un paralelo (ADMINISTRADOR)",
+      "desc": "Paginado, incluye asignaciones no vigentes.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "parallelId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        },
+        {
+          "name": "page",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 0; por defecto 0"
+        },
+        {
+          "name": "size",
+          "in": "query",
+          "required": false,
+          "type": "integer",
+          "desc": "",
+          "rules": "mín. 1; máx. 100; por defecto 20"
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Estado actual.",
+          "schema": "TeacherPage"
         },
         {
           "code": "400",
@@ -3984,6 +4288,58 @@
         {
           "code": "429",
           "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "getSchedule",
+      "method": "GET",
+      "path": "/activities/{activityId}/schedule",
+      "summary": "Consultar el horario recurrente",
+      "desc": "Responsable de la actividad; los directores leen dentro de su ámbito. Clase sin horario: 404 SIN_HORARIO.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc",
+        "dir"
+      ],
+      "note": "Directores: solo lectura dentro de su ámbito.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Estado actual.",
+          "schema": "ScheduleCurrent"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
           "schema": "Problem"
         }
       ]

@@ -13,15 +13,15 @@ Convenciones `API`, `APIT`, `YAML` como en [004 tasks](../004-autenticacion-sso/
 
 ## Phase 2: US1 — Ver el estado actual antes de editar (P1) 🎯 MVP
 
-- [ ] T002 [P] [US1] `APIT/actividades/GuestReadTest.java`: escenarios US1-1, US1-2, US1-6 (no responsable → 403; director fuera de ámbito → 403; evento abierto → página vacía; paginación ≤ 100)
-- [ ] T003 [P] [US1] `APIT/actividades/ScheduleReadTest.java`: US1-3 (con horario → días/horas/fechas/espacio; sin horario → 404 `SIN_HORARIO`; no responsable → 403)
-- [ ] T004 [P] [US1] `APIT/sesiones/GeolocationReadTest.java`: US1-4 (OFF por defecto; habilitada con valores heredados; modo AUTO/REVIEW_ONLY y `evidencia_vigente`; legible en ACTIVA y CERRADA; no responsable → 403)
-- [ ] T005 [P] [US1] `APIT/academico/ParallelReadTest.java`: US1-5 (matriculados y docentes paginados con `vigente`; no ADMINISTRADOR → 403; paralelo inexistente → 404)
-- [ ] T006 [US1] `GET /activities/{id}/guest-list` y `GET /activities/{id}/guest-settings` en `API/actividades/presentacion/GuestManagementController.java` con consulta en `API/actividades/aplicacion/` reutilizando la autorización de `ReplaceGuestList`/`ConfigureGuests`
-- [ ] T007 [US1] `GET /activities/{id}/schedule` (reutilizar autorización de `ReplaceSchedule`; 404 `SIN_HORARIO`)
-- [ ] T008 [US1] `GET /sessions/{id}/geolocation` en `API/sesiones/presentacion/GeolocationController.java` (incluye `modo`, `evidencia_id`, `evidencia_vigente`)
-- [ ] T009 [US1] `GET /admin/parallels/{id}/enrollments` y `/teachers` en `API/academico/presentacion/AdminController.java` con consultas paginadas en `API/academico/persistencia/AcademicRepository.java`
-- [ ] T010 [US1] YAML: seis operaciones y esquemas (`GuestPage`, `GuestSettings`, `Schedule` reutilizado, `GeolocationConfig`, `EnrollmentPage`, `TeacherPage`), código `SIN_HORARIO`; roles en `tools/contracts/docs.mjs`; `npm run validate && npm run generate`
+- [X] T002 [P] [US1] `APIT/actividades/GuestReadTest.java`: escenarios US1-1, US1-2, US1-6 (no responsable → 403; director fuera de ámbito → 403; evento abierto → página vacía; paginación ≤ 100)
+- [X] T003 [P] [US1] `APIT/actividades/ScheduleReadTest.java`: US1-3 (con horario → días/horas/fechas/espacio; sin horario → 404 `SIN_HORARIO`; no responsable → 403)
+- [X] T004 [P] [US1] `APIT/sesiones/GeolocationReadTest.java`: US1-4 (OFF por defecto; habilitada con valores heredados; modo AUTO/REVIEW_ONLY y `evidencia_vigente`; legible en ACTIVA y CERRADA; no responsable → 403)
+- [X] T005 [P] [US1] `APIT/academico/ParallelReadTest.java`: US1-5 (matriculados y docentes paginados con `vigente`; no ADMINISTRADOR → 403; paralelo inexistente → 404)
+- [X] T006 [US1] `GET /activities/{id}/guest-list` y `GET /activities/{id}/guest-settings` en `API/actividades/presentacion/GuestManagementController.java` con consulta en `API/actividades/aplicacion/` reutilizando la autorización de `ReplaceGuestList`/`ConfigureGuests`
+- [X] T007 [US1] `GET /activities/{id}/schedule` (reutilizar autorización de `ReplaceSchedule`; 404 `SIN_HORARIO`)
+- [X] T008 [US1] `GET /sessions/{id}/geolocation` en `API/sesiones/presentacion/GeolocationController.java` (incluye `modo`, `evidencia_id`, `evidencia_vigente`)
+- [X] T009 [US1] `GET /admin/parallels/{id}/enrollments` y `/teachers` en `API/academico/presentacion/AdminController.java` con consultas paginadas en `API/academico/persistencia/AcademicRepository.java`
+- [X] T010 [US1] YAML: seis operaciones y esquemas (`GuestPage`, `GuestSettings`, `Schedule` reutilizado, `GeolocationConfig`, `EnrollmentPage`, `TeacherPage`), código `SIN_HORARIO`; roles en `tools/contracts/docs.mjs`; `npm run validate && npm run generate`
 
 ## Phase 3: US2 — Contrato que coincide con la API (P1)
 

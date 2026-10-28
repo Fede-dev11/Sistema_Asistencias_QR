@@ -224,6 +224,32 @@ public class AcademicRepository {
         keep.toArray(new UUID[0]));
   }
 
+  public List<Map<String, Object>> enrollments(UUID parallel, int limit, long offset) {
+    return db.queryForList(
+        "SELECT p.id AS persona_id,p.cedula_normalizada AS cedula,p.nombres,m.vigente FROM matriculas m JOIN personas p ON p.id=m.persona_id WHERE m.paralelo_id=? ORDER BY p.cedula_normalizada LIMIT ? OFFSET ?",
+        parallel,
+        limit,
+        offset);
+  }
+
+  public long countEnrollments(UUID parallel) {
+    return db.queryForObject(
+        "SELECT count(*) FROM matriculas WHERE paralelo_id=?", Long.class, parallel);
+  }
+
+  public List<Map<String, Object>> teachers(UUID parallel, int limit, long offset) {
+    return db.queryForList(
+        "SELECT c.id AS cuenta_id,c.identificador AS correo,p.nombres,d.vigente FROM docentes_paralelo d JOIN cuentas c ON c.id=d.cuenta_id JOIN personas p ON p.id=c.persona_id WHERE d.paralelo_id=? ORDER BY c.identificador LIMIT ? OFFSET ?",
+        parallel,
+        limit,
+        offset);
+  }
+
+  public long countTeachers(UUID parallel) {
+    return db.queryForObject(
+        "SELECT count(*) FROM docentes_paralelo WHERE paralelo_id=?", Long.class, parallel);
+  }
+
   public List<Map<String, Object>> parallelsOfTeacher(UUID account) {
     return db.queryForList(
         "SELECT p.id AS paralelo_id,p.codigo,c.id AS carrera_id,c.codigo AS carrera_codigo,c.nombre AS carrera_nombre,"

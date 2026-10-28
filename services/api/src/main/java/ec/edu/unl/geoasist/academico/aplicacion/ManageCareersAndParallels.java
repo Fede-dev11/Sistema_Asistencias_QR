@@ -176,6 +176,31 @@ public class ManageCareersAndParallels {
     return Map.of("docentes", accepted.size(), "rechazadas", rejections);
   }
 
+  public Map<String, Object> enrollmentPage(UserSession user, UUID parallel, int page, int size) {
+    return pageOf(user, parallel, page, size, true);
+  }
+
+  public Map<String, Object> teacherPage(UserSession user, UUID parallel, int page, int size) {
+    return pageOf(user, parallel, page, size, false);
+  }
+
+  private Map<String, Object> pageOf(
+      UserSession user, UUID parallel, int page, int size, boolean students) {
+    user.requireAnyRole("ADMINISTRADOR");
+    if (page < 0 || size < 1 || size > 100) throw ApiFailure.invalid();
+    if (!repo.parallelExists(parallel)) throw ApiFailure.missing();
+    long offset = (long) page * size;
+    return Map.of(
+        "items",
+        students ? repo.enrollments(parallel, size, offset) : repo.teachers(parallel, size, offset),
+        "page",
+        page,
+        "size",
+        size,
+        "total",
+        students ? repo.countEnrollments(parallel) : repo.countTeachers(parallel));
+  }
+
   public Map<String, Object> myParallels(UserSession user) {
     user.requireAnyRole("DOCENTE", "ENCARGADO");
     return Map.of("items", repo.parallelsOfTeacher(user.accountId()));
