@@ -42,8 +42,13 @@ class CsvImportTest extends AdminSupport {
     assertEquals(0, again.get("creadas").asInt());
     assertEquals(101, again.get("sin_cambios").asInt());
     assertEquals(people, db.queryForObject("SELECT count(*) FROM personas", Long.class));
-    // El estudiante importado inicia sesión con la contraseña de configuración, no del CSV.
-    token(text.lines().skip(1).findFirst().orElseThrow().split(",")[3].strip());
+    // Las cuentas importadas son CAS y no tienen contraseña.
+    var row =
+        db.queryForMap(
+            "SELECT proveedor,password_hash FROM cuentas WHERE identificador=?",
+            text.lines().skip(1).findFirst().orElseThrow().split(",")[3].strip());
+    assertEquals("CAS", row.get("proveedor"));
+    assertNull(row.get("password_hash"));
   }
 
   @Test

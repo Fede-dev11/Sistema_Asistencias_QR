@@ -2,13 +2,13 @@ package ec.edu.unl.geoasist.academico.aplicacion;
 
 import ec.edu.unl.geoasist.academico.persistencia.AcademicRepository;
 import ec.edu.unl.geoasist.compartido.aplicacion.*;
+import ec.edu.unl.geoasist.compartido.aplicacion.AcademicAudit;
 import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService.Receipt;
 import ec.edu.unl.geoasist.compartido.dominio.Cedula;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import java.time.Clock;
 import java.util.*;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,19 +28,13 @@ public class ManagePeopleAndAccounts {
   private final AcademicRepository repo;
   private final AcademicAudit audit;
   private final IdempotencyService replay;
-  private final PasswordEncoder passwords;
   private final Clock clock;
 
   public ManagePeopleAndAccounts(
-      AcademicRepository repo,
-      AcademicAudit audit,
-      IdempotencyService replay,
-      PasswordEncoder passwords,
-      Clock clock) {
+      AcademicRepository repo, AcademicAudit audit, IdempotencyService replay, Clock clock) {
     this.repo = repo;
     this.audit = audit;
     this.replay = replay;
-    this.passwords = passwords;
     this.clock = clock;
   }
 
@@ -123,18 +117,12 @@ public class ManagePeopleAndAccounts {
     return new TreeSet<>(roles);
   }
 
-  static String password(String raw) {
-    if (raw == null || raw.length() < 12 || raw.length() > 128) throw ApiFailure.invalid();
-    return raw;
-  }
-
   @Transactional
   public Receipt createAccount(
-      UserSession user, UUID key, UUID personId, String correo, String clave, List<String> roles) {
+      UserSession user, UUID key, UUID personId, String correo, List<String> roles) {
     user.requireAnyRole("ADMINISTRADOR");
     String mail = email(correo);
     Set<String> assigned = validRoles(roles);
-    String secret = password(clave);
     return replay.run(
         "ADMIN_CUENTA",
         user.accountId().toString(),
@@ -149,7 +137,7 @@ public class ManagePeopleAndAccounts {
             throw new ApiFailure(409, "CORREO_EXISTE", "El correo ya está en uso.");
           UUID account;
           try {
-            account = repo.insertAccount(personId, mail, passwords.encode(secret));
+            account = repo.insertAccount(personId, mail);
           } catch (DuplicateKeyException e) {
             throw new ApiFailure(409, "CORREO_EXISTE", "El correo ya está en uso.");
           }
@@ -167,10 +155,10 @@ public class ManagePeopleAndAccounts {
 
   @Transactional
   public Map<String, Object> updateAccount(
-      UserSession user, UUID accountId, List<String> roles, Boolean activa, String clave) {
+      UserSession user, UUID accountId, List<String> roles, Boolean activa) {
     user.requireAnyRole("ADMINISTRADOR");
     if (!repo.accountExists(accountId)) throw ApiFailure.missing();
-    if (roles == null && activa == null && clave == null) throw ApiFailure.invalid();
+    if (roles == null && activa == null) throw ApiFailure.invalid();
     boolean self = accountId.equals(user.accountId());
     Set<String> before = repo.roles(accountId);
     Map<String, Object> old = new LinkedHashMap<>(), next = new LinkedHashMap<>();
@@ -187,33 +175,7 @@ public class ManagePeopleAndAccounts {
       next.put("activa", activa);
       if (!activa) repo.revokeSessions(accountId, java.sql.Timestamp.from(clock.instant()));
     }
-    if (clave != null) {
-      repo.setPassword(accountId, passwords.encode(password(clave)));
-      next.put("clave_cambiada", true);
-    }
     audit.write(user.accountId(), "EDITAR_CUENTA", "CUENTA", accountId, old, next);
     return repo.person(repo.personIdOfAccount(accountId)).orElseThrow();
-  }
-
-  /** Contraseña temporal de 16 caracteres; se devuelve una sola vez y obliga a cambiarla. */
-  @Transactional
-  public Map<String, Object> resetPassword(UserSession user, UUID accountId) {
-    user.requireAnyRole("ADMINISTRADOR");
-    if (!repo.accountExists(accountId)) throw ApiFailure.missing();
-    String alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
-    var random = new java.security.SecureRandom();
-    StringBuilder temp = new StringBuilder();
-    for (int i = 0; i < 16; i++) temp.append(alphabet.charAt(random.nextInt(alphabet.length())));
-    repo.setPassword(accountId, passwords.encode(temp.toString()));
-    repo.requirePasswordChange(accountId);
-    repo.revokeSessions(accountId, java.sql.Timestamp.from(clock.instant()));
-    audit.write(
-        user.accountId(),
-        "RESTABLECER_PASSWORD",
-        "CUENTA",
-        accountId,
-        Map.of(),
-        Map.of("temporal", true));
-    return Map.of("password_temporal", temp.toString());
   }
 }

@@ -1,0 +1,21 @@
+body { place-items: start center; }
+main.ancho { max-width: 64rem; }
+.barra { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.barra nav { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+a { color: var(--accent); }
+a:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.barra button, td button, .inline button, .fila-servicio button { width: auto; margin: .5rem .5rem 0 0; padding: .4rem .8rem; }
+.salto { position: absolute; left: -999px; }
+.salto:focus { left: 1rem; top: 1rem; background: var(--card); padding: .5rem; z-index: 2; }
+.tabla { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: .5rem; border-bottom: 1px solid rgb(128 128 128 / 40%); vertical-align: top; }
+fieldset { border: 1px solid rgb(128 128 128 / 60%); border-radius: 6px; margin-top: 1rem; }
+fieldset label { display: inline-block; margin: .25rem 1rem .25rem 0; font-weight: 400; }
+fieldset input { width: auto; margin-right: .35rem; }
+textarea { width: 100%; padding: .65rem; font: inherit; color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 6px; }
+textarea:focus-visible, select:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.secreto { font: 1.1rem/1.4 ui-monospace, monospace; padding: .75rem; border: 2px dashed var(--accent); border-radius: 6px; word-break: break-all; }
+.ok { font-weight: 600; }
+.fila-servicio { border-top: 1px solid rgb(128 128 128 / 40%); margin-top: 1rem; padding-top: .5rem; }
+.inline { display: inline; }

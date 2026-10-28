@@ -56,7 +56,7 @@ public class IdentityRepository {
 
   public Map<String, Object> accountRow(UUID account) {
     return db.queryForMap(
-        "SELECT c.identificador,c.password_hash,c.persona_id,p.nombres FROM cuentas c JOIN personas p ON p.id=c.persona_id WHERE c.id=?",
+        "SELECT c.identificador,c.proveedor,c.password_hash,c.persona_id,p.nombres FROM cuentas c JOIN personas p ON p.id=c.persona_id WHERE c.id=?",
         account);
   }
 
@@ -67,19 +67,6 @@ public class IdentityRepository {
             + "UNION SELECT paralelo_id FROM docentes_paralelo WHERE cuenta_id=? AND vigente) ORDER BY c.codigo,p.codigo",
         person,
         account);
-  }
-
-  public void setPassword(UUID account, String hash) {
-    db.update(
-        "UPDATE cuentas SET password_hash=?,debe_cambiar_password=false WHERE id=?", hash, account);
-  }
-
-  public void revokeOthers(UUID account, UUID keep, Instant now) {
-    db.update(
-        "UPDATE sesiones_acceso SET revocada_en=? WHERE cuenta_id=? AND id<>? AND revocada_en IS NULL",
-        java.sql.Timestamp.from(now),
-        account,
-        keep);
   }
 
   public Optional<UserSession> session(String hash, Instant now) {

@@ -11,6 +11,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
       "geoasist.hmac-key=fixture-key-exclusivamente-para-pruebas-con-datos-ficticios",
       "geoasist.dev-seed-password=fixture-password",
       "spring.profiles.active=dev",
+      "geoasist.auth.local-login=true",
       "geoasist.rate-limit-multiplier=1000",
       "geoasist.scheduling-enabled=false"
     })

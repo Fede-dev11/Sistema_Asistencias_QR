@@ -30,9 +30,8 @@ paths:
     post:
       operationId: login
       summary: Iniciar sesión con credenciales
-      description: Proveedor local semilla solo en desarrollo; CAS detrás del proveedor de identidad queda pendiente
-        de confirmación institucional. Bearer opaco revocable respaldado en PostgreSQL; sin JWT ni almacenamiento
-        web persistente.
+      description: Solo para pruebas o desarrollo sin red. Devuelve 404 cuando
+        geoasist.auth.local-login=false (valor predeterminado). Bearer opaco revocable respaldado en PostgreSQL.
       tags:
       - auth
       responses:
@@ -52,6 +51,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/RateLimited'
       security: []
@@ -61,6 +62,61 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
+  /auth/cas:
+    post:
+      operationId: loginWithCas
+      summary: Canjear un ticket universitario por una sesión de GeoAsist
+      description: Valida y consume el ticket CAS para el mismo service, sincroniza la cuenta y emite un bearer opaco.
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CasLoginRequest'}
+      responses:
+        '200':
+          description: Ticket válido y sesión creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResult'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401':
+          description: Ticket inválido, usado, vencido o de otro servicio (TICKET_INVALIDO).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:ticket-invalido', title: Ticket inválido, status: 401, code: TICKET_INVALIDO, mensaje: Ticket inválido.}
+        '403':
+          description: Cuenta universitaria inactiva (CUENTA_INACTIVA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:cuenta-inactiva', title: Cuenta inactiva, status: 403, code: CUENTA_INACTIVA, mensaje: Cuenta inactiva.}
+        '422':
+          description: Identidad no provisionable (IDENTIDAD_INVALIDA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:identidad-invalida', title: Identidad inválida, status: 422, code: IDENTIDAD_INVALIDA, mensaje: Identidad inválida.}
+        '502':
+          description: Servicio universitario no disponible (SSO_NO_DISPONIBLE).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:sso-no-disponible', title: SSO no disponible, status: 502, code: SSO_NO_DISPONIBLE, mensaje: SSO no disponible.}
+  /auth/sso-config:
+    get:
+      operationId: getSsoConfiguration
+      summary: Obtener las URLs públicas del SSO
+      tags: [auth]
+      security: []
+      responses:
+        '200':
+          description: Configuración para clientes web y móvil.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SsoConfiguration'}
   /auth/logout:
     post:
       operationId: logout
@@ -69,8 +125,16 @@ paths:
       tags:
       - auth
       responses:
-        '204':
-          description: Sesión revocada.
+        '200':
+          description: Sesión revocada; incluye la URL para cerrar también la sesión universitaria.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [sso_logout_url]
+                properties:
+                  sso_logout_url: {type: string, format: uri}
         '401':
           $ref: '#/components/responses/Unauthorized'
         '429':
@@ -80,7 +144,9 @@ paths:
       operationId: renewSession
       summary: Renovar la sesión por 8 horas rotando el secreto
       description: Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401
-        RENOVACION_VENCIDA si pasaron más de 30 días desde el login original.
+        RENOVACION_VENCIDA si pasaron más de 30 días desde el login original. Para cuentas CAS consulta al SSO
+        si la cuenta sigue activa; si no, revoca la sesión y responde 403 CUENTA_INACTIVA; si el SSO no responde
+        falla cerrado con 502 SSO_NO_DISPONIBLE.
       tags: [auth]
       responses:
         '200':
@@ -89,6 +155,17 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/LoginResult'}
         '401': {$ref: '#/components/responses/Unauthorized'}
+        '403':
+          description: Cuenta universitaria inactiva (CUENTA_INACTIVA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:cuenta-inactiva', title: Cuenta inactiva, status: 403, code: CUENTA_INACTIVA, mensaje: Cuenta inactiva.}
+        '502':
+          description: SSO no disponible (SSO_NO_DISPONIBLE); no se renueva.
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
   /me:
     get:
       operationId: getMe
@@ -101,41 +178,6 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/MeProfile'}
         '401': {$ref: '#/components/responses/Unauthorized'}
-  /me/password:
-    put:
-      operationId: changeMyPassword
-      summary: Cambiar la contraseña propia
-      description: Mínimo 12 caracteres y distinta de la actual (400 PASSWORD_DEBIL). Actual incorrecta
-        (400 PASSWORD_ACTUAL_INCORRECTA) cuenta para el límite de login. Cierra las demás sesiones.
-      tags: [auth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: {$ref: '#/components/schemas/PasswordChange'}
-      responses:
-        '204': {description: Contraseña cambiada.}
-        '400': {$ref: '#/components/responses/BadRequest'}
-        '401': {$ref: '#/components/responses/Unauthorized'}
-        '429': {$ref: '#/components/responses/RateLimited'}
-  /admin/accounts/{accountId}/password-reset:
-    post:
-      operationId: adminResetPassword
-      summary: Restablecer contraseña con una temporal de un solo uso (ADMINISTRADOR)
-      description: Genera 16 caracteres aleatorios mostrados una vez, revoca las sesiones de la cuenta y exige
-        cambio en el siguiente ingreso.
-      tags: [admin]
-      parameters:
-      - {name: accountId, in: path, required: true, schema: {type: string, format: uuid}}
-      responses:
-        '200':
-          description: Contraseña temporal.
-          content:
-            application/json:
-              schema: {$ref: '#/components/schemas/TemporaryPassword'}
-        '401': {$ref: '#/components/responses/Unauthorized'}
-        '403': {$ref: '#/components/responses/Forbidden'}
-        '404': {$ref: '#/components/responses/NotFound'}
   /activities:
     get:
       operationId: listActivities
@@ -186,8 +228,8 @@ paths:
           $ref: '#/components/responses/RateLimited'
     post:
       operationId: createActivity
-      summary: Crear una clase (con horario recurrente opcional)
-      description: DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). La modalidad EVENTO aún no se acepta aquí.
+      summary: Crear una clase o un evento
+      description: DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). Con modalidad EVENTO (DOCENTE o ENCARGADO) exige acceso CERRADO o ABIERTO, inicio y fin, y crea una sesión programada y la configuración de invitados (tolerancia_invitado_segundos, por defecto 120).
       tags:
       - activities
       parameters:
@@ -2525,6 +2567,31 @@ components:
       required:
       - correo
       - password
+    CasLoginRequest:
+      type: object
+      additionalProperties: false
+      required: [ticket, service]
+      properties:
+        ticket:
+          type: string
+          minLength: 1
+          maxLength: 256
+          writeOnly: true
+          description: Ticket CAS de un solo uso; nunca se registra.
+        service:
+          type: string
+          format: uri
+          minLength: 1
+          maxLength: 2048
+    SsoConfiguration:
+      type: object
+      additionalProperties: false
+      required: [login_url, logout_url, web_service, mobile_service_prefix]
+      properties:
+        login_url: {type: string, format: uri}
+        logout_url: {type: string, format: uri}
+        web_service: {type: string, format: uri}
+        mobile_service_prefix: {type: string, format: uri}
     LoginResult:
       type: object
       additionalProperties: false
@@ -2554,25 +2621,12 @@ components:
             - ADMINISTRADOR
         debe_cambiar_password:
           type: boolean
-          description: true si solo puede usar PUT /me/password, GET /me y logout.
+          description: Siempre false para cuentas CAS (conservado por compatibilidad).
       required:
       - access_token
       - token_type
       - vence_en
       - roles
-    PasswordChange:
-      type: object
-      additionalProperties: false
-      required: [actual, nueva]
-      properties:
-        actual: {type: string, maxLength: 128}
-        nueva: {type: string, minLength: 12, maxLength: 128}
-    TemporaryPassword:
-      type: object
-      additionalProperties: false
-      required: [password_temporal]
-      properties:
-        password_temporal: {type: string, minLength: 16, maxLength: 16}
     MeProfile:
       type: object
       additionalProperties: false
@@ -3373,11 +3427,10 @@ components:
     AdminAccountCreate:
       type: object
       additionalProperties: false
-      required: [persona_id, correo, password, roles]
+      required: [persona_id, correo, roles]
       properties:
         persona_id: {type: string, format: uuid}
         correo: {type: string, maxLength: 254}
-        password: {type: string, minLength: 12, maxLength: 128}
         roles:
           type: array
           minItems: 1
@@ -3391,7 +3444,6 @@ components:
           minItems: 1
           items: {type: string, enum: [DOCENTE, ENCARGADO, ESTUDIANTE, DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA, ADMINISTRADOR]}
         activa: {type: boolean}
-        password: {type: string, minLength: 12, maxLength: 128}
     AdminCareer:
       type: object
       required: [id, codigo, nombre]

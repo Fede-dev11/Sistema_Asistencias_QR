@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: geoasist-auth
+  datasource:
+    url: ${AUTH_DATABASE_URL:jdbc:postgresql://localhost:5433/geoasist_auth}
+    username: ${POSTGRES_USER:geoasist}
+    password: ${POSTGRES_PASSWORD}
+  flyway:
+    locations: classpath:db/migration
+  servlet:
+    multipart:
+      max-file-size: 3MB
+      max-request-size: 4MB
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+server:
+  port: ${AUTH_PORT:8081}
+  error:
+    include-message: never
+    include-stacktrace: never
+sso:
+  ticket-ttl: 10s
+  session-idle: 8h
+  session-max: 24h
+  cookie-secure: ${SSO_COOKIE_SECURE:false}
+  initial-password: ${DEV_SEED_PASSWORD:}
+  service-key: ${SSO_SERVICE_KEY:}
+  # URLs de retorno del cliente web (separadas por coma); solo la semilla de desarrollo las usa
+  web-return: ${SSO_WEB_RETURN:http://localhost:3000/auth/callback}
+  login-limit-email: 5
+  login-limit-ip: 50
+  # '-' desactiva la limpieza programada (pruebas)
+  retention-cron: ${SSO_RETENTION_CRON:0 30 3 * * *}
+logging:
+  pattern:
+    # FR-006: ticket, password y CASTGC nunca aparecen en registros
+    console: '%d{HH:mm:ss.SSS} %-5level %logger{36} - %replace(%msg){''(ticket|password|CASTGC)=[^&\s;]*'',''$1=***''}%n'

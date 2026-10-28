@@ -5,6 +5,24 @@ Incluye QR dinámico, invitados precargados, revisión responsable, reportes por
 conservación de cinco años con anonimización y restauración aislada. Usa datos ficticios de
 desarrollo; la integración CAS y la validación en dispositivos/institución permanecen pendientes.
 
+### Ingreso y componentes
+
+El ingreso se hace por el servicio de autenticación universitario (SSO, subconjunto simulado de CAS 3.0
+en desarrollo): en la web y en la app, el botón "Ingresar con cuenta universitaria" envía al usuario a
+`http://localhost:8081` y, al volver, la API valida el ticket con `POST /auth/cas`. El inicio de sesión
+local con contraseña (`POST /auth/login`) solo existe si `GEOASIST_LOCAL_LOGIN=true`, valor por defecto
+`false` en `.env.example`.
+
+| Componente | Puerto local |
+|---|---|
+| Web (Next.js) | 3000 |
+| API (GeoAsist) | 8080 |
+| Servicio de autenticación (`services/auth`) | 8081 |
+| PostgreSQL de desarrollo | 5433 |
+
+Arranque con el servicio de autenticación y la API en Docker, y configuración de `SSO_*`: ver
+[la sección del servicio simulado en la guía de infraestructura](infra/README.md#servicio-de-autenticación-simulado-004).
+
 ### Ejecutar y comprobar el incremento
 
 Requiere Java 21, Node 22.20.0 y Docker. Maven 3.9.11 y las dependencias de cada cliente están

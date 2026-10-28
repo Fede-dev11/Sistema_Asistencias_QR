@@ -1,13 +1,12 @@
 package ec.edu.unl.geoasist.academico.aplicacion;
 
 import ec.edu.unl.geoasist.academico.persistencia.AcademicRepository;
+import ec.edu.unl.geoasist.compartido.aplicacion.AcademicAudit;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
 import ec.edu.unl.geoasist.compartido.dominio.Cedula;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import java.nio.charset.*;
 import java.util.*;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,18 +31,10 @@ public class CsvImport {
 
   private final AcademicRepository repo;
   private final AcademicAudit audit;
-  private final PasswordEncoder passwords;
-  private final String password;
 
-  public CsvImport(
-      AcademicRepository repo,
-      AcademicAudit audit,
-      PasswordEncoder passwords,
-      @Value("${geoasist.dev.import-password:${geoasist.dev-seed-password:}}") String password) {
+  public CsvImport(AcademicRepository repo, AcademicAudit audit) {
     this.repo = repo;
     this.audit = audit;
-    this.passwords = passwords;
-    this.password = password;
   }
 
   /** Lector CSV: UTF-8, comillas dobles con escape "", separador "," o ";" según el encabezado. */
@@ -121,10 +112,7 @@ public class CsvImport {
             .equals(expected))
       throw new ApiFailure(
           400, "ENCABEZADO_INVALIDO", "El encabezado debe ser " + String.join(",", expected) + ".");
-    if (!kind.equals("enrollments") && password.length() < 12)
-      throw new ApiFailure(409, "CONFIGURACION_INCOMPLETA", "Falta geoasist.dev.import-password.");
     Counter c = new Counter();
-    String hash = kind.equals("enrollments") ? null : passwords.encode(password);
     for (int i = 1; i < rows.size(); i++) {
       var r = rows.get(i);
       int line = i + 1;
@@ -134,7 +122,7 @@ public class CsvImport {
       }
       try {
         if (kind.equals("enrollments")) enrollment(r, c);
-        else person(r, kind.equals("students") ? "ESTUDIANTE" : r.get(3).strip(), hash, c);
+        else person(r, kind.equals("students") ? "ESTUDIANTE" : r.get(3).strip(), c);
       } catch (ApiFailure e) {
         c.rejected.add(new Rejection(line, e.getMessage()));
       }
@@ -163,7 +151,7 @@ public class CsvImport {
     return new ApiFailure(400, "FILA_INVALIDA", why);
   }
 
-  private void person(List<String> r, String role, String hash, Counter c) {
+  private void person(List<String> r, String role, Counter c) {
     String cedula;
     try {
       cedula = Cedula.of(r.get(0)).value();
@@ -203,7 +191,7 @@ public class CsvImport {
     UUID account;
     if (byMail.isPresent()) account = repo.accountByEmail(mail).orElseThrow();
     else {
-      account = repo.insertAccount(person, mail, hash);
+      account = repo.insertAccount(person, mail);
       changed = true;
     }
     if (repo.addRole(account, role)) changed = true;

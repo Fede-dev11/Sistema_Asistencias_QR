@@ -148,6 +148,8 @@ hora; verificar inicio, cierre y ausencias generadas.
 
 ### Historia de usuario 5 — Cuenta propia y sesión prolongada (Prioridad: P2)
 
+> **Reemplazada en parte por la feature 004 (SSO, FR-017)**: el cambio de contraseña propio (`PUT /me/password`), el restablecimiento por el administrador (`POST /admin/accounts/{id}/password-reset`) y el cambio obligatorio fueron retirados; la renovación de sesión se mantiene.
+
 El usuario cambia su contraseña, el administrador puede restablecerla y la app mantiene la
 sesión renovando el acceso sin pedir credenciales cada 8 horas, hasta un máximo de 30 días.
 
