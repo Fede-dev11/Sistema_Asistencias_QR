@@ -33,3 +33,11 @@ geoasist:
   dev-seed-password: ${DEV_SEED_PASSWORD:}
   allowed-origin: ${WEB_ORIGIN:http://localhost:3000}
   geography-enabled: false
+  auth:
+    local-login: ${GEOASIST_LOCAL_LOGIN:false}
+  sso:
+    internal-url: ${SSO_INTERNAL_URL:http://localhost:8081}
+    public-url: ${SSO_PUBLIC_URL:http://localhost:8081}
+    service-key: ${SSO_SERVICE_KEY:}
+    web-service: ${SSO_WEB_SERVICE:http://localhost:3000/auth/callback}
+    mobile-service-prefix: ${SSO_MOBILE_SERVICE_PREFIX:geoasist://auth/callback}

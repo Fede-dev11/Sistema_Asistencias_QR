@@ -2,4 +2,4 @@
 *.jar binary
 *.cmd text eol=crlf whitespace=cr-at-eol
 
-apps/*/src/generated/api.ts text eol=lf
+apps/*/src/generated/* text eol=lf

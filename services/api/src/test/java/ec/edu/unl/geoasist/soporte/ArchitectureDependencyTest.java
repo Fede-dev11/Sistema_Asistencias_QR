@@ -44,6 +44,23 @@ class ArchitectureDependencyTest {
     for (String node : graph.keySet()) visit(node, graph, new LinkedHashSet<>(), finished);
   }
 
+  @Test
+  void onlyIdentidadesUsesCasProviderOrRestClient() throws Exception {
+    Path root = Path.of("src/main/java/ec/edu/unl/geoasist");
+    var forbidden =
+        Pattern.compile(
+            "(?m)^import (?:static )?(?:[\\w.]*[.]CasIdentityProvider|org[.]springframework[.]web[.]client[.]RestClient)[;.\\s]");
+    try (var files = Files.walk(root)) {
+      for (Path file : files.filter(p -> p.toString().endsWith(".java")).toList()) {
+        String source = Files.readString(file);
+        var declaration =
+            Pattern.compile("(?m)^package ec[.]edu[.]unl[.]geoasist[.]([a-z]+)").matcher(source);
+        if (!declaration.find() || declaration.group(1).equals("identidades")) continue;
+        assertFalse(forbidden.matcher(source).find(), file.toString());
+      }
+    }
+  }
+
   private static void visit(
       String node, Map<String, Set<String>> graph, Set<String> active, Set<String> finished) {
     if (finished.contains(node)) return;

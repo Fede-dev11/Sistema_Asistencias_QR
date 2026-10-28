@@ -11,7 +11,7 @@ UUID sintéticos: prefijo `00000000-0000-0000-0000-` seguido de doce dígitos. C
 
 Semillas de 002 (solo `dev`): administrador `admin@dev.geoasist.local` (persona 108, cuenta 208, rol ADMINISTRADOR, misma contraseña local). Espacio 501 "UNL" (-4.0328, -79.2026). Matrículas: personas 102 y 107 en paralelo 11, persona 106 en paralelo 12. Docentes de paralelo: cuenta 200 en paralelo 11, cuenta 205 en paralelo 12. Las cédulas sembradas son ficticias pero cumplen el módulo 10 (`0100000017` a `0100000082` para las personas 100..107, `2400000002` para la 108).
 
-Los listados de invitados se precargan mediante la operación contractual; no se publican ni se habilitan por defecto. Para capturar QR o elegir sesión en este incremento se utiliza el ID de sesión sembrado: todavía no existe un endpoint de descubrimiento de sesiones.
+Los listados de invitados se precargan mediante la operación contractual; no se publican ni se habilitan por defecto. Las sesiones se consultan con `GET /api/v1/activities/{id}/sessions` (responsable) y `GET /api/v1/me/active-sessions` (participante).
 
 No borrar volúmenes de Docker para reiniciar pruebas: Testcontainers usa una base independiente efímera. `.env` nunca se incluye en backups compartidos ni en Git.
 
@@ -23,3 +23,44 @@ las sesiones de actividades con `ciclo_automatico` y reintenta cada 60 s un inic
 `./mvnw -B test -DexcludedGroups= -Dgroups=performance -Dtest=StatsPerformanceTest`.
 
 Importación CSV (002, solo `dev`): `POST /api/v1/admin/imports/students` como administrador; requiere `geoasist.dev.import-password` (o `geoasist.dev-seed-password`), de lo contrario responde 409 `CONFIGURACION_INCOMPLETA`.
+
+## Servicio de autenticación simulado (004)
+
+`services/auth` es un subconjunto simulado de CAS 3.0 que hace de SSO local mientras no existe el servicio institucional. Es un servicio independiente con su propia base `geoasist_auth` y escucha en el puerto `8081`. La decisión de arquitectura está en `docs/adr/0006-servicio-autenticacion-simulado.md` (estado: Propuesto, pendiente de aprobación).
+
+### Arranque
+
+Se levanta junto con el resto de servicios (perfil `api`):
+
+```sh
+docker compose --env-file .env -f infra/docker-compose.yml --profile api up -d --build --wait
+```
+
+Variables necesarias en `.env` (ver `.env.example`):
+
+- `SSO_SERVICE_KEY`: clave de los servicios registrados; obligatoria para `auth` y para la API.
+- `SSO_PUBLIC_URL`: URL del SSO que usa el navegador (por defecto `http://localhost:8081`).
+- `AUTH_PORT`: puerto del servicio de autenticación (por defecto `8081`).
+- `NEXT_PUBLIC_SSO_URL`: URL del SSO para la aplicación web (`http://localhost:8081`).
+
+`infra/db-init/01-auth-db.sql` crea la base `geoasist_auth` y solo se ejecuta al crear un volumen de Postgres nuevo. Si el volumen ya existe, créala a mano:
+
+```sh
+docker compose --env-file .env -f infra/docker-compose.yml exec db psql -U geoasist -c "CREATE DATABASE geoasist_auth"
+```
+
+### Cuentas de desarrollo y administración
+
+- Las cuentas de `dev` usan los mismos correos y cédulas que las semillas de GeoAsist. La contraseña es el valor de `DEV_SEED_PASSWORD`.
+- Administración HTML: `http://localhost:8081/admin/login` con `admin@dev.geoasist.local`.
+- Servicios registrados en `dev`: `geoasist-web` (`http://localhost:3000/auth/callback`), `geoasist-movil` (`geoasist://auth/callback`) y `ejemplo` (`http://localhost:8082/`).
+
+### Apuntar GeoAsist a otro servicio CAS
+
+1. Cambiar `SSO_INTERNAL_URL` (dirección que usa la API para validar tickets), `SSO_PUBLIC_URL` (dirección que usa el navegador) y `SSO_SERVICE_KEY`.
+2. Registrar en ese servicio las URL de retorno de GeoAsist (`geoasist-web` y `geoasist-movil`).
+3. Si el protocolo institucional es distinto, solo cambia `CasIdentityProvider` en `services/api/src/main/java/ec/edu/unl/geoasist/identidades/aplicacion/`. El dominio depende únicamente del puerto `IdentityProvider`.
+
+### Inicio de sesión local (`GEOASIST_LOCAL_LOGIN`)
+
+`GEOASIST_LOCAL_LOGIN` vale `false` por defecto: `POST /auth/login` de GeoAsist responde 404 y el ingreso es solo por SSO. Las pruebas automáticas lo activan para obtener tokens por contraseña.

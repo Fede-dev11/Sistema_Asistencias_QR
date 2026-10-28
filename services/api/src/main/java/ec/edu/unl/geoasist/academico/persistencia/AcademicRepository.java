@@ -98,9 +98,9 @@ public class AcademicRepository {
     return !db.queryForList("SELECT 1 FROM cuentas WHERE id=?", id).isEmpty();
   }
 
-  public UUID insertAccount(UUID person, String email, String hash) {
+  public UUID insertAccount(UUID person, String email) {
     UUID id = UUID.randomUUID();
-    db.update("INSERT INTO cuentas VALUES (?,?,'DEV',?,?,true)", id, person, email, hash);
+    db.update("INSERT INTO cuentas VALUES (?,?,'CAS',?,NULL,true)", id, person, email);
     return id;
   }
 
@@ -121,14 +121,6 @@ public class AcademicRepository {
 
   public void setActive(UUID account, boolean active) {
     db.update("UPDATE cuentas SET activa=? WHERE id=?", active, account);
-  }
-
-  public void setPassword(UUID account, String hash) {
-    db.update("UPDATE cuentas SET password_hash=? WHERE id=?", hash, account);
-  }
-
-  public void requirePasswordChange(UUID account) {
-    db.update("UPDATE cuentas SET debe_cambiar_password=true WHERE id=?", account);
   }
 
   public void revokeSessions(UUID account, java.sql.Timestamp now) {

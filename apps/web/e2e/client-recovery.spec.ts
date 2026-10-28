@@ -1,18 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { ssoLogin } from './sso';
 
 test('recupera QR activo al autenticarse otra vez y logout elimina la sesión local', async ({ page }) => {
   test.setTimeout(90_000);
   const fixture = JSON.parse(execFileSync('python3', [fileURLToPath(new URL('../../../tests/fixtures/create-activity.py', import.meta.url)), 'EVENTO'], { encoding: 'utf8' })) as { activity: string; session: string };
-  const password = process.env.DEV_SEED_PASSWORD;
-  if (!password) throw new Error('Falta credencial ficticia');
   async function login() {
-    await page.goto('/login');
-    await page.getByLabel('Correo', { exact: true }).fill('encargado@example.test');
-    await page.getByLabel('Contraseña', { exact: true }).fill(password!);
-    await page.getByRole('button', { name: 'Ingresar', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Sesión iniciada' })).toBeVisible();
+    await ssoLogin(page, 'encargado@example.test');
     await page.getByRole('link', { name: 'Gestionar actividades' }).click();
     await page.getByLabel('Actividad', { exact: true }).selectOption(fixture.activity);
     await page.getByLabel('Código de sesión', { exact: true }).fill(fixture.session);
@@ -27,5 +22,5 @@ test('recupera QR activo al autenticarse otra vez y logout elimina la sesión lo
   await page.getByRole('link', { name: 'UNL · GeoAsist' }).click();
   await page.getByRole('link', { name: 'Ingresar con credenciales' }).click();
   await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
-  await expect(page.getByLabel('Correo', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ingresar con cuenta universitaria' })).toBeVisible();
 });

@@ -10,9 +10,46 @@ export interface paths {
         put?: never;
         /**
          * Iniciar sesión con credenciales
-         * @description Proveedor local semilla solo en desarrollo; CAS detrás del proveedor de identidad queda pendiente de confirmación institucional. Bearer opaco revocable respaldado en PostgreSQL; sin JWT ni almacenamiento web persistente.
+         * @description Solo para pruebas o desarrollo sin red. Devuelve 404 cuando geoasist.auth.local-login=false (valor predeterminado). Bearer opaco revocable respaldado en PostgreSQL.
          */
         post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/cas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Canjear un ticket universitario por una sesión de GeoAsist
+         * @description Valida y consume el ticket CAS para el mismo service, sincroniza la cuenta y emite un bearer opaco.
+         */
+        post: operations["loginWithCas"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/sso-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Obtener las URLs públicas del SSO */
+        get: operations["getSsoConfiguration"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -50,7 +87,7 @@ export interface paths {
         put?: never;
         /**
          * Renovar la sesión por 8 horas rotando el secreto
-         * @description Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401 RENOVACION_VENCIDA si pasaron más de 30 días desde el login original.
+         * @description Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401 RENOVACION_VENCIDA si pasaron más de 30 días desde el login original. Para cuentas CAS consulta al SSO si la cuenta sigue activa; si no, revoca la sesión y responde 403 CUENTA_INACTIVA; si el SSO no responde falla cerrado con 502 SSO_NO_DISPONIBLE.
          */
         post: operations["renewSession"];
         delete?: never;
@@ -76,46 +113,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/me/password": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Cambiar la contraseña propia
-         * @description Mínimo 12 caracteres y distinta de la actual (400 PASSWORD_DEBIL). Actual incorrecta (400 PASSWORD_ACTUAL_INCORRECTA) cuenta para el límite de login. Cierra las demás sesiones.
-         */
-        put: operations["changeMyPassword"];
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/admin/accounts/{accountId}/password-reset": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Restablecer contraseña con una temporal de un solo uso (ADMINISTRADOR)
-         * @description Genera 16 caracteres aleatorios mostrados una vez, revoca las sesiones de la cuenta y exige cambio en el siguiente ingreso.
-         */
-        post: operations["adminResetPassword"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/activities": {
         parameters: {
             query?: never;
@@ -130,8 +127,8 @@ export interface paths {
         get: operations["listActivities"];
         put?: never;
         /**
-         * Crear una clase (con horario recurrente opcional)
-         * @description DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). La modalidad EVENTO aún no se acepta aquí.
+         * Crear una clase o un evento
+         * @description DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). Con modalidad EVENTO (DOCENTE o ENCARGADO) exige acceso CERRADO o ABIERTO, inicio y fin, y crea una sesión programada y la configuración de invitados (tolerancia_invitado_segundos, por defecto 120).
          */
         post: operations["createActivity"];
         delete?: never;
@@ -1214,6 +1211,22 @@ export interface components {
             /** Format: password */
             password: string;
         };
+        CasLoginRequest: {
+            /** @description Ticket CAS de un solo uso; nunca se registra. */
+            ticket: string;
+            /** Format: uri */
+            service: string;
+        };
+        SsoConfiguration: {
+            /** Format: uri */
+            login_url: string;
+            /** Format: uri */
+            logout_url: string;
+            /** Format: uri */
+            web_service: string;
+            /** Format: uri */
+            mobile_service_prefix: string;
+        };
         LoginResult: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             access_token: string;
@@ -1222,15 +1235,8 @@ export interface components {
             /** Format: date-time */
             vence_en: string;
             roles: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
-            /** @description true si solo puede usar PUT /me/password, GET /me y logout. */
+            /** @description Siempre false para cuentas CAS (conservado por compatibilidad). */
             debe_cambiar_password?: boolean;
-        };
-        PasswordChange: {
-            actual: string;
-            nueva: string;
-        };
-        TemporaryPassword: {
-            password_temporal: string;
         };
         MeProfile: {
             /** Format: uuid */
@@ -1629,13 +1635,11 @@ export interface components {
             /** Format: uuid */
             persona_id: string;
             correo: string;
-            password: string;
             roles: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
         };
         AdminAccountPatch: {
             roles?: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
             activa?: boolean;
-            password?: string;
         };
         AdminCareer: {
             /** Format: uuid */
@@ -2121,7 +2125,125 @@ export interface operations {
             };
             400: components["responses"]["BadRequest"];
             401: components["responses"]["Unauthorized"];
+            404: components["responses"]["NotFound"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    loginWithCas: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CasLoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Ticket válido y sesión creada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginResult"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            /** @description Ticket inválido, usado, vencido o de otro servicio (TICKET_INVALIDO). */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:ticket-invalido",
+                     *       "title": "Ticket inválido",
+                     *       "status": 401,
+                     *       "code": "TICKET_INVALIDO",
+                     *       "mensaje": "Ticket inválido."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Cuenta universitaria inactiva (CUENTA_INACTIVA). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:cuenta-inactiva",
+                     *       "title": "Cuenta inactiva",
+                     *       "status": 403,
+                     *       "code": "CUENTA_INACTIVA",
+                     *       "mensaje": "Cuenta inactiva."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Identidad no provisionable (IDENTIDAD_INVALIDA). */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:identidad-invalida",
+                     *       "title": "Identidad inválida",
+                     *       "status": 422,
+                     *       "code": "IDENTIDAD_INVALIDA",
+                     *       "mensaje": "Identidad inválida."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description Servicio universitario no disponible (SSO_NO_DISPONIBLE). */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:sso-no-disponible",
+                     *       "title": "SSO no disponible",
+                     *       "status": 502,
+                     *       "code": "SSO_NO_DISPONIBLE",
+                     *       "mensaje": "SSO no disponible."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+        };
+    };
+    getSsoConfiguration: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Configuración para clientes web y móvil. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SsoConfiguration"];
+                };
+            };
         };
     };
     logout: {
@@ -2133,12 +2255,17 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Sesión revocada. */
-            204: {
+            /** @description Sesión revocada; incluye la URL para cerrar también la sesión universitaria. */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        /** Format: uri */
+                        sso_logout_url: string;
+                    };
+                };
             };
             401: components["responses"]["Unauthorized"];
             429: components["responses"]["RateLimited"];
@@ -2163,6 +2290,33 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
+            /** @description Cuenta universitaria inactiva (CUENTA_INACTIVA). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    /**
+                     * @example {
+                     *       "type": "urn:unl:problem:cuenta-inactiva",
+                     *       "title": "Cuenta inactiva",
+                     *       "status": 403,
+                     *       "code": "CUENTA_INACTIVA",
+                     *       "mensaje": "Cuenta inactiva."
+                     *     }
+                     */
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            /** @description SSO no disponible (SSO_NO_DISPONIBLE); no se renueva. */
+            502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
         };
     };
     getMe: {
@@ -2184,56 +2338,6 @@ export interface operations {
                 };
             };
             401: components["responses"]["Unauthorized"];
-        };
-    };
-    changeMyPassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PasswordChange"];
-            };
-        };
-        responses: {
-            /** @description Contraseña cambiada. */
-            204: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            400: components["responses"]["BadRequest"];
-            401: components["responses"]["Unauthorized"];
-            429: components["responses"]["RateLimited"];
-        };
-    };
-    adminResetPassword: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                accountId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Contraseña temporal. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TemporaryPassword"];
-                };
-            };
-            401: components["responses"]["Unauthorized"];
-            403: components["responses"]["Forbidden"];
-            404: components["responses"]["NotFound"];
         };
     };
     listActivities: {

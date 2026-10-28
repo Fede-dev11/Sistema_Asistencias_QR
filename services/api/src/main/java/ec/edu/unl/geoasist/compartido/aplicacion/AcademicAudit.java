@@ -1,4 +1,4 @@
-package ec.edu.unl.geoasist.academico.aplicacion;
+package ec.edu.unl.geoasist.compartido.aplicacion;
 
 import java.time.Clock;
 import java.util.*;
@@ -36,7 +36,7 @@ public class AcademicAudit {
         entity,
         entityId,
         java.sql.Timestamp.from(clock.instant()),
-        ec.edu.unl.geoasist.compartido.aplicacion.RequestCorrelation.id(),
+        RequestCorrelation.id(),
         json.writeValueAsString(before),
         json.writeValueAsString(after));
   }
