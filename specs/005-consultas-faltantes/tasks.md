@@ -39,7 +39,7 @@ Convenciones `API`, `APIT`, `YAML` como en [004 tasks](../004-autenticacion-sso/
 
 - [X] T017 [P] Identificar las pruebas web (1) y móviles (2) que fallan bajo carga (correr `npm test` 5 veces con `mvnw verify` en paralelo, anotar nombres) y corregir su causa (esperas por tiempo fijo, timers no controlados); no subir solo los timeouts
 - [X] T018 [P] Actualizar `infra/README.md` (cómo registrar evidencia de GPS) y regenerar `/documentacion`
-- [ ] T019 Verificación completa: `services/api` y `services/auth` `spotless:check verify`, contrato `validate && check`, web y móvil lint/typecheck/test, Playwright; comprobar SC-001 listando en `api-docs.json` las rutas con PUT/PATCH sin GET (debe dar cero); resultados reales en `docs/validation/revision-incremento-005.md`
+- [X] T019 Verificación completa: `services/api` y `services/auth` `spotless:check verify`, contrato `validate && check`, web y móvil lint/typecheck/test, Playwright; comprobar SC-001 listando en `api-docs.json` las rutas con PUT/PATCH sin GET (debe dar cero); resultados reales en `docs/validation/revision-incremento-005.md`
 
 ## Dependencies
 
