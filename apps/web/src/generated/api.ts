@@ -832,6 +832,32 @@ export interface paths {
         patch: operations["updateSpace"];
         trace?: never;
     };
+    "/spaces/{spaceId}/geo-evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Consultar evidencias geográficas de un espacio
+         * @description Historial inmutable ordenado desde la versión más reciente.
+         */
+        get: operations["listGeoEvidence"];
+        put?: never;
+        /**
+         * Registrar evidencia geográfica de campo
+         * @description Solo ADMINISTRADOR. Crea la versión siguiente; no se puede editar ni eliminar. Requiere que el espacio tenga coordenadas.
+         */
+        post: operations["createGeoEvidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activities/{activityId}/cancel": {
         parameters: {
             query?: never;
@@ -1175,6 +1201,29 @@ export interface components {
             page: number;
             size: number;
             total: number;
+        };
+        GeoEvidence: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            espacio_id: string;
+            version: number;
+            referencia: string;
+            /** Format: date-time */
+            realizada_en: string;
+            /** Format: uuid */
+            responsable_id: string;
+            falsos_positivos: number;
+            falsos_negativos: number;
+            /** Format: date-time */
+            verificada_en: string;
+        };
+        GeoEvidenceCreate: {
+            referencia: string;
+            /** Format: date-time */
+            realizada_en: string;
+            falsos_positivos: number;
+            falsos_negativos: number;
         };
         CreateSpaceRequest: {
             codigo: string;
@@ -3894,6 +3943,72 @@ export interface operations {
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    listGeoEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evidencias del espacio. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoEvidence"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    createGeoEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GeoEvidenceCreate"];
+            };
+        };
+        responses: {
+            /** @description Evidencia registrada y auditada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoEvidence"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description ESPACIO_SIN_UBICACION. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
             429: components["responses"]["RateLimited"];
         };
     };

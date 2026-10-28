@@ -30,10 +30,10 @@ Convenciones `API`, `APIT`, `YAML` como en [004 tasks](../004-autenticacion-sso/
 
 ## Phase 4: US3 — Evidencia de GPS en campo (P2)
 
-- [ ] T013 [P] [US3] `APIT/espacios/GeoEvidenceTest.java`: US3-1 a US3-5 (alta con versión siguiente y auditoría; tasas fuera de 0–1, referencia vacía, fecha futura → 400; no ADMINISTRADOR → 403; espacio sin coordenadas → 409 `ESPACIO_SIN_UBICACION`; sin endpoint de edición ni borrado)
-- [ ] T014 [P] [US3] Caso en `APIT/sesiones/VerificationMethodTest.java` o `GeolocationReadTest.java`: sin evidencia → REVIEW_ONLY; tras registrar evidencia, nueva configuración → AUTO (SC-003)
-- [ ] T015 [US3] `API/espacios/aplicacion/GeoEvidence.java` (alta en transacción con `version = max+1`, `responsable_id` = actor, `verificada_en` = ahora, auditoría en `auditoria_espacios`) y lectura por espacio
-- [ ] T016 [US3] `POST/GET /spaces/{id}/geo-evidence` en `API/espacios/presentacion/SpaceController.java`; YAML (`GeoEvidence`, `GeoEvidenceCreate`), roles en `docs.mjs` (POST: Administrador; GET: Docente, Encargado, Administrador); `npm run validate && npm run generate`
+- [X] T013 [P] [US3] `APIT/espacios/GeoEvidenceTest.java`: US3-1 a US3-5 (alta con versión siguiente y auditoría; tasas fuera de 0–1, referencia vacía, fecha futura → 400; no ADMINISTRADOR → 403; espacio sin coordenadas → 409 `ESPACIO_SIN_UBICACION`; sin endpoint de edición ni borrado)
+- [X] T014 [P] [US3] Caso en `APIT/sesiones/VerificationMethodTest.java` o `GeolocationReadTest.java`: sin evidencia → REVIEW_ONLY; tras registrar evidencia, nueva configuración → AUTO (SC-003)
+- [X] T015 [US3] `API/espacios/aplicacion/GeoEvidence.java` (alta en transacción con `version = max+1`, `responsable_id` = actor, `verificada_en` = ahora, auditoría en `auditoria_espacios`) y lectura por espacio
+- [X] T016 [US3] `POST/GET /spaces/{id}/geo-evidence` en `API/espacios/presentacion/SpaceController.java`; YAML (`GeoEvidence`, `GeoEvidenceCreate`), roles en `docs.mjs` (POST: Administrador; GET: Docente, Encargado, Administrador); `npm run validate && npm run generate`
 
 ## Phase 5: Polish y estabilidad
 
