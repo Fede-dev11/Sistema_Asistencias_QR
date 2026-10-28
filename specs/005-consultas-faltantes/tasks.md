@@ -9,7 +9,7 @@ Convenciones `API`, `APIT`, `YAML` como en [004 tasks](../004-autenticacion-sso/
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirmar rama `feature/005-consultas-faltantes` (desde 004) y `.specify/feature.json` → `specs/005-consultas-faltantes`
+- [X] T001 Confirmar rama `feature/005-consultas-faltantes` (desde 004) y `.specify/feature.json` → `specs/005-consultas-faltantes`
 
 ## Phase 2: US1 — Ver el estado actual antes de editar (P1) 🎯 MVP
 
