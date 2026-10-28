@@ -31,17 +31,14 @@ public class AdminController {
   public record NameBody(@NotBlank String nombres) {}
 
   public record AccountBody(
-      @NotNull UUID persona_id,
-      @NotBlank String correo,
-      @NotBlank String password,
-      @NotNull List<String> roles) {
+      @NotNull UUID persona_id, @NotBlank String correo, @NotNull List<String> roles) {
     @Override
     public String toString() {
       return "AccountBody[datos omitidos]";
     }
   }
 
-  public record AccountPatch(List<String> roles, Boolean activa, String password) {
+  public record AccountPatch(List<String> roles, Boolean activa) {
     @Override
     public String toString() {
       return "AccountPatch[datos omitidos]";
@@ -98,9 +95,7 @@ public class AdminController {
       @AuthenticationPrincipal UserSession user,
       @RequestHeader("Idempotency-Key") UUID key,
       @Valid @RequestBody AccountBody body) {
-    return reply(
-        people.createAccount(
-            user, key, body.persona_id(), body.correo(), body.password(), body.roles()));
+    return reply(people.createAccount(user, key, body.persona_id(), body.correo(), body.roles()));
   }
 
   @PatchMapping("/accounts/{accountId}")
@@ -108,13 +103,7 @@ public class AdminController {
       @AuthenticationPrincipal UserSession user,
       @PathVariable UUID accountId,
       @RequestBody AccountPatch body) {
-    return people.updateAccount(user, accountId, body.roles(), body.activa(), body.password());
-  }
-
-  @PostMapping("/accounts/{accountId}/password-reset")
-  public Map<String, Object> resetPassword(
-      @AuthenticationPrincipal UserSession user, @PathVariable UUID accountId) {
-    return people.resetPassword(user, accountId);
+    return people.updateAccount(user, accountId, body.roles(), body.activa());
   }
 
   @GetMapping("/careers")
