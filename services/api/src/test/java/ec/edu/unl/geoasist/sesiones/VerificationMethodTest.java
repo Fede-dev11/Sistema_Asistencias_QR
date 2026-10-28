@@ -54,7 +54,8 @@ public class VerificationMethodTest extends ClassSupport {
             session));
     db.update(
         "INSERT INTO evidencias_geograficas(id,espacio_id,version,referencia,realizada_en,responsable_id,falsos_positivos,falsos_negativos,verificada_en) VALUES (?,?::uuid,1,'Ensayo',now(),(SELECT id FROM cuentas LIMIT 1),0,0,now())",
-        UUID.randomUUID(), isolatedSpace);
+        UUID.randomUUID(),
+        isolatedSpace);
     enableGps(db, session);
     assertEquals(
         "AUTO",

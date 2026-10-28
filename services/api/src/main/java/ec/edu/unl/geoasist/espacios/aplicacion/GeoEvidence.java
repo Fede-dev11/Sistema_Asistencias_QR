@@ -18,7 +18,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class GeoEvidence {
   public record Command(
-      String reference, Instant performedAt, BigDecimal falsePositives, BigDecimal falseNegatives) {}
+      String reference,
+      Instant performedAt,
+      BigDecimal falsePositives,
+      BigDecimal falseNegatives) {}
 
   private final JdbcTemplate db;
   private final Clock clock;
@@ -37,7 +40,8 @@ public class GeoEvidence {
     Instant now = clock.instant();
     validate(reference, command, now);
     var space =
-        db.query(
+        db
+            .query(
                 "SELECT latitud,longitud FROM espacios WHERE id=? FOR UPDATE",
                 (row, n) -> new Object[] {row.getObject(1), row.getObject(2)},
                 spaceId)
