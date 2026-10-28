@@ -142,6 +142,24 @@ public class AdminController {
     return reply(academic.createParallel(user, key, careerId, body.codigo()));
   }
 
+  @GetMapping("/parallels/{parallelId}/enrollments")
+  public Map<String, Object> listEnrollments(
+      @AuthenticationPrincipal UserSession user,
+      @PathVariable UUID parallelId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    return academic.enrollmentPage(user, parallelId, page, size);
+  }
+
+  @GetMapping("/parallels/{parallelId}/teachers")
+  public Map<String, Object> listTeachers(
+      @AuthenticationPrincipal UserSession user,
+      @PathVariable UUID parallelId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    return academic.teacherPage(user, parallelId, page, size);
+  }
+
   @PutMapping("/parallels/{parallelId}/enrollments")
   public Map<String, Object> enrollments(
       @AuthenticationPrincipal UserSession user,
