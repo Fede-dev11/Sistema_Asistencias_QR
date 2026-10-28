@@ -64,3 +64,26 @@ docker compose --env-file .env -f infra/docker-compose.yml exec db psql -U geoas
 ### Inicio de sesión local (`GEOASIST_LOCAL_LOGIN`)
 
 `GEOASIST_LOCAL_LOGIN` vale `false` por defecto: `POST /auth/login` de GeoAsist responde 404 y el ingreso es solo por SSO. Las pruebas automáticas lo activan para obtener tokens por contraseña.
+
+## Evidencia de GPS en campo (005)
+
+Por qué importa: una sesión con GPS habilitado usa el modo `AUTO` solo si su espacio tiene evidencia geográfica registrada; sin evidencia queda en `REVIEW_ONLY` (revisión manual).
+
+- **Quién registra**: solo `ADMINISTRADOR`.
+- **Quién lee**: `DOCENTE`, `ENCARGADO` y `ADMINISTRADOR`.
+- **Requisito**: el espacio debe tener coordenadas (latitud y longitud); si no, la API responde 409 `ESPACIO_SIN_UBICACION`.
+- **Endpoint**: `POST /api/v1/spaces/{spaceId}/geo-evidence` (lectura: `GET` en la misma ruta).
+- **Cuerpo** (`GeoEvidenceCreate`, sin campos adicionales):
+  - `referencia`: texto de 1 a 500 caracteres (documento del ensayo).
+  - `realizada_en`: fecha y hora ISO 8601; no puede estar en el futuro.
+  - `falsos_positivos` y `falsos_negativos`: números entre 0 y 1.
+- **Inmutable y versionada**: la evidencia no se edita ni se borra. Cada alta crea la versión siguiente y queda auditada; una corrección es una nueva versión. La lectura devuelve el historial desde la versión más reciente.
+
+Ejemplo (reemplazar `TOKEN` y `ESPACIO_ID`; los valores de ejemplo son ilustrativos):
+
+```sh
+curl -sS -X POST "http://localhost:8080/api/v1/spaces/ESPACIO_ID/geo-evidence" \
+  -H "Authorization: Bearer TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"referencia":"Ensayo de campo 2026-10","realizada_en":"2026-10-20T10:00:00Z","falsos_positivos":0.02,"falsos_negativos":0.05}'
+```
