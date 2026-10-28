@@ -2693,6 +2693,17 @@ components:
           items:
             type: string
             format: uuid
+        acceso:
+          type: string
+          enum: [CERRADO, ABIERTO]
+          nullable: true
+          description: Solo los eventos tienen acceso; las clases devuelven null.
+        espacio_id:
+          type: string
+          format: uuid
+        metodo_verificacion:
+          type: string
+          enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]
         ciclo_automatico: {type: boolean}
         umbral_asistencia: {type: number, minimum: 0, maximum: 100}
       required:
@@ -2701,6 +2712,9 @@ components:
       - tipo
       - estado
       - cerrada_en
+      - acceso
+      - espacio_id
+      - metodo_verificacion
       - anonimizar_en
       - responsable_id
       - carrera_ids

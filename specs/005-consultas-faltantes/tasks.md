@@ -25,8 +25,8 @@ Convenciones `API`, `APIT`, `YAML` como en [004 tasks](../004-autenticacion-sso/
 
 ## Phase 3: US2 — Contrato que coincide con la API (P1)
 
-- [ ] T011 [P] [US2] `APIT/actividades/ActivityContractTest.java`: `GET /activities/{id}` de una CLASE y de un EVENTO; el conjunto de claves de la respuesta es exactamente el declarado en `Activity` del YAML (leer el YAML en la prueba) y los tipos/nulabilidad coinciden
-- [ ] T012 [US2] YAML `Activity`: declarar `acceso` (CERRADO|ABIERTO, nullable), `espacio_id` (uuid, nullable), `metodo_verificacion` (enum) y cualquier otra clave real que T011 detecte; `npm run validate && npm run generate`; `npm run typecheck` en `apps/web` y `apps/mobile`
+- [X] T011 [P] [US2] `APIT/actividades/ActivityContractTest.java`: `GET /activities/{id}` de una CLASE y de un EVENTO; el conjunto de claves de la respuesta es exactamente el declarado en `Activity` del YAML (leer el YAML en la prueba) y los tipos/nulabilidad coinciden
+- [X] T012 [US2] YAML `Activity`: declarar `acceso` (CERRADO|ABIERTO, nullable), `espacio_id` (uuid, nullable), `metodo_verificacion` (enum) y cualquier otra clave real que T011 detecte; `npm run validate && npm run generate`; `npm run typecheck` en `apps/web` y `apps/mobile`
 
 ## Phase 4: US3 — Evidencia de GPS en campo (P2)
 
@@ -37,7 +37,7 @@ Convenciones `API`, `APIT`, `YAML` como en [004 tasks](../004-autenticacion-sso/
 
 ## Phase 5: Polish y estabilidad
 
-- [ ] T017 [P] Identificar las pruebas web (1) y móviles (2) que fallan bajo carga (correr `npm test` 5 veces con `mvnw verify` en paralelo, anotar nombres) y corregir su causa (esperas por tiempo fijo, timers no controlados); no subir solo los timeouts
+- [X] T017 [P] Identificar las pruebas web (1) y móviles (2) que fallan bajo carga (correr `npm test` 5 veces con `mvnw verify` en paralelo, anotar nombres) y corregir su causa (esperas por tiempo fijo, timers no controlados); no subir solo los timeouts
 - [ ] T018 [P] Actualizar `infra/README.md` (cómo registrar evidencia de GPS) y regenerar `/documentacion`
 - [ ] T019 Verificación completa: `services/api` y `services/auth` `spotless:check verify`, contrato `validate && check`, web y móvil lint/typecheck/test, Playwright; comprobar SC-001 listando en `api-docs.json` las rutas con PUT/PATCH sin GET (debe dar cero); resultados reales en `docs/validation/revision-incremento-005.md`
 

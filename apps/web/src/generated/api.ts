@@ -1274,6 +1274,15 @@ export interface components {
             responsable_id: string;
             carrera_ids: string[];
             paralelo_ids: string[];
+            /**
+             * @description Solo los eventos tienen acceso; las clases devuelven null.
+             * @enum {string|null}
+             */
+            acceso: "CERRADO" | "ABIERTO" | null;
+            /** Format: uuid */
+            espacio_id: string;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
             ciclo_automatico: boolean;
             umbral_asistencia: number;
         };
