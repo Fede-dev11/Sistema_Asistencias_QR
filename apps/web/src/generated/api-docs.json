@@ -3783,6 +3783,151 @@
       ]
     },
     {
+      "id": "listGeoEvidence",
+      "method": "GET",
+      "path": "/spaces/{spaceId}/geo-evidence",
+      "summary": "Consultar evidencias geográficas de un espacio",
+      "desc": "Historial inmutable ordenado desde la versión más reciente.",
+      "group": "spaces",
+      "roles": [
+        "doc",
+        "enc",
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "spaceId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Evidencias del espacio.",
+          "schema": "lista de GeoEvidence"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "createGeoEvidence",
+      "method": "POST",
+      "path": "/spaces/{spaceId}/geo-evidence",
+      "summary": "Registrar evidencia geográfica de campo",
+      "desc": "Solo ADMINISTRADOR. Crea la versión siguiente; no se puede editar ni eliminar. Requiere que el espacio tenga coordenadas.",
+      "group": "spaces",
+      "roles": [
+        "adm"
+      ],
+      "note": "La evidencia es inmutable; una corrección crea una versión nueva.",
+      "params": [
+        {
+          "name": "spaceId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "GeoEvidenceCreate",
+        "fields": [
+          {
+            "name": "referencia",
+            "type": "string",
+            "required": true,
+            "desc": "",
+            "rules": "mín. long. 1; máx. long. 500"
+          },
+          {
+            "name": "realizada_en",
+            "type": "string (date-time)",
+            "required": true,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "falsos_positivos",
+            "type": "number",
+            "required": true,
+            "desc": "",
+            "rules": "mín. 0; máx. 1"
+          },
+          {
+            "name": "falsos_negativos",
+            "type": "number",
+            "required": true,
+            "desc": "",
+            "rules": "mín. 0; máx. 1"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "201",
+          "desc": "Evidencia registrada y auditada.",
+          "schema": "GeoEvidence"
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "409",
+          "desc": "ESPACIO_SIN_UBICACION.",
+          "schema": "Problem"
+        },
+        {
+          "code": "429",
+          "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
       "id": "cancelActivity",
       "method": "POST",
       "path": "/activities/{activityId}/cancel",

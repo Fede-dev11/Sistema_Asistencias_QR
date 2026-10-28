@@ -27,8 +27,41 @@ public class VerificationMethodTest extends ClassSupport {
   /** Sin PostGIS en este fixture, la configuración se siembra directamente. */
   public static void enableGps(org.springframework.jdbc.core.JdbcTemplate db, String session) {
     db.update(
-        "INSERT INTO configuracion_geografica(sesion_id,habilitada,radio_m,precision_max_m,antiguedad_max_s,modo,configurada_por,configurada_en) VALUES (?::uuid,true,20,30,60,'REVIEW_ONLY',(SELECT id FROM cuentas LIMIT 1),now()) ON CONFLICT(sesion_id) DO UPDATE SET habilitada=true,radio_m=20,precision_max_m=30,antiguedad_max_s=60,modo='REVIEW_ONLY'",
+        "INSERT INTO configuracion_geografica(sesion_id,habilitada,radio_m,precision_max_m,antiguedad_max_s,modo,evidencia_id,configurada_por,configurada_en) SELECT s.id,true,20,30,60,CASE WHEN e.id IS NULL THEN 'REVIEW_ONLY' ELSE 'AUTO' END,e.id,(SELECT id FROM cuentas LIMIT 1),now() FROM sesiones s LEFT JOIN LATERAL (SELECT id FROM evidencias_geograficas WHERE espacio_id=s.espacio_id ORDER BY version DESC LIMIT 1) e ON true WHERE s.id=?::uuid ON CONFLICT(sesion_id) DO UPDATE SET habilitada=true,radio_m=20,precision_max_m=30,antiguedad_max_s=60,modo=EXCLUDED.modo,evidencia_id=EXCLUDED.evidencia_id",
         session);
+  }
+
+  @Test
+  void gpsUsesReviewOnlyWithoutEvidenceAndAutoWithLatestEvidence() throws Exception {
+    clock.set(IN_CLASS);
+    String session =
+        create(token(ScenarioFixtures.TEACHER), "SOLO_GPS")
+            .get("sesiones")
+            .get(0)
+            .get("id")
+            .asText();
+    UUID isolatedSpace = UUID.randomUUID();
+    db.update(
+        "INSERT INTO espacios(id,nombre,tipo,latitud,longitud) VALUES (?,'Espacio evidencia aislado','AULA',-4.03,-79.2)",
+        isolatedSpace);
+    db.update("UPDATE sesiones SET espacio_id=? WHERE id=?::uuid", isolatedSpace, session);
+    enableGps(db, session);
+    assertEquals(
+        "REVIEW_ONLY",
+        db.queryForObject(
+            "SELECT modo FROM configuracion_geografica WHERE sesion_id=?::uuid",
+            String.class,
+            session));
+    db.update(
+        "INSERT INTO evidencias_geograficas(id,espacio_id,version,referencia,realizada_en,responsable_id,falsos_positivos,falsos_negativos,verificada_en) VALUES (?,?::uuid,1,'Ensayo',now(),(SELECT id FROM cuentas LIMIT 1),0,0,now())",
+        UUID.randomUUID(), isolatedSpace);
+    enableGps(db, session);
+    assertEquals(
+        "AUTO",
+        db.queryForObject(
+            "SELECT modo FROM configuracion_geografica WHERE sesion_id=?::uuid",
+            String.class,
+            session));
   }
 
   @Test

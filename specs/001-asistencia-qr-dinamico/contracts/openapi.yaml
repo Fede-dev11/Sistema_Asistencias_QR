@@ -1690,6 +1690,55 @@ paths:
           $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/RateLimited'
+  /spaces/{spaceId}/geo-evidence:
+    parameters:
+    - name: spaceId
+      in: path
+      required: true
+      schema: {type: string, format: uuid}
+    get:
+      operationId: listGeoEvidence
+      summary: Consultar evidencias geográficas de un espacio
+      description: Historial inmutable ordenado desde la versión más reciente.
+      tags: [spaces]
+      responses:
+        '200':
+          description: Evidencias del espacio.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/GeoEvidence'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/RateLimited'}
+    post:
+      operationId: createGeoEvidence
+      summary: Registrar evidencia geográfica de campo
+      description: Solo ADMINISTRADOR. Crea la versión siguiente; no se puede editar ni eliminar. Requiere que el espacio tenga coordenadas.
+      tags: [spaces]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GeoEvidenceCreate'}
+      responses:
+        '201':
+          description: Evidencia registrada y auditada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GeoEvidence'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409':
+          description: ESPACIO_SIN_UBICACION.
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+        '429': {$ref: '#/components/responses/RateLimited'}
   /activities/{activityId}/cancel:
     post:
       operationId: cancelActivity
@@ -2449,6 +2498,29 @@ components:
       - page
       - size
       - total
+    GeoEvidence:
+      type: object
+      additionalProperties: false
+      properties:
+        id: {type: string, format: uuid}
+        espacio_id: {type: string, format: uuid}
+        version: {type: integer, minimum: 1}
+        referencia: {type: string, minLength: 1, maxLength: 500}
+        realizada_en: {type: string, format: date-time}
+        responsable_id: {type: string, format: uuid}
+        falsos_positivos: {type: number, minimum: 0, maximum: 1}
+        falsos_negativos: {type: number, minimum: 0, maximum: 1}
+        verificada_en: {type: string, format: date-time}
+      required: [id, espacio_id, version, referencia, realizada_en, responsable_id, falsos_positivos, falsos_negativos, verificada_en]
+    GeoEvidenceCreate:
+      type: object
+      additionalProperties: false
+      properties:
+        referencia: {type: string, minLength: 1, maxLength: 500}
+        realizada_en: {type: string, format: date-time}
+        falsos_positivos: {type: number, minimum: 0, maximum: 1}
+        falsos_negativos: {type: number, minimum: 0, maximum: 1}
+      required: [referencia, realizada_en, falsos_positivos, falsos_negativos]
     CreateSpaceRequest:
       type: object
       additionalProperties: false
