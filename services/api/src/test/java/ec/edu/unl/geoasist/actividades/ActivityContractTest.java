@@ -66,12 +66,18 @@ class ActivityContractTest extends ClassSupport {
       String id = created.get("id").asText();
       boolean isEvent = created == event;
       check(ok(send("GET", "/api/v1/activities/" + id, t, null), 200), isEvent);
+      // La base es compartida: según el orden, la actividad puede no estar en la primera página.
       boolean found = false;
-      for (var item : ok(send("GET", "/api/v1/activities?size=100", t, null), 200).get("items"))
-        if (item.get("id").asText().equals(id)) {
-          check(item, isEvent);
-          found = true;
-        }
+      for (int page = 0; !found; page++) {
+        var items =
+            ok(send("GET", "/api/v1/activities?size=100&page=" + page, t, null), 200).get("items");
+        if (items.isEmpty()) break;
+        for (var item : items)
+          if (item.get("id").asText().equals(id)) {
+            check(item, isEvent);
+            found = true;
+          }
+      }
       assertTrue(found);
     }
   }
