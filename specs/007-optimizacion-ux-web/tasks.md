@@ -13,10 +13,10 @@ componente por pieza nueva y E2E que mide clics/altura. `WEB` = `apps/web/src`. 
 
 ## Phase 2: Foundational — sistema visual (bloquea todo)
 
-- [ ] T002 Tokens del plan en `WEB/app/globals.css` (variables CSS, escala, espaciado, radios, foco visible, `prefers-reduced-motion`) y fuente Atkinson Hyperlegible con `next/font/google` en `WEB/app/layout.tsx`
-- [ ] T003 [P] `WEB/features/ui/Button.tsx` (variantes primary/secondary/text/danger, tamaño mínimo 44 px, estado de carga) con prueba
-- [ ] T004 [P] `WEB/features/ui/{StatusTag,EmptyState,ConfirmInline,Breadcrumbs}.tsx` con pruebas (texto + color; confirmación en página; migas con `aria-label="Migas de pan"`)
-- [ ] T005 [P] `WEB/features/ui/{Tabs,Drawer,Stepper}.tsx` accesibles por teclado (roles tablist/tab/tabpanel, diálogo con foco atrapado y Escape, pasos con `aria-current="step"`), estado de pestaña en `searchParams`, con pruebas
+- [X] T002 Tokens del plan en `WEB/app/globals.css` (variables CSS, escala, espaciado, radios, foco visible, `prefers-reduced-motion`) y fuente Atkinson Hyperlegible con `next/font/google` en `WEB/app/layout.tsx`
+- [X] T003 [P] `WEB/features/ui/Button.tsx` (variantes primary/secondary/text/danger, tamaño mínimo 44 px, estado de carga) con prueba
+- [X] T004 [P] `WEB/features/ui/{StatusTag,EmptyState,ConfirmInline,Breadcrumbs}.tsx` con pruebas (texto + color; confirmación en página; migas con `aria-label="Migas de pan"`)
+- [X] T005 [P] `WEB/features/ui/{Tabs,Drawer,Stepper}.tsx` accesibles por teclado (roles tablist/tab/tabpanel, diálogo con foco atrapado y Escape, pasos con `aria-current="step"`), estado de pestaña en `searchParams`, con pruebas
 
 ## Phase 3: US1 — Llegar directo a mi trabajo (P1) 🎯 MVP
 
