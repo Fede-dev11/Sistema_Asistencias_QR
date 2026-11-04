@@ -2,5 +2,5 @@ import { AttendanceReportPage } from '../../features/reports/AttendanceReportPag
 import { RoleGuard } from '../../features/common/RoleGuard';
 
 export default function ReportsPage() {
-  return <RoleGuard roles={['DIRECTOR_INSTITUCIONAL', 'DIRECTOR_CARRERA']}><AttendanceReportPage /></RoleGuard>;
+  return <RoleGuard roles={['DOCENTE', 'ENCARGADO', 'DIRECTOR_INSTITUCIONAL', 'DIRECTOR_CARRERA']}><AttendanceReportPage /></RoleGuard>;
 }

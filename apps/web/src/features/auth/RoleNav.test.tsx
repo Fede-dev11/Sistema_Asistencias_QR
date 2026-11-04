@@ -19,7 +19,7 @@ describe('RoleNav', () => {
     session = { roles: ['DOCENTE'] };
     render(<RoleNav />);
     expect(screen.getByRole('navigation', { name: 'Principal' })).toBeTruthy();
-    expect(links()).toEqual(['Mis actividades', 'Sesiones', 'Estadísticas']);
+    expect(links()).toEqual(['Mis actividades', 'Sesiones', 'Estadísticas', 'Reportes']);
     expect(screen.getByRole('link', { name: 'Sesiones' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByText(/Ana Pérez/)).toHaveTextContent('DOCENTE');
   });
@@ -35,6 +35,7 @@ describe('RoleNav', () => {
     vi.stubEnv('NEXT_PUBLIC_HERRAMIENTAS_PRUEBA', 'true');
     session = { roles: ['DOCENTE'] };
     render(<RoleNav />);
-    expect(links()).toContain('Simulador');
+    expect(links()).toContain('Simulador de invitado');
+    expect(links()).not.toContain('Simulador de participante');
   });
 });

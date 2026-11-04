@@ -12,12 +12,14 @@ export const NAV_ITEMS: readonly Item[] = [
   { href: '/actividades', label: 'Mis actividades', roles: RESPONSABLES },
   { href: '/sesiones', label: 'Sesiones', roles: RESPONSABLES },
   { href: '/estadisticas', label: 'Estadísticas', roles: [...RESPONSABLES, ...DIRECTORES] },
-  { href: '/reportes', label: 'Reportes', roles: DIRECTORES },
+  { href: '/reportes', label: 'Reportes', roles: [...RESPONSABLES, ...DIRECTORES] },
   { href: '/admin/personas', label: 'Personas', roles: ADMIN },
   { href: '/admin/carreras', label: 'Carreras y paralelos', roles: ADMIN },
   { href: '/admin/espacios', label: 'Espacios', roles: ADMIN },
   { href: '/admin/importar', label: 'Importar', roles: ADMIN },
-  { href: '/pruebas/simulador', label: 'Simulador', roles: [...RESPONSABLES, ...ADMIN] },
+  // Solo con NEXT_PUBLIC_HERRAMIENTAS_PRUEBA: el participante usa su cuenta de estudiante; el invitado no necesita cuenta.
+  { href: '/pruebas/participante', label: 'Simulador de participante', roles: ['ESTUDIANTE'] },
+  { href: '/pruebas/invitado', label: 'Simulador de invitado', roles: [...RESPONSABLES, ...DIRECTORES, ...ADMIN, 'ESTUDIANTE'] },
 ];
 
 export function RoleNav() {
