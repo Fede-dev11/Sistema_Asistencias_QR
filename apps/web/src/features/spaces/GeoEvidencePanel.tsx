@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
+import { Button } from '../ui/Button';
 
 type Evidence = components['schemas']['GeoEvidence'];
 
@@ -63,7 +64,7 @@ export function GeoEvidencePanel({ spaceId, canCreate = false }: { spaceId: stri
           <label>Realizada en<input type="datetime-local" name="realizada_en" required /></label>
           <label>Falsos positivos (0 a 1)<input type="number" name="falsos_positivos" required min={0} max={1} step="any" /></label>
           <label>Falsos negativos (0 a 1)<input type="number" name="falsos_negativos" required min={0} max={1} step="any" /></label>
-          <button disabled={busy}>Registrar evidencia</button>
+          <Button type="submit" variant="secondary" loading={busy}>Registrar evidencia</Button>
         </form>
       )}
       {status && <p role="status">{status}</p>}

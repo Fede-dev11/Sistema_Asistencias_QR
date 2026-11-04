@@ -4,6 +4,8 @@ import 'leaflet/dist/leaflet.css';
 import { type FormEvent, useEffect, useRef, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { ProblemMessage } from '../common/ProblemMessage';
+import { Button } from '../ui/Button';
 
 export type Space = components['schemas']['Space'];
 
@@ -17,7 +19,7 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
   const [longitud, setLongitud] = useState(space?.longitud?.toString() ?? '');
   const [radio, setRadio] = useState((space?.radio_defecto_m ?? 20).toString());
   const [precision, setPrecision] = useState((space?.precision_defecto_m ?? 30).toString());
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const mapNode = useRef<HTMLDivElement>(null);
   const place = useRef<(lat: number, lng: number) => void>(() => {});
@@ -64,9 +66,9 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    setError('');
+    setError(null);
     if ((latitud === '') !== (longitud === '')) {
-      setError('Indica latitud y longitud juntas, o deja ambas vacías.');
+      setError(new Error('Indica latitud y longitud juntas, o deja ambas vacías.'));
       return;
     }
     setBusy(true);
@@ -83,7 +85,7 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
         : await request<Space>('/spaces', { method: 'POST', body: JSON.stringify({ codigo, ...common }) });
       onSaved?.(saved);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se guardó el espacio.');
+      setError(cause);
     } finally {
       setBusy(false);
     }
@@ -109,8 +111,8 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
       <label>Longitud<input aria-label="Longitud" type="number" min="-180" max="180" step="any" value={longitud} onChange={e => { setLongitud(e.target.value); moveMarker(latitud, e.target.value); }} /></label>
       <label>Radio por defecto (m)<input aria-label="Radio por defecto (m)" type="number" min="0.01" step="0.01" required value={radio} onChange={e => setRadio(e.target.value)} /></label>
       <label>Precisión por defecto (m)<input aria-label="Precisión por defecto (m)" type="number" min="0.01" step="0.01" required value={precision} onChange={e => setPrecision(e.target.value)} /></label>
-      <button disabled={busy}>Guardar espacio</button>
-      {error && <p role="alert">{error}</p>}
+      <ProblemMessage error={error} />
+      <Button type="submit" loading={busy}>Guardar espacio</Button>
     </form>
   );
 }

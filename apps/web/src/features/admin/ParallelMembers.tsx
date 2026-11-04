@@ -15,7 +15,8 @@ const KINDS = {
 } as const;
 
 /** Matriculados y docentes de un paralelo: consulta paginada y reemplazo completo (ADMINISTRADOR). */
-export function ParallelMembers({ parallelId, onChanged }: { parallelId: string; onChanged?: () => void }) {
+export function ParallelMembers({ parallelId, onChanged, kind }: { parallelId: string; onChanged?: () => void; kind?: keyof typeof KINDS }) {
+  if (kind) return <MemberList parallelId={parallelId} kind={kind} onChanged={onChanged} />;
   return <>
     <MemberList parallelId={parallelId} kind="enrollments" onChanged={onChanged} />
     <MemberList parallelId={parallelId} kind="teachers" onChanged={onChanged} />
@@ -63,7 +64,7 @@ function MemberList({ parallelId, kind, onChanged }: { parallelId: string; kind:
       />
       <form aria-label={`Reemplazar ${cfg.title.toLowerCase()}`} onSubmit={e => void replace(e)}>
         <label>{cfg.label}<textarea name="lista" rows={5} /></label>
-        <button disabled={busy}>Reemplazar {cfg.title.toLowerCase()}</button>
+        <button className="ui-btn ui-btn-secondary" disabled={busy}>Reemplazar {cfg.title.toLowerCase()}</button>
       </form>
       {status && <p role="status">{status}</p>}
       <ProblemMessage error={error} />
