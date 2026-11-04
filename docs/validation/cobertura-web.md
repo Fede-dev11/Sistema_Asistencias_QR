@@ -2,15 +2,15 @@
 
 Generado con `npm run coverage:web` en `tools/contracts` desde `apps/web/src/generated/api-docs.json`. No editar a mano.
 
-**Cubiertas: 58 de 73 operaciones.**
+**Cubiertas: 73 de 73 operaciones.**
 
-Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona los segmentos literales de la ruta en orden, con hasta 40 caracteres entre ellos.
+Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona los segmentos literales de la ruta en orden, con hasta 40 caracteres entre ellos; o el prefijo literal más el último segmento como cadena o `/segmento` (tramo final variable).
 
 ## Autenticación y cuenta (`auth`)
 
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
-| POST | `/auth/login` | pub | Sí | `apps/web/src/features/auth/LoginForm.tsx` |
+| POST | `/auth/login` | pub | Sí | `apps/web/src/features/auth/CasCallback.tsx` |
 | POST | `/auth/cas` | pub | Sí | `apps/web/src/features/auth/CasCallback.tsx` |
 | GET | `/auth/sso-config` | pub | Sí | `apps/web/src/features/auth/CasCallback.tsx` |
 | POST | `/auth/logout` | cta | Sí | `apps/web/src/features/auth/SessionProvider.tsx` |
@@ -32,10 +32,10 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 | PATCH | `/admin/careers/{careerId}` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
 | GET | `/admin/careers/{careerId}/parallels` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
 | POST | `/admin/careers/{careerId}/parallels` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
-| GET | `/admin/parallels/{parallelId}/enrollments` | adm | No | — |
-| PUT | `/admin/parallels/{parallelId}/enrollments` | adm | No | — |
-| GET | `/admin/parallels/{parallelId}/teachers` | adm | No | — |
-| PUT | `/admin/parallels/{parallelId}/teachers` | adm | No | — |
+| GET | `/admin/parallels/{parallelId}/enrollments` | adm | Sí | `apps/web/src/features/admin/ParallelMembers.tsx` |
+| PUT | `/admin/parallels/{parallelId}/enrollments` | adm | Sí | `apps/web/src/features/admin/ParallelMembers.tsx` |
+| GET | `/admin/parallels/{parallelId}/teachers` | adm | Sí | `apps/web/src/features/admin/ParallelMembers.tsx` |
+| PUT | `/admin/parallels/{parallelId}/teachers` | adm | Sí | `apps/web/src/features/admin/ParallelMembers.tsx` |
 | POST | `/admin/imports/{kind}` | adm | Sí | `apps/web/src/features/admin/ImportPanel.tsx` |
 
 ## Espacios (`spaces`)
@@ -63,20 +63,20 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 | PUT | `/activities/{activityId}/guest-list` | doc, enc | Sí | `apps/web/src/features/activities/GuestListView.tsx` |
 | GET | `/activities/{activityId}/audit` | doc, enc, dir | Sí | `apps/web/src/features/reports/ActivityAuditPanel.tsx` |
 | GET | `/me/parallels` | doc, enc | Sí | `apps/web/src/features/activities/CreateClassForm.tsx` |
-| POST | `/activities/{activityId}/cancel` | doc, enc | Sí | `apps/web/src/features/activities/ClassesPanel.tsx` |
+| POST | `/activities/{activityId}/cancel` | doc, enc | Sí | `apps/web/src/features/activities/ClassSessions.tsx` |
 | GET | `/activities/{activityId}/schedule` | doc, enc, dir | Sí | `apps/web/src/features/activities/SchedulePanel.tsx` |
 | PUT | `/activities/{activityId}/schedule` | doc | Sí | `apps/web/src/features/activities/SchedulePanel.tsx` |
 | GET | `/activities/{activityId}/students` | doc | Sí | `apps/web/src/features/activities/AuthorizedStudents.tsx` |
 | POST | `/activities/{activityId}/students` | doc | Sí | `apps/web/src/features/activities/AuthorizedStudents.tsx` |
 | DELETE | `/activities/{activityId}/students/{personId}` | doc | Sí | `apps/web/src/features/activities/AuthorizedStudents.tsx` |
-| POST | `/activities/{activityId}/students/sync` | doc | No | — |
+| POST | `/activities/{activityId}/students/sync` | doc | Sí | `apps/web/src/features/activities/AuthorizedStudents.tsx` |
 
 ## Sesiones y QR (`sessions`)
 
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
-| POST | `/sessions/{sessionId}/start` | doc, enc | No | — |
-| POST | `/sessions/{sessionId}/close` | doc, enc | No | — |
+| POST | `/sessions/{sessionId}/start` | doc, enc | Sí | `apps/web/src/features/sessions/ResponsibleSessionPanel.tsx` |
+| POST | `/sessions/{sessionId}/close` | doc, enc | Sí | `apps/web/src/features/sessions/ResponsibleSessionPanel.tsx` |
 | GET | `/sessions/{sessionId}/qr` | doc, enc | Sí | `apps/web/src/features/sessions/ResponsibleSessionPanel.tsx` |
 | GET | `/sessions/{sessionId}/geolocation` | doc, enc, dir | Sí | `apps/web/src/features/sessions/GeolocationSettingsPanel.tsx` |
 | PUT | `/sessions/{sessionId}/geolocation` | doc, enc | Sí | `apps/web/src/features/sessions/GeolocationSettingsPanel.tsx` |
@@ -91,16 +91,16 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
-| POST | `/attendance/attempts` | est | No | — |
-| GET | `/me/active-sessions` | est | No | — |
+| POST | `/attendance/attempts` | est | Sí | `apps/web/src/features/testing/ParticipantSimulator.tsx` |
+| GET | `/me/active-sessions` | est | Sí | `apps/web/src/features/testing/ParticipantSimulator.tsx` |
 
 ## Invitados y eventos abiertos (`guest-registrations`)
 
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
-| POST | `/guest-registrations` | inv | No | — |
-| POST | `/guest-registrations/submit` | inv | No | — |
-| GET | `/events/open/{sessionId}` | inv | No | — |
+| POST | `/guest-registrations` | inv | Sí | `apps/web/src/features/testing/GuestSimulator.tsx` |
+| POST | `/guest-registrations/submit` | inv | Sí | `apps/web/src/features/testing/GuestSimulator.tsx` |
+| GET | `/events/open/{sessionId}` | inv | Sí | `apps/web/src/features/testing/GuestSimulator.tsx` |
 
 ## Revisión de intentos (`attempts`)
 
@@ -114,7 +114,7 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 |---|---|---|---|---|
 | POST | `/sessions/{sessionId}/manual-attendances` | doc, enc | Sí | `apps/web/src/features/corrections/ManualAttendanceForm.tsx` |
 | POST | `/sessions/{sessionId}/absences/{personId}/justify` | doc, enc | Sí | `apps/web/src/features/corrections/AbsencesPanel.tsx` |
-| POST | `/me/absences/{sessionId}/justification-requests` | est | No | — |
+| POST | `/me/absences/{sessionId}/justification-requests` | est | Sí | `apps/web/src/features/testing/ParticipantSimulator.tsx` |
 | GET | `/activities/{activityId}/justification-requests` | doc, enc | Sí | `apps/web/src/features/corrections/JustificationInbox.tsx` |
 | POST | `/justification-requests/{requestId}/decision` | doc, enc | Sí | `apps/web/src/features/corrections/JustificationInbox.tsx` |
 
@@ -126,5 +126,5 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 | GET | `/stats/parallels` | doc, enc, dir | Sí | `apps/web/src/features/stats/ParallelStats.tsx` |
 | GET | `/stats/careers` | doc, enc, dir | Sí | `apps/web/src/features/stats/CareerStats.tsx` |
 | GET | `/sessions/{sessionId}/absences` | doc, enc, dir | Sí | `apps/web/src/features/corrections/AbsencesPanel.tsx` |
-| GET | `/me/attendances` | est | No | — |
-| GET | `/me/stats` | est | No | — |
+| GET | `/me/attendances` | est | Sí | `apps/web/src/features/testing/ParticipantSimulator.tsx` |
+| GET | `/me/stats` | est | Sí | `apps/web/src/features/testing/ParticipantSimulator.tsx` |

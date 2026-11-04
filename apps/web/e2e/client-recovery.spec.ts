@@ -10,7 +10,7 @@ test('recupera QR activo al autenticarse otra vez y logout elimina la sesión lo
     await ssoLogin(page, 'encargado@example.test');
     await page.getByRole('link', { name: 'Gestionar actividades' }).click();
     await page.getByLabel('Actividad', { exact: true }).selectOption(fixture.activity);
-    await page.getByLabel('Código de sesión', { exact: true }).fill(fixture.session);
+    await page.getByRole('button', { name: 'Elegir' }).click(); // la UI ya no pide el código: se elige de la lista
   }
   await login();
   await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();

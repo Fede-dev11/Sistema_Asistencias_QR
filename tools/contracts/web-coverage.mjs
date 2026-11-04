@@ -19,15 +19,23 @@ const sources = readdirSync(srcDir, { recursive: true })
 
 // Lookarounds evitan que "me" coincida dentro de "name" o "message".
 const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-function patternFor(path) {
+// Además, si la ruta termina en un tramo variable en el código (`/sessions/${id}/${kind}` con kind 'start'|'close'),
+// basta que el archivo tenga el prefijo literal (todos los segmentos menos el último) y el último segmento como
+// cadena entre comillas o como `/segmento` dentro de una plantilla.
+const word = (s) => `(?<![A-Za-z0-9])${escape(s)}(?![A-Za-z0-9])`;
+function matcher(path) {
   const literals = path.split('/').filter((s) => s && !(s.startsWith('{') && s.endsWith('}')));
   if (literals.length === 0) return null;
-  return new RegExp(literals.map((s) => `(?<![A-Za-z0-9])${escape(s)}(?![A-Za-z0-9])`).join('[\\s\\S]{0,40}'));
+  const direct = new RegExp(literals.map(word).join('[\\s\\S]{0,40}'));
+  const last = literals.at(-1);
+  const prefix = literals.length > 1 ? new RegExp(literals.slice(0, -1).map(word).join('[\\s\\S]{0,40}')) : null;
+  const tail = new RegExp(`['"\`]${escape(last)}['"\`]|/${word(last)}`);
+  return (text) => direct.test(text) || (prefix !== null && prefix.test(text) && tail.test(text));
 }
 
 const rows = ops.map((op) => {
-  const re = patternFor(op.path);
-  const file = re ? sources.find(([, text]) => re.test(text))?.[0] ?? null : null;
+  const test = matcher(op.path);
+  const file = test ? sources.find(([, text]) => test(text))?.[0] ?? null : null;
   return { ...op, file };
 });
 
@@ -41,7 +49,7 @@ const lines = [
   '',
   `**Cubiertas: ${covered} de ${ops.length} operaciones.**`,
   '',
-  'Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona los segmentos literales de la ruta en orden, con hasta 40 caracteres entre ellos.',
+  'Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona los segmentos literales de la ruta en orden, con hasta 40 caracteres entre ellos; o el prefijo literal más el último segmento como cadena o `/segmento` (tramo final variable).',
 ];
 
 for (const key of keys) {

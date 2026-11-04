@@ -73,6 +73,8 @@ jobs:
       NEXT_PUBLIC_API_URL: http://127.0.0.1:18080/api/v1
       WEB_URL: http://localhost:13000
       API_URL: http://127.0.0.1:18080/api/v1
+      # Habilita los simuladores de participante e invitado (/pruebas/*) que ejercita simulador.spec.ts.
+      NEXT_PUBLIC_HERRAMIENTAS_PRUEBA: 'true'
       # SSO simulado: el servicio auth corre en 8081 y registra como retorno el callback del web de CI.
       SSO_SERVICE_KEY: ci-sso-key-ficticia-larga-exclusiva
       SSO_PUBLIC_URL: http://127.0.0.1:8081
