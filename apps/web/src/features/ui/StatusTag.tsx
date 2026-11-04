@@ -5,6 +5,7 @@ const MAP: Record<string, [string, Tone, string]> = {
   ACEPTADO: ['Aceptado', 'ok', '✓'], CONFIRMADA: ['Confirmada', 'ok', '✓'],
   RECHAZADO: ['Rechazado', 'danger', '✕'], RECHAZADA: ['Rechazada', 'danger', '✕'],
   PENDIENTE_REVISION: ['Pendiente de revisión', 'warn', '!'], AUSENTE: ['Ausente', 'danger', '✕'], JUSTIFICADA: ['Justificada', 'warn', '✓'],
+  INACTIVA: ['Inactiva', 'danger', '✕'], SIN_CUENTA: ['Sin cuenta', 'neutral', '•'],
 };
 
 /** status: código del backend (PROGRAMADA, ACTIVA, ...). Muestra icono + etiqueta en español; un código desconocido se muestra tal cual. */

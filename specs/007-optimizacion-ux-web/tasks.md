@@ -46,8 +46,8 @@ componente por pieza nueva y E2E que mide clics/altura. `WEB` = `apps/web/src`. 
 
 ## Phase 7: US5 — Administración con panel lateral (P2)
 
-- [ ] T020 [P] [US5] Pruebas de tablas con búsqueda/paginación y `Drawer` de alta/edición en Personas, Carreras y paralelos, Espacios
-- [ ] T021 [US5] Rehacer `admin/personas`, `admin/carreras` (paralelo con pestañas Matriculados/Docentes en el panel) y `admin/espacios` (evidencias en el panel) con tabla + `Drawer`
+- [X] T020 [P] [US5] Pruebas de tablas con búsqueda/paginación y `Drawer` de alta/edición en Personas, Carreras y paralelos, Espacios
+- [X] T021 [US5] Rehacer `admin/personas`, `admin/carreras` (paralelo con pestañas Matriculados/Docentes en el panel) y `admin/espacios` (evidencias en el panel) con tabla + `Drawer`
 
 ## Phase 8: Polish y medición
 
