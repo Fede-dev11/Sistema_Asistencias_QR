@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
@@ -53,7 +54,7 @@ export function ClassSessions({ activityId }: { activityId: string }) {
               </>
             ) : (
               <>
-                {new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })} — {s.estado} — {s.metodo_verificacion}
+                <Link href={`/sesiones/${s.id}`}>{new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })}</Link> — {s.estado} — {s.metodo_verificacion}
                 {s.estado === 'PROGRAMADA' && (
                   <>
                     <button type="button" onClick={() => edit(s)}>Editar</button>

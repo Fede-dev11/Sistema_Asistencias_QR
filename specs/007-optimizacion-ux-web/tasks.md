@@ -34,10 +34,10 @@ componente por pieza nueva y E2E que mide clics/altura. `WEB` = `apps/web/src`. 
 
 ## Phase 5: US3 — Actividades sin sobrecarga (P1)
 
-- [ ] T014 [P] [US3] Pruebas de `ActivityList` (búsqueda, filtros en URL, estado vacío) y `ActivityWizard` (3 pasos, validación por paso con error junto al campo, valores por defecto, resumen, creación de clase y de evento)
-- [ ] T015 [US3] `features/activities/ActivityList.tsx` en `WEB/app/actividades/page.tsx`: solo la lista (nombre, tipo, `StatusTag`, próxima sesión) + "Nueva actividad"; quitar los formularios de esta página
-- [ ] T016 [US3] `WEB/app/actividades/nueva/page.tsx` + `features/activities/ActivityWizard.tsx` reutilizando la lógica de `CreateClassForm`/`CreateEventForm`, `SpacePicker` y `MethodSelect` (último espacio usado como valor por defecto en `localStorage`, sin datos sensibles)
-- [ ] T017 [US3] Ficha `WEB/app/actividades/[id]/page.tsx` con `Tabs` (Sesiones, Participantes, Horario o Invitados, Justificaciones, Auditoría) y `Breadcrumbs`; "Cancelar actividad" en menú secundario con `ConfirmInline`
+- [X] T014 [P] [US3] Pruebas de `ActivityList` (búsqueda, filtros en URL, estado vacío) y `ActivityWizard` (3 pasos, validación por paso con error junto al campo, valores por defecto, resumen, creación de clase y de evento)
+- [X] T015 [US3] `features/activities/ActivityList.tsx` en `WEB/app/actividades/page.tsx`: solo la lista (nombre, tipo, `StatusTag`, próxima sesión) + "Nueva actividad"; quitar los formularios de esta página
+- [X] T016 [US3] `WEB/app/actividades/nueva/page.tsx` + `features/activities/ActivityWizard.tsx` reutilizando la lógica de `CreateClassForm`/`CreateEventForm`, `SpacePicker` y `MethodSelect` (último espacio usado como valor por defecto en `localStorage`, sin datos sensibles)
+- [X] T017 [US3] Ficha `WEB/app/actividades/[id]/page.tsx` con `Tabs` (Sesiones, Participantes, Horario o Invitados, Justificaciones, Auditoría) y `Breadcrumbs`; "Cancelar actividad" en menú secundario con `ConfirmInline`
 
 ## Phase 6: US4 — Jerarquía visual coherente (P2)
 

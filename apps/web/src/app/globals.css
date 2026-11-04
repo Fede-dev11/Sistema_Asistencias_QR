@@ -130,3 +130,7 @@ nav.ui-crumbs { display:block; margin:0 0 var(--space-4); font-size:var(--text-s
 .ui-stepper li { color:var(--color-muted); } .ui-stepper li[aria-current=step] { color:var(--color-ink); font-weight:700; text-decoration:underline; text-underline-offset:6px; }
 .ui-stepper li span { display:inline-block; min-width:1.6rem; text-align:center; border:1px solid currentColor; border-radius:50%; }
 .ui-stepper-nav { display:flex; gap:var(--space-3); }
+.ui-btn[aria-pressed=true] { background:var(--color-brand); color:#fff; }
+.field-error { display:block; color:var(--color-danger); font-weight:700; }
+.page-head { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-3); } .page-head h1 { margin:0; flex:1 1 auto; }
+.filters { display:flex; flex-wrap:wrap; gap:var(--space-3); margin:var(--space-3) 0; }
