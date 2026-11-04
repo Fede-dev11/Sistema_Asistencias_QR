@@ -28,9 +28,9 @@ componente por pieza nueva y E2E que mide clics/altura. `WEB` = `apps/web/src`. 
 
 ## Phase 4: US2 — Sesión en un clic y proyección (P1)
 
-- [ ] T011 [P] [US2] Pruebas de `ProjectionView` (QR grande, cuenta regresiva desde `vigencia_segundos`, contador en vivo, pantalla completa con fallback si se rechaza, cierre con `ConfirmInline`) y `SessionSummary` (asistencias, ausencias, pendientes con acciones directas)
-- [ ] T012 [US2] `WEB/app/sesiones/[id]/proyectar/page.tsx` + `features/sessions/ProjectionView.tsx` (tipografía 64 px, sin chrome de la app, alto contraste, `prefers-reduced-motion`); "Iniciar y proyectar QR" en "Hoy" inicia la sesión y navega aquí
-- [ ] T013 [US2] `WEB/app/sesiones/[id]/page.tsx` + `features/sessions/SessionSummary.tsx`: en vivo mientras ACTIVA (reutilizar `LiveAttendances`), resumen al cerrar con `ManualAttendanceForm`, `AbsencesPanel` y revisiones en pestañas; la página `/sesiones` actual se reduce a la lista de sesiones con enlace a cada una
+- [X] T011 [P] [US2] Pruebas de `ProjectionView` (QR grande, cuenta regresiva desde `vigencia_segundos`, contador en vivo, pantalla completa con fallback si se rechaza, cierre con `ConfirmInline`) y `SessionSummary` (asistencias, ausencias, pendientes con acciones directas)
+- [X] T012 [US2] `WEB/app/sesiones/[id]/proyectar/page.tsx` + `features/sessions/ProjectionView.tsx` (tipografía 64 px, sin chrome de la app, alto contraste, `prefers-reduced-motion`); "Iniciar y proyectar QR" en "Hoy" inicia la sesión y navega aquí
+- [X] T013 [US2] `WEB/app/sesiones/[id]/page.tsx` + `features/sessions/SessionSummary.tsx`: en vivo mientras ACTIVA (reutilizar `LiveAttendances`), resumen al cerrar con `ManualAttendanceForm`, `AbsencesPanel` y revisiones en pestañas; la página `/sesiones` actual se reduce a la lista de sesiones con enlace a cada una
 
 ## Phase 5: US3 — Actividades sin sobrecarga (P1)
 

@@ -17,7 +17,7 @@ export function SessionPicker({ activityId, selectedId, onSelect }: { activityId
       empty="Esta actividad no tiene sesiones."
       renderItem={s => <>
         {new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })} — {s.estado} — {s.metodo_verificacion}{' '}
-        <button type="button" aria-pressed={s.id === selectedId} onClick={() => onSelect(s)}>Elegir</button>
+        <button type="button" aria-pressed={s.id === selectedId} onClick={() => onSelect(s)}>Abrir</button>
       </>} />}
   </section>;
 }

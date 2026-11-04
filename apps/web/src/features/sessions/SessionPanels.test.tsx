@@ -24,7 +24,7 @@ describe('SessionPicker', () => {
     render(<SessionPicker activityId="a1" onSelect={onSelect} />);
     await screen.findByText(/ACTIVA — SOLO_QR/);
     expect(request).toHaveBeenCalledWith('/activities/a1/sessions?page=0&size=10');
-    fireEvent.click(screen.getByRole('button', { name: 'Elegir' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir' }));
     expect(onSelect).toHaveBeenCalledWith(sess);
   });
   it('muestra el error de la API', async () => {

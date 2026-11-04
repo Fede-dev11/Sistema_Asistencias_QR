@@ -151,3 +151,16 @@ nav.ui-crumbs { display:block; margin:0 0 var(--space-4); font-size:var(--text-s
 .field-error { display:block; color:var(--color-danger); font-weight:700; }
 .page-head { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-3); } .page-head h1 { margin:0; flex:1 1 auto; }
 .filters { display:flex; flex-wrap:wrap; gap:var(--space-3); margin:var(--space-3) 0; }
+
+/* proyección del QR en el aula (T012): alto contraste, radio 0, sin chrome */
+body:has(.projection) .shell > header { display:none; }
+body:has(.projection) .shell { display:block; }
+.projection { position:fixed; inset:0; z-index:100; overflow:auto; display:flex; flex-direction:column; gap:var(--space-4); padding:var(--space-4); background:#000; color:#fff; font-size:clamp(28px,5vw,64px); line-height:1.2; }
+.projection header { border:0; padding:0; background:transparent; flex-wrap:wrap; gap:var(--space-3); align-items:center; }
+.projection h1 { margin:0; font-size:inherit; }
+.projection .ui-btn, .projection .ui-confirm, .projection .panel { border-radius:0; font-size:16px; }
+.projection .panel, .projection .ui-confirm { color:var(--color-ink); }
+.projection-qr { flex:1; display:flex; align-items:center; justify-content:center; min-height:240px; }
+.projection-qr img { width:min(100%,80vmin); min-width:240px; height:auto; image-rendering:pixelated; background:#fff; border-radius:0; }
+.projection footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:var(--space-3); border:0; background:transparent; padding:0; font-weight:700; }
+@media (prefers-reduced-motion:reduce) { .projection * { transition:none !important; animation:none !important; } }
