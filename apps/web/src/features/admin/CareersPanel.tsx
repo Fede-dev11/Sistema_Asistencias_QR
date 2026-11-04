@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
-import { AdminOnly } from './AdminOnly';
+import { RoleGuard } from '../common/RoleGuard';
 
 type Career = components['schemas']['AdminCareer'];
 type Parallel = components['schemas']['AdminParallel'];
 
 export function CareersPanel() {
-  return <AdminOnly><CareersContent /></AdminOnly>;
+  return <RoleGuard roles={['ADMINISTRADOR']}><CareersContent /></RoleGuard>;
 }
 
 function CareersContent() {

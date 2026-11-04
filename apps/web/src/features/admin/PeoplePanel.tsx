@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
-import { AdminOnly } from './AdminOnly';
+import { RoleGuard } from '../common/RoleGuard';
 
 type Person = components['schemas']['AdminPerson'];
 type Page = components['schemas']['AdminPersonPage'];
 const SIZE = 20;
 
 export function PeoplePanel() {
-  return <AdminOnly><PeopleContent /></AdminOnly>;
+  return <RoleGuard roles={['ADMINISTRADOR']}><PeopleContent /></RoleGuard>;
 }
 
 function PeopleContent() {

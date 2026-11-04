@@ -10,19 +10,19 @@ de componente por panel nuevo (Vitest + Testing Library, API simulada) y E2E por
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirmar rama `feature/006-frontend-web-pruebas` y `.specify/feature.json` → `specs/006-frontend-web-pruebas`; `.env.example` con `NEXT_PUBLIC_HERRAMIENTAS_PRUEBA=false`
+- [X] T001 Confirmar rama `feature/006-frontend-web-pruebas` y `.specify/feature.json` → `specs/006-frontend-web-pruebas`; `.env.example` con `NEXT_PUBLIC_HERRAMIENTAS_PRUEBA=false`
 
 ## Phase 2: Foundational
 
-- [ ] T002 [P] `WEB/features/common/ProblemMessage.tsx`: muestra `code` y mensaje de `ApiError` (rol `alert`), con prueba
-- [ ] T003 [P] `WEB/features/common/Paginated.tsx`: lista paginada genérica (Anterior/Siguiente, total, carga y vacío), con prueba
-- [ ] T004 [P] `WEB/features/common/RoleGuard.tsx`: muestra hijos si la sesión tiene alguno de los roles; si no, "No tienes acceso a esta sección", con prueba
+- [X] T002 [P] `WEB/features/common/ProblemMessage.tsx`: muestra `code` y mensaje de `ApiError` (rol `alert`), con prueba
+- [X] T003 [P] `WEB/features/common/Paginated.tsx`: lista paginada genérica (Anterior/Siguiente, total, carga y vacío), con prueba
+- [X] T004 [P] `WEB/features/common/RoleGuard.tsx`: muestra hijos si la sesión tiene alguno de los roles; si no, "No tienes acceso a esta sección", con prueba
 
 ## Phase 3: US1 — Navegación por rol y sesión (P1) 🎯 MVP
 
-- [ ] T005 [P] [US1] Pruebas `WEB/features/auth/RoleNav.test.tsx` y renovación en `SessionProvider.test.tsx` (renueva antes de vencer; 401/403/502 → cierra sesión con mensaje)
-- [ ] T006 [US1] `WEB/features/auth/RoleNav.tsx` en `WEB/app/layout.tsx`: nombre, roles y enlaces por rol (docente/encargado: Mis actividades, Sesiones, Estadísticas; director: Estadísticas, Reportes; administrador: Personas, Carreras y paralelos, Espacios, Importar; con bandera: Simulador); salir con opción de cerrar la sesión universitaria
-- [ ] T007 [US1] `SessionProvider`: cargar `GET /me` tras ingresar, renovar con `POST /auth/renew` 10 min antes de `expira_en`, manejar rechazo; envolver páginas existentes con `RoleGuard`
+- [X] T005 [P] [US1] Pruebas `WEB/features/auth/RoleNav.test.tsx` y renovación en `SessionProvider.test.tsx` (renueva antes de vencer; 401/403/502 → cierra sesión con mensaje)
+- [X] T006 [US1] `WEB/features/auth/RoleNav.tsx` en `WEB/app/layout.tsx`: nombre, roles y enlaces por rol (docente/encargado: Mis actividades, Sesiones, Estadísticas; director: Estadísticas, Reportes; administrador: Personas, Carreras y paralelos, Espacios, Importar; con bandera: Simulador); salir con opción de cerrar la sesión universitaria
+- [X] T007 [US1] `SessionProvider`: cargar `GET /me` tras ingresar, renovar con `POST /auth/renew` 10 min antes de `expira_en`, manejar rechazo; envolver páginas existentes con `RoleGuard`
 
 ## Phase 4: US2 — Docente opera una sesión de principio a fin (P1)
 

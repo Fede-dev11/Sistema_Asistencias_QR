@@ -83,3 +83,6 @@ table { width:100%; border-collapse:collapse; } th,td { text-align:left; padding
   .docs-op > summary { grid-template-columns:minmax(0,1fr); }
   .docs-summary { grid-column:1; }
 }
+/* Navegación principal por rol. */
+header .role-nav { margin:0; align-items:center; gap:.5rem 1rem; }
+header .role-nav a[aria-current=page] { background:white; color:var(--accent); font-weight:800; }
