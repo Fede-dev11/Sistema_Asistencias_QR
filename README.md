@@ -70,6 +70,31 @@ el [procedimiento de conservación](docs/operations/conservacion-y-restauracion.
 backups/WAL/exportaciones y el [registro de revisión](docs/validation/revision-incremento.md)
 enumera resultados y condiciones pendientes antes de integrar o utilizar datos reales.
 
+### Herramientas de prueba (006)
+
+Las rutas de simulador (en construcción) solo existen con la bandera `NEXT_PUBLIC_HERRAMIENTAS_PRUEBA=true`,
+definida en `apps/web/.env.local` o en el entorno. Tras cambiarla, reinicia `npm run dev` dentro de `apps/web`.
+
+- `/pruebas/participante` (en construcción): actúa como estudiante; requiere ingresar con una cuenta de estudiante.
+- `/pruebas/invitado` (en construcción): flujo público de invitado.
+
+Sin la bandera, ambas rutas no existen. En producción la bandera permanece desactivada: el registro de
+participantes se hace solo desde la app.
+
+Cuentas de desarrollo por rol (contraseña = valor de `DEV_SEED_PASSWORD`):
+
+| Rol | Cuenta |
+|---|---|
+| Docente | `docente@example.test` |
+| Encargado | `encargado@example.test` |
+| Estudiante | `estudiante@example.test` |
+| Director institucional | `director@example.test` |
+| Director de carrera | `director-carrera@example.test` |
+| Administrador | `admin@dev.geoasist.local` |
+
+Cobertura de operaciones de la API en la web: `npm run coverage:web` dentro de `tools/contracts`; escribe
+`docs/validation/cobertura-web.md`.
+
 ## GitHub Spec Kit
 
 El proyecto incluye habilidades de Spec Kit para **Codex** en `.agents/skills/`.

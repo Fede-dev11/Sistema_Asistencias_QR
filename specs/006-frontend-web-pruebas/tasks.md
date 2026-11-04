@@ -52,8 +52,8 @@ de componente por panel nuevo (Vitest + Testing Library, API simulada) y E2E por
 ## Phase 8: Polish
 
 - [ ] T021 [P] E2E `apps/web/e2e/{docente,director,admin,simulador}.spec.ts` con el SSO (reutilizar `e2e/sso.ts`); en el job `browser` del CI activar `NEXT_PUBLIC_HERRAMIENTAS_PRUEBA=true`
-- [ ] T022 [P] Lista de verificación `docs/validation/cobertura-web.md`: las 73 operaciones con la pantalla que la usa (SC-001), generada con un script que lee `src/generated/api-docs.json` y busca su uso en `apps/web/src`
-- [ ] T023 [P] `README.md`: cómo activar el simulador y qué rol usar para cada prueba
+- [X] T022 [P] Lista de verificación `docs/validation/cobertura-web.md`: las 73 operaciones con la pantalla que la usa (SC-001), generada con un script que lee `src/generated/api-docs.json` y busca su uso en `apps/web/src`
+- [X] T023 [P] `README.md`: cómo activar el simulador y qué rol usar para cada prueba
 - [ ] T024 Verificación: `npm run lint && npm run typecheck && npm test && npm run build` en `apps/web`, Playwright; resultados reales en `docs/validation/revision-incremento-006.md`
 
 ## Dependencies
