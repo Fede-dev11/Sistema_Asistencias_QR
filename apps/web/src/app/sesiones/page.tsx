@@ -1,3 +1,3 @@
-import { ResponsibleSessionPanel } from '../../features/sessions/ResponsibleSessionPanel';
 import { RoleGuard } from '../../features/common/RoleGuard';
-export default function SessionsPage(){return <RoleGuard roles={['DOCENTE','ENCARGADO']}><ResponsibleSessionPanel/></RoleGuard>;}
+import { SessionList } from '../../features/sessions/SessionList';
+export default function SessionsPage(){return <RoleGuard roles={['DOCENTE','ENCARGADO']}><SessionList/></RoleGuard>;}
