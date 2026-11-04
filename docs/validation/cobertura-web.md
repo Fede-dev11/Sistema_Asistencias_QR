@@ -2,7 +2,7 @@
 
 Generado con `npm run coverage:web` en `tools/contracts` desde `apps/web/src/generated/api-docs.json`. No editar a mano.
 
-**Cubiertas: 53 de 73 operaciones.**
+**Cubiertas: 58 de 73 operaciones.**
 
 Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona los segmentos literales de la ruta en orden, con hasta 40 caracteres entre ellos.
 
@@ -42,11 +42,11 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
-| GET | `/spaces` | doc, enc, adm | Sí | `apps/web/src/features/activities/CreateClassForm.tsx` |
-| POST | `/spaces` | doc, enc, adm | Sí | `apps/web/src/features/activities/CreateClassForm.tsx` |
-| PATCH | `/spaces/{spaceId}` | doc, enc, adm | Sí | `apps/web/src/features/activities/CreateClassForm.tsx` |
-| GET | `/spaces/{spaceId}/geo-evidence` | doc, enc, adm | No | — |
-| POST | `/spaces/{spaceId}/geo-evidence` | adm | No | — |
+| GET | `/spaces` | doc, enc, adm | Sí | `apps/web/src/app/admin/espacios/page.tsx` |
+| POST | `/spaces` | doc, enc, adm | Sí | `apps/web/src/app/admin/espacios/page.tsx` |
+| PATCH | `/spaces/{spaceId}` | doc, enc, adm | Sí | `apps/web/src/app/admin/espacios/page.tsx` |
+| GET | `/spaces/{spaceId}/geo-evidence` | doc, enc, adm | Sí | `apps/web/src/features/spaces/GeoEvidencePanel.tsx` |
+| POST | `/spaces/{spaceId}/geo-evidence` | adm | Sí | `apps/web/src/features/spaces/GeoEvidencePanel.tsx` |
 
 ## Clases y eventos (`activities`)
 
@@ -122,9 +122,9 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
-| GET | `/activities/{activityId}/stats` | doc, enc, dir | No | — |
-| GET | `/stats/parallels` | doc, enc, dir | No | — |
-| GET | `/stats/careers` | doc, enc, dir | No | — |
+| GET | `/activities/{activityId}/stats` | doc, enc, dir | Sí | `apps/web/src/features/stats/ActivityStats.tsx` |
+| GET | `/stats/parallels` | doc, enc, dir | Sí | `apps/web/src/features/stats/ParallelStats.tsx` |
+| GET | `/stats/careers` | doc, enc, dir | Sí | `apps/web/src/features/stats/CareerStats.tsx` |
 | GET | `/sessions/{sessionId}/absences` | doc, enc, dir | Sí | `apps/web/src/features/corrections/AbsencesPanel.tsx` |
 | GET | `/me/attendances` | est | No | — |
 | GET | `/me/stats` | est | No | — |
