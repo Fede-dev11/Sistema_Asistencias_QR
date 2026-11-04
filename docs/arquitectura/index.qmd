@@ -1,0 +1,22 @@
+---
+title: "Arquitectura de GeoAsist (modelo C4)"
+---
+
+Documentación de arquitectura en cuatro niveles del [modelo C4](https://c4model.com), escrita como código:
+los niveles 1 a 3 usan diagramas C4 de Mermaid y el nivel 4 usa diagramas de clases en PlantUML
+(fuentes en `puml/`).
+
+| Nivel | Archivo | Pregunta que responde |
+|---|---|---|
+| 1. Contexto | [01-contexto.qmd](01-contexto.qmd) | ¿Quién usa el sistema y con qué sistemas externos se relaciona? |
+| 2. Contenedores | [02-contenedores.qmd](02-contenedores.qmd) | ¿Qué aplicaciones y bases de datos lo forman y cómo se comunican? |
+| 3. Componentes | [03-componentes.qmd](03-componentes.qmd) | ¿Qué módulos tiene cada contenedor? |
+| 4. Código | [04-codigo.qmd](04-codigo.qmd) | ¿Qué clases implementan cada módulo? |
+
+## Cómo renderizar
+
+```sh
+cd docs/arquitectura
+quarto render        # genera _site/ (ejecuta antes render_plantuml.py)
+quarto preview       # servidor local con recarga
+```
