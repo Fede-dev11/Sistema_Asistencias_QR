@@ -1,6 +1,6 @@
 'use client';
 
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 
@@ -14,6 +14,16 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
   const [status, setStatus] = useState<Status | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+
+  const [current, setCurrent] = useState<components['schemas']['GeolocationConfig'] | null>(null);
+  useEffect(() => {
+    let alive = true;
+    request<components['schemas']['GeolocationConfig']>(`/sessions/${sessionId}/geolocation`).then(c => {
+      if (!alive) return;
+      setCurrent(c); setEnabled(c.habilitada); setRadius(c.radio_m?.toString() ?? ''); setPrecision(c.precision_max_m?.toString() ?? ''); setAge(c.antiguedad_max_s?.toString() ?? '60');
+    }).catch(cause => { if (alive) setError(cause instanceof Error ? cause.message : 'No se pudo cargar la configuración geográfica.'); });
+    return () => { alive = false; };
+  }, [sessionId]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -45,6 +55,7 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
     <form className="panel" onSubmit={submit}>
       <h2>Validación por ubicación</h2>
       <p>Configúrala antes de iniciar la sesión. El participante pedirá ubicación solo cuando el servidor la requiera.</p>
+      {current && <p>Actual: {current.habilitada ? `habilitada (radio ${current.radio_m ?? 'del espacio'} m, precisión ${current.precision_max_m ?? 'del espacio'} m, antigüedad ${current.antiguedad_max_s ?? 60} s)` : 'deshabilitada'}.</p>}
       <label>
         <input type="checkbox" checked={enabled} onChange={event => setEnabled(event.target.checked)} /> Habilitar para esta sesión
       </label>
