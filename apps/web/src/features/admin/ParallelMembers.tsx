@@ -69,11 +69,11 @@ function MemberList({ parallelId, kind, onChanged }: { parallelId: string; kind:
       {status && <p role="status">{status}</p>}
       <ProblemMessage error={error} />
       {rejected.length > 0 && (
-        <table>
+        <div className="table-wrap"><table>
           <caption>Filas rechazadas</caption>
           <thead><tr><th>Entrada</th><th>Motivo</th></tr></thead>
           <tbody>{rejected.map((r, i) => <tr key={i}><td>{r.entrada}</td><td>{r.motivo}</td></tr>)}</tbody>
-        </table>
+        </table></div>
       )}
     </section>
   );

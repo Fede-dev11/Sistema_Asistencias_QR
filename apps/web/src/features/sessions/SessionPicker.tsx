@@ -4,6 +4,8 @@ import type { components } from '../../generated/api';
 import { Paginated } from '../common/Paginated';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { usePage } from '../common/usePage';
+import { Button } from '../ui/Button';
+import { StatusTag } from '../ui/StatusTag';
 
 type Session = components['schemas']['ScheduledSession'];
 
@@ -16,8 +18,8 @@ export function SessionPicker({ activityId, selectedId, onSelect }: { activityId
     {!error && <Paginated items={data?.items ?? null} total={data?.total ?? 0} page={page} size={data?.size ?? 10} onPage={setPage}
       empty="Esta actividad no tiene sesiones."
       renderItem={s => <>
-        {new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })} — {s.estado} — {s.metodo_verificacion}{' '}
-        <button type="button" aria-pressed={s.id === selectedId} onClick={() => onSelect(s)}>Abrir</button>
+        {new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })} — <StatusTag status={s.estado} /> — {s.metodo_verificacion}{' '}
+        <Button variant="secondary" type="button" aria-pressed={s.id === selectedId} onClick={() => onSelect(s)}>Abrir</Button>
       </>} />}
   </section>;
 }

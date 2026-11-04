@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { RoleGuard } from '../common/RoleGuard';
+import { Button } from '../ui/Button';
 
 type Report = components['schemas']['ImportReport'];
 const KINDS = [
@@ -52,17 +53,17 @@ function ImportContent() {
           </select>
         </label>
         <label>Archivo CSV (UTF-8, máx. 2 MB y 5 000 filas)<input name="file" type="file" accept=".csv,text/csv" onChange={e => setFile(e.target.files?.[0] ?? null)} /></label>
-        <button disabled={busy}>{busy ? 'Importando…' : 'Importar'}</button>
+        <Button variant="primary" type="submit" disabled={busy}>{busy ? 'Importando…' : 'Importar'}</Button>
       </form>
       {error && <p role="alert">{error}</p>}
       {report && (
         <div role="status">
           <p>Procesadas {report.procesadas}: {report.creadas} creadas, {report.actualizadas} actualizadas, {report.sin_cambios} sin cambios, {report.rechazadas?.length ?? 0} rechazadas.</p>
           {!!report.rechazadas?.length && (
-            <table>
+            <div className="table-wrap"><table>
               <thead><tr><th>Fila</th><th>Motivo</th></tr></thead>
               <tbody>{report.rechazadas.map(r => <tr key={`${r.fila}-${r.motivo}`}><td>{r.fila}</td><td>{r.motivo}</td></tr>)}</tbody>
-            </table>
+            </table></div>
           )}
         </div>
       )}

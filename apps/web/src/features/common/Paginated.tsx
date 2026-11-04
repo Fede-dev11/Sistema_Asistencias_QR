@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { Button } from '../ui/Button';
 
 type Props<T> = {
   items: readonly T[] | null; total: number; page: number; size: number; loading?: boolean;
@@ -14,7 +15,7 @@ export function Paginated<T>({ items, total, page, size, loading, onPage, render
   return <div>
     {items.length === 0 ? <p>{empty}</p> : <ul>{items.map((item, i) => <li key={i}>{renderItem(item)}</li>)}</ul>}
     <p>{total} en total · página {page + 1} de {last + 1}</p>
-    <button type="button" disabled={page <= 0} onClick={() => onPage(page - 1)}>Anterior</button>
-    <button type="button" disabled={page >= last} onClick={() => onPage(page + 1)}>Siguiente</button>
+    <Button variant="secondary" type="button" disabled={page <= 0} onClick={() => onPage(page - 1)}>Anterior</Button>
+    <Button variant="secondary" type="button" disabled={page >= last} onClick={() => onPage(page + 1)}>Siguiente</Button>
   </div>;
 }

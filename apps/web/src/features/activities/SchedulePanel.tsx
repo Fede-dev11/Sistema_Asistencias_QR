@@ -1,10 +1,12 @@
 'use client';
 
+import { ConfirmInline } from '../ui/ConfirmInline';
 import { useEffect, useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { MAX_SESSIONS, previewDates } from './schedulePreview';
+import { Button } from '../ui/Button';
 
 type Schedule = components['schemas']['Schedule'];
 const DAYS = [[1, 'Lunes'], [2, 'Martes'], [3, 'Miércoles'], [4, 'Jueves'], [5, 'Viernes'], [6, 'Sábado'], [7, 'Domingo']] as const;
@@ -64,13 +66,9 @@ export function SchedulePanel({ activityId }: { activityId: string }) {
       <label>Desde<input type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
       <label>Hasta<input type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
       <p role="status">Vista previa: {dates.length > MAX_SESSIONS ? `más de ${MAX_SESSIONS}` : dates.length} sesiones.</p>
-      <button disabled={!loaded}>Reemplazar horario</button>
+      <Button variant="primary" type="submit" disabled={!loaded}>Reemplazar horario</Button>
     </form>
-    {confirming && <p role="alertdialog" aria-label="Confirmar reemplazo">
-      Se eliminarán las sesiones programadas del horario actual y se generarán {dates.length}.{' '}
-      <button type="button" onClick={() => void replace()}>Confirmar reemplazo</button>
-      <button type="button" onClick={() => setConfirming(false)}>Cancelar</button>
-    </p>}
+    {confirming && <ConfirmInline message={`Se eliminarán las sesiones programadas del horario actual y se generarán ${dates.length}.`} confirmLabel="Confirmar reemplazo" danger onConfirm={() => void replace()} onCancel={() => setConfirming(false)} />}
     {message && <p role="status">{message}</p>}
     <ProblemMessage error={error} />
   </section>;

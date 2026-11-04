@@ -164,3 +164,12 @@ body:has(.projection) .shell { display:block; }
 .projection-qr img { width:min(100%,80vmin); min-width:240px; height:auto; image-rendering:pixelated; background:#fff; border-radius:0; }
 .projection footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:var(--space-3); border:0; background:transparent; padding:0; font-weight:700; }
 @media (prefers-reduced-motion:reduce) { .projection * { transition:none !important; animation:none !important; } }
+
+/* accesibilidad (T019): objetivos >= 44 px, tablas desplazables, sin scroll horizontal de página a 375 px */
+.table-wrap { overflow-x:auto; max-width:100%; }
+main { min-width:0; overflow-wrap:break-word; }
+.docs-method { min-height:44px; min-width:44px; cursor:pointer; }
+.docs-toc a, .docs-op > summary { min-height:44px; align-items:center; }
+.ui-crumbs a { display:inline-flex; align-items:center; min-height:44px; }
+label:has(> input[type=checkbox]), label:has(> input[type=radio]) { display:flex; align-items:center; gap:var(--space-2); min-height:44px; }
+input[type=checkbox], input[type=radio] { width:1.25rem; height:1.25rem; }

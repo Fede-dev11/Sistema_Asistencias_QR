@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { Button } from '../ui/Button';
 
 type Page = components['schemas']['AuthorizedStudentPage'];
 
@@ -34,15 +35,15 @@ export function AuthorizedStudents({ activityId }: { activityId: string }) {
         {page?.items.map(s => (
           <li key={s.persona_id}>
             {s.nombres} ({s.cedula}) {s.vigente ? '' : '— quitado'}
-            {s.vigente && <button type="button" onClick={() => void run(() => request(`${base}/${s.persona_id}`, { method: 'DELETE' }), 'Estudiante quitado.')}>Quitar</button>}
+            {s.vigente && <Button variant="danger" type="button" onClick={() => void run(() => request(`${base}/${s.persona_id}`, { method: 'DELETE' }), 'Estudiante quitado.')}>Quitar</Button>}
           </li>
         ))}
       </ul>
       <form onSubmit={add}>
         <label>Cédula del estudiante<input value={cedula} pattern="[0-9]{10}" required onChange={e => setCedula(e.target.value)} /></label>
-        <button>Añadir</button>
+        <Button variant="primary" type="submit">Añadir</Button>
       </form>
-      <button type="button" onClick={() => void run(() => request(`${base}/sync`, { method: 'POST' }), 'Lista sincronizada con los paralelos.')}>Sincronizar con paralelos</button>
+      <Button variant="secondary" type="button" onClick={() => void run(() => request(`${base}/sync`, { method: 'POST' }), 'Lista sincronizada con los paralelos.')}>Sincronizar con paralelos</Button>
       {message && <p role="status">{message}</p>}
       {error && <p role="alert">{error}</p>}
     </section>

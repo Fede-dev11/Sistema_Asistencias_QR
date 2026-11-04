@@ -6,6 +6,7 @@ import { request } from '../../lib/api/client';
 import { Paginated } from '../common/Paginated';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { usePage } from '../common/usePage';
+import { Button } from '../ui/Button';
 
 type Item = components['schemas']['Justification'];
 
@@ -34,8 +35,8 @@ export function JustificationInbox({ activityId }: { activityId: string }) {
       renderItem={j => <>
         {j.nombres} ({j.cedula}): {j.motivo}{' '}
         <label>Razón de decisión de {j.nombres}<input value={reasons[j.id] ?? ''} onChange={e => setReasons({ ...reasons, [j.id]: e.target.value })} /></label>
-        <button type="button" onClick={() => void decide(j.id, 'APROBAR')}>Aprobar</button>
-        <button type="button" onClick={() => void decide(j.id, 'RECHAZAR')}>Rechazar</button>
+        <Button variant="primary" type="button" onClick={() => void decide(j.id, 'APROBAR')}>Aprobar</Button>
+        <Button variant="danger" type="button" onClick={() => void decide(j.id, 'RECHAZAR')}>Rechazar</Button>
       </>} />
   </section>;
 }

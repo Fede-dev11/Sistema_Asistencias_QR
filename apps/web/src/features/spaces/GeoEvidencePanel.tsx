@@ -51,12 +51,12 @@ export function GeoEvidencePanel({ spaceId, canCreate = false }: { spaceId: stri
       <h3>Evidencia geográfica</h3>
       {!items && !error && <p role="status">Cargando…</p>}
       {items && (items.length === 0 ? <p>Sin evidencias registradas.</p> : (
-        <table>
+        <div className="table-wrap"><table>
           <thead><tr><th>Versión</th><th>Referencia</th><th>Realizada</th><th>Falsos positivos</th><th>Falsos negativos</th></tr></thead>
           <tbody>{items.map(e => (
             <tr key={e.id}><td>{e.version}</td><td>{e.referencia}</td><td>{new Date(e.realizada_en).toLocaleString('es-EC')}</td><td>{e.falsos_positivos}</td><td>{e.falsos_negativos}</td></tr>
           ))}</tbody>
-        </table>
+        </table></div>
       ))}
       {canCreate && (
         <form aria-label="Registrar evidencia" onSubmit={e => void submit(e)}>

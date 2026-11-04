@@ -6,6 +6,7 @@ import { requestText } from '../../lib/api/client';
 import { Paginated } from '../common/Paginated';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { usePage } from '../common/usePage';
+import { Button } from '../ui/Button';
 
 type Row = components['schemas']['AttendanceRow'];
 const STATES = ['', 'CONFIRMADA', 'PENDIENTE_REVISION', 'RECHAZADA'];
@@ -36,7 +37,7 @@ export function LiveAttendances({ sessionId, active }: { sessionId: string; acti
     <label>Estado<select value={estado} onChange={e => setEstado(e.target.value)}>
       {STATES.map(s => <option key={s} value={s}>{s ? s.replaceAll('_', ' ') : 'Todos'}</option>)}
     </select></label>
-    <button type="button" onClick={() => void exportCsv()}>Exportar CSV</button>
+    <Button variant="secondary" type="button" onClick={() => void exportCsv()}>Exportar CSV</Button>
     <ProblemMessage error={error ?? exportError} />
     <Paginated items={data?.items ?? null} total={data?.total ?? 0} page={page} size={data?.size ?? 20} onPage={setPage}
       empty="Aún no hay asistencias."

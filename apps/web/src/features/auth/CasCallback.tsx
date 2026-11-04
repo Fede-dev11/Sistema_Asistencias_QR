@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
+import { ButtonLink } from '../ui/Button';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { request } from '../../lib/api/client';
 import { useSession, type Session } from './SessionProvider';
@@ -22,6 +22,6 @@ export function CasCallback() {
    } catch (e) { setError(e instanceof Error ? e.message : 'No hay conexión. Reintenta.'); }
   })();
  }, [params, router, establish]);
- if (error) return <section><h1>No se pudo iniciar sesión</h1><p role="alert">{error}</p><Link href="/login">Reintentar</Link></section>;
+ if (error) return <section><h1>No se pudo iniciar sesión</h1><p role="alert">{error}</p><ButtonLink href="/login">Reintentar</ButtonLink></section>;
  return <section><h1>Verificando acceso</h1><p role="status">Validando tu cuenta universitaria…</p></section>;
 }
