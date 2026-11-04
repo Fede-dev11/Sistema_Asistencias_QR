@@ -1,0 +1,56 @@
+---
+title: "Nivel 1 · Contexto del sistema"
+---
+
+GeoAsist registra la asistencia a clases y eventos universitarios con QR, con o sin verificación geográfica.
+Esta página muestra quién lo usa y con qué sistemas externos se relaciona.
+
+::: {.callout-note}
+Los diagramas son **código** (Mermaid C4, celdas ```` ```{mermaid} ````). Para actualizarlos, edite el bloque de
+este archivo `.qmd` y ejecute `quarto render` en `docs/arquitectura`; no hay imágenes que regenerar a mano.
+:::
+
+```{mermaid}
+C4Context
+  title Contexto de GeoAsist
+  Person(estudiante, "Estudiante", "Registra su asistencia y consulta su historial")
+  Person(docente, "Docente / Encargado", "Crea clases y eventos, abre sesiones, corrige asistencias")
+  Person(director, "Director de carrera / institucional", "Consulta estadísticas y reportes de su alcance")
+  Person(admin, "Administrador", "Gestiona carreras, paralelos, personas y espacios")
+  Person(invitado, "Invitado sin cuenta", "Se registra en un evento abierto")
+  System(geoasist, "GeoAsist", "Asistencia por QR con verificación geográfica opcional")
+  System(sso, "SSO universitario simulado", "Subconjunto de CAS 3.0: services/auth")
+  System_Ext(cas, "CAS real de la UNL", "Futuro: no integrado todavía")
+  System_Ext(osm, "OpenStreetMap", "Teselas del mapa web")
+  Rel(estudiante, geoasist, "Escanea QR, registra asistencia")
+  Rel(docente, geoasist, "Gestiona actividades y sesiones")
+  Rel(director, geoasist, "Consulta estadísticas y reportes")
+  Rel(admin, geoasist, "Administra datos académicos")
+  Rel(invitado, geoasist, "Autorregistro sin cuenta")
+  Rel(geoasist, sso, "Delega el ingreso", "CAS 3.0")
+  Rel(sso, cas, "Sustituible por", "futuro")
+  Rel(geoasist, osm, "Pide teselas", "HTTPS")
+```
+
+## Elementos
+
+| Elemento | Tipo | Descripción |
+|---|---|---|
+| Estudiante | Persona | Registra asistencia con QR desde la app móvil y consulta su historial. |
+| Docente / Encargado | Persona | Responsable de clases o eventos: configura métodos, abre sesiones, justifica y corrige. |
+| Director de carrera / institucional | Persona | Ve clases y eventos de su carrera, o de toda la institución según su alcance. |
+| Administrador | Persona | Importa y mantiene carreras, paralelos, personas, cuentas y espacios. |
+| Invitado sin cuenta | Persona | Participa en eventos abiertos o con lista de invitados (ADR 0002). |
+| GeoAsist | Sistema | Aplicación web, móvil y API (detallado en el nivel 2). |
+| SSO universitario simulado | Sistema | `services/auth`, CAS 3.0 simulado para desarrollo (ADR 0006). |
+| CAS real de la UNL | Sistema externo (futuro) | Se asume CAS 3.0 como hipótesis; el cambio afectaría solo a un adaptador y a la configuración `SSO_*`. |
+| OpenStreetMap | Sistema externo | Teselas para elegir coordenadas de un espacio en la web (ADR 0005, Leaflet). |
+
+## Relaciones
+
+| Origen → Destino | Descripción |
+|---|---|
+| Personas → GeoAsist | Usan la web (docentes, directores, administradores) o la app móvil (estudiantes); los invitados se registran sin cuenta. |
+| GeoAsist → SSO simulado | Redirección CAS para iniciar sesión y validación de ticket servidor a servidor. |
+| SSO simulado → CAS real | Relación prevista, aún no implementada. |
+| GeoAsist → OpenStreetMap | El navegador descarga teselas por HTTPS; no se envían datos personales. |

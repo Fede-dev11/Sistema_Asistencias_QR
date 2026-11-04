@@ -1,0 +1,59 @@
+---
+title: "Nivel 2 · Contenedores"
+---
+
+Despliegue lógico de GeoAsist: dos clientes, dos servicios Spring Boot y una instancia PostgreSQL con dos bases
+(`infra/docker-compose.yml`).
+
+::: {.callout-note}
+Los diagramas son **código** (Mermaid C4, celdas ```` ```{mermaid} ````). Para actualizarlos, edite el bloque de
+este archivo `.qmd` y ejecute `quarto render` en `docs/arquitectura`.
+:::
+
+```{mermaid}
+C4Container
+  title Contenedores de GeoAsist
+  Person(usuario, "Usuario web", "Docente, director, administrador, invitado")
+  Person(estudiante, "Estudiante", "Usa la app móvil")
+  System_Ext(osm, "OpenStreetMap", "Teselas")
+  System_Boundary(g, "GeoAsist") {
+    Container(web, "Aplicación web", "Next.js 16, React, Leaflet", "apps/web")
+    Container(mobile, "Aplicación móvil", "Expo / React Native", "apps/mobile")
+    Container(api, "API", "Spring Boot, Java", "services/api, /api/v1")
+    Container(auth, "Servicio de autenticación", "Spring Boot", "services/auth, CAS 3.0 simulado")
+    ContainerDb(db, "geoasist", "PostgreSQL 17, PostGIS opcional", "Datos de asistencia")
+    ContainerDb(authdb, "geoasist_auth", "PostgreSQL 17", "Usuarios, servicios y tickets")
+  }
+  Rel(usuario, web, "Usa", "HTTPS")
+  Rel(estudiante, mobile, "Usa")
+  Rel(web, osm, "Teselas", "HTTPS")
+  Rel(web, api, "Llamadas REST", "HTTPS/JSON")
+  Rel(mobile, api, "Llamadas REST", "HTTPS/JSON")
+  Rel(web, auth, "Redirige a /cas/login", "HTTP redirect")
+  Rel(mobile, auth, "Login CAS", "navegador del sistema")
+  Rel(api, auth, "serviceValidate", "HTTP servidor a servidor")
+  Rel(api, db, "Lee y escribe", "JDBC")
+  Rel(auth, authdb, "Lee y escribe", "JDBC")
+```
+
+## Contenedores
+
+| Contenedor | Tecnología | Responsabilidad |
+|---|---|---|
+| Aplicación web | Next.js 16 (`apps/web`), Leaflet 1.9.4 | Gestión de actividades, sesiones, correcciones, estadísticas, reportes, administración, simuladores de prueba y documentación de la API. |
+| Aplicación móvil | Expo 57 (`apps/mobile`) | Ingreso CAS, sesiones activas, registro de asistencia por QR y ubicación. |
+| API | Spring Boot (`services/api`) | Lógica de negocio, reglas de asistencia, seguridad de sesión, programadores de tareas. Contrato REST `/api/v1`. |
+| Servicio de autenticación | Spring Boot (`services/auth`) | CAS 3.0 simulado: `/cas/login`, `/cas/logout`, validación de ticket; administración de usuarios y servicios. |
+| `geoasist` | PostgreSQL 17.7, migraciones Flyway; PostGIS opcional | Base de la API; con PostGIS se verifica proximidad, sin él se usa un adaptador sin geografía. |
+| `geoasist_auth` | PostgreSQL 17.7 | Base lógica del SSO, creada por `infra/db-init/01-auth-db.sql` en la misma instancia. |
+
+## Relaciones
+
+| Relación | Protocolo | Nota |
+|---|---|---|
+| Web / móvil → API | HTTPS, JSON REST `/api/v1` | Tipos TypeScript generados del contrato OpenAPI (`src/generated/api.ts`). |
+| Web / móvil → Auth | Redirección CAS | El cliente recibe un ticket y lo entrega a la API. |
+| API → Auth | `serviceValidate` servidor a servidor | Se autentica con `SSO_SERVICE_KEY`; solo el módulo `identidades` lo usa. |
+| API → `geoasist` | JDBC | Perfil `dev` con cuentas de desarrollo. |
+| Auth → `geoasist_auth` | JDBC | Sin acceso cruzado entre bases. |
+| Web → OpenStreetMap | HTTPS | Solo en el formulario de espacios. |
