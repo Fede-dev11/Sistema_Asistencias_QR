@@ -15,7 +15,7 @@ beforeEach(() => {
   fetcher.mockImplementation(async (url: string, init?: RequestInit) => {
     if (url.includes('/activities?')) return json({ items: [{ id: 'a1', nombre: 'Programación II', estado: 'ABIERTA', espacio_id: 'sp1' }, { id: 'a2', nombre: 'Vieja', estado: 'CERRADA', espacio_id: 'sp1' }] });
     if (url.includes('/activities/a1/sessions')) return json({ items: sessions });
-    if (url.endsWith('/spaces/sp1')) return json({ nombre: 'Aula A334' });
+    if (url.includes('/spaces?')) return json({ items: [{ id: 'sp1', nombre: 'Aula A334' }] });
     if (url.endsWith('/start') && init?.method === 'POST') return json({ estado: 'ACTIVA' });
     return { ok: false, status: 404, json: async () => ({ type: 'u', title: 't', status: 404, code: 'NO', mensaje: 'no' }) };
   });

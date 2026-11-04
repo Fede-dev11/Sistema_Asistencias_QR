@@ -1,5 +1,6 @@
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { spaceNames } from '../spaces/spaceNames';
 
 type Activity = components['schemas']['Activity'];
 type Session = components['schemas']['ScheduledSession'];
@@ -15,6 +16,6 @@ export async function loadSession(id: string): Promise<SessionInfo> {
   const found = pages.flat().find(x => x.session.id === id);
   if (!found) throw new Error('No se encontró la sesión.');
   const spaceId = found.session.espacio_id ?? found.activity.espacio_id;
-  const space = await request<{ nombre: string }>(`/spaces/${spaceId}`).then(s => s.nombre, () => undefined);
+  const space = spaceId ? (await spaceNames()).get(spaceId) : undefined;
   return { ...found, space };
 }

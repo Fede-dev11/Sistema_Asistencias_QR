@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { spaceNames } from '../spaces/spaceNames';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { Button, ButtonLink } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
@@ -20,14 +21,13 @@ const ORDER: Record<string, number> = { ACTIVA: 0, PROGRAMADA: 1, CERRADA: 2 };
 
 /**
  * Sesiones de hoy de todas las actividades del docente.
- * shortcut: 1 + N peticiones (una por actividad abierta) + una por espacio distinto, sin endpoint "sesiones de hoy"; con más de ~10 actividades abiertas conviene un endpoint del backend.
+ * shortcut: 1 + N peticiones (una por actividad abierta) + una para nombres de espacios, sin endpoint "sesiones de hoy"; con más de ~10 actividades abiertas conviene un endpoint del backend.
  */
 export async function loadToday(now = new Date()): Promise<{ today: Row[]; next: Row | null }> {
   const { items } = await request<{ items: Activity[] }>('/activities?size=100');
   const open = items.filter(a => a.estado === 'ABIERTA');
   const sessions = (await Promise.all(open.map(a => request<{ items: Session[] }>(`/activities/${a.id}/sessions?size=100`).then(p => p.items.map(s => ({ ...s, nombre: a.nombre, espacio: s.espacio_id ?? a.espacio_id })))))).flat();
-  const names = new Map<string, string>();
-  await Promise.all([...new Set(sessions.map(s => s.espacio))].filter(Boolean).map(id => request<{ nombre: string }>(`/spaces/${id}`).then(sp => names.set(String(id), sp.nombre), () => undefined)));
+  const names = sessions.some(s => s.espacio) ? await spaceNames() : new Map<string, string>();
   const rows = sessions.filter(s => s.estado !== 'CANCELADA').map(s => ({ ...s, espacio: names.get(String(s.espacio)) }));
   const today = rows.filter(s => day(s.inicio) === day(now)).sort((a, b) => ORDER[a.estado] - ORDER[b.estado] || a.inicio.localeCompare(b.inicio));
   const next = rows.filter(s => s.estado === 'PROGRAMADA' && new Date(s.inicio) > now).sort((a, b) => a.inicio.localeCompare(b.inicio))[0] ?? null;

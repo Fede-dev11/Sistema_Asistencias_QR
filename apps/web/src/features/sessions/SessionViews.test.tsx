@@ -20,7 +20,7 @@ beforeEach(() => {
   vi.mocked(request).mockImplementation(async (path: string) => {
     if (path.startsWith('/activities?')) return { items: [{ id: 'a1', nombre: 'Programación II', estado: 'ABIERTA', tipo: 'CLASE', espacio_id: 'sp1' }] };
     if (path.startsWith('/activities/a1/sessions')) return { items: [{ id: 's1', activity_id: 'a1', estado, inicio: '2026-11-04T13:00:00Z', fin: '2026-11-04T15:00:00Z', metodo_verificacion: 'SOLO_QR' }] };
-    if (path === '/spaces/sp1') return { nombre: 'Aula A334' };
+    if (path.startsWith('/spaces?')) return { items: [{ id: 'sp1', nombre: 'Aula A334' }] };
     if (path === '/sessions/s1/qr') return { qr_token: 'tok', emitido_en: '', vence_en: '', rotacion_segundos: 30, vigencia_segundos: 40 };
     if (path.includes('estado=CONFIRMADA')) return page(23);
     if (path.includes('estado=PENDIENTE_REVISION')) return page(2);
