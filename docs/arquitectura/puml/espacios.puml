@@ -1,0 +1,45 @@
+@startuml espacios
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/espacios
+!include _estilo.iuml
+title Espacios (catálogo y evidencia geográfica)
+
+package "presentacion" {
+  class SpaceController {
+    CreateInput; PatchInput; GeoEvidenceInput
+  }
+}
+package "aplicacion" {
+  class ManageSpaces {
+    +create(user, Command): Map
+    +update(user, id, Command): Map
+    +search(user, q, page, size): Map
+  }
+  class GeoEvidence {
+    +create(user, spaceId, Command): Map
+    +list(user, spaceId): List<Map>
+  }
+}
+package "dominio" {
+  class SpaceCode <<final>> {
+    +{static} normalize(raw): String
+  }
+}
+package "persistencia" {
+  class SpaceRepository {
+    +find(id): Optional<Row>
+    +idByCode(normalized): Optional<UUID>
+    +insert(Row, normalized)
+    +update(Row)
+    +count(codeLike, nameLike): long
+    +search(codeLike, nameLike, size, offset): List<Row>
+  }
+  class "SpaceRepository.Row" as Row <<record>>
+}
+
+SpaceController --> ManageSpaces
+SpaceController --> GeoEvidence
+ManageSpaces --> SpaceRepository
+ManageSpaces ..> SpaceCode
+GeoEvidence --> SpaceRepository
+SpaceRepository *-- Row
+@enduml

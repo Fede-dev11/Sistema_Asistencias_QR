@@ -1,0 +1,41 @@
+@startuml qr
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/qr
+!include _estilo.iuml
+title QR (emisión y rotación de tokens de sesión)
+
+package "presentacion" {
+  class QrController
+}
+package "aplicacion" {
+  class IssueSessionQr {
+    +get(user, session): Map
+    +rotate(session)
+    +lookup(value): Token
+    +{static} validate(Token, received)
+    +expireCache()
+  }
+  class "IssueSessionQr.Token" as Token <<record>> {
+    id; session
+    issued; expires: Instant
+  }
+  class QrRotationScheduler {
+    +rotate()
+  }
+}
+package "otros módulos (usado)" {
+  class OpaqueSecrets
+  class ActivityRepository
+  class ActivityAuthorization
+  class SessionRepository
+  class AttendanceLocks
+}
+
+QrController --> IssueSessionQr
+QrRotationScheduler --> IssueSessionQr
+IssueSessionQr --> OpaqueSecrets
+IssueSessionQr --> ActivityRepository
+IssueSessionQr --> ActivityAuthorization
+IssueSessionQr --> SessionRepository
+IssueSessionQr --> AttendanceLocks
+IssueSessionQr +-- Token
+@enduml

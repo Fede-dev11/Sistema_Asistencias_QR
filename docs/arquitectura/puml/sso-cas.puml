@@ -1,0 +1,103 @@
+@startuml sso-cas
+' Fuente: services/auth/src/main/java/ec/edu/unl/sso/{cas,servicios,compartido}
+!include _estilo.iuml
+title Servicio SSO · protocolo CAS, servicios registrados y utilidades
+
+package "cas.presentacion" {
+  class LoginController
+  class LogoutController
+  class ValidateController
+}
+package "cas.aplicacion" {
+  class SsoSessions {
+    +crear(usuarioId): String
+    +vigente(secret): Optional<Sesion>
+    +cerrar(secret)
+    +cerrarOtras(usuarioId, except)
+    +cerrarTodas(usuarioId)
+    +usuarioActivoDe(sesionId): Optional<UUID>
+  }
+  class "SsoSessions.Sesion" as Sesion <<record>> {
+    id; usuarioId
+  }
+  class Tickets {
+    +emitir(sesionId, servicioId, service): String
+    +consumir(ticket): Optional<Consumido>
+  }
+  class "Tickets.Consumido" as Consumido <<record>> {
+    sesionId; servicioId; service
+  }
+}
+package "cas.persistencia" {
+  class LoginLog {
+    +registrar(correo, Resultado, origen, servicioId)
+  }
+}
+package "servicios.aplicacion" {
+  class ServiceMatcher {
+    +match(service): Optional<Servicio>
+    +{static} validPrefix(raw): boolean
+  }
+  class ManageServices {
+    +crear(actor, nombre, retornos): String
+    +editar(actor, id, nombre, retornos, activo)
+    +regenerarClave(actor, id): String
+  }
+}
+package "servicios.persistencia" {
+  class ServiceRegistry {
+    +activos(): List<Servicio>
+    +todos(): List<Servicio>
+    +activoPorId(id): Optional<Servicio>
+    +idPorClave(key): Optional<UUID>
+  }
+  class "ServiceRegistry.Servicio" as Servicio <<record>> {
+    id; nombre
+    retornos: List<String>
+    activo: boolean
+  }
+}
+package "compartido" {
+  class RateLimiter {
+    +allow(scope, key, limit): boolean
+    +retryAfterSeconds(): long
+  }
+  class AdminAudit
+  class Secrets <<final>> {
+    +{static} random(): String
+    +{static} sha256Hex(value): String
+    +{static} temporaryPassword(): String
+  }
+  class Cedula <<record>> {
+    +{static} of(raw)
+  }
+  class RetentionJob {
+    +purgar()
+  }
+  class DevelopmentSeed {
+    +run(ApplicationArguments)
+  }
+  class SecurityConfig
+}
+class UserRepository <<usuarios>>
+
+LoginController --> UserRepository
+LoginController --> SsoSessions
+LoginController --> Tickets
+LoginController --> ServiceMatcher
+LoginController --> RateLimiter
+LoginController --> LoginLog
+LogoutController --> SsoSessions
+LogoutController --> ServiceMatcher
+ValidateController --> Tickets
+ValidateController --> SsoSessions
+ValidateController --> UserRepository
+ServiceMatcher --> ServiceRegistry
+ManageServices --> ServiceRegistry
+ManageServices --> AdminAudit
+SsoSessions +-- Sesion
+Tickets +-- Consumido
+ServiceRegistry +-- Servicio
+Tickets ..> Secrets
+DevelopmentSeed --> UserRepository
+@enduml

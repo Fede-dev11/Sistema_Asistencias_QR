@@ -1,0 +1,74 @@
+@startuml compartido
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/compartido
+!include _estilo.iuml
+title Compartido (errores, idempotencia, secretos, tiempo y bloqueos)
+
+package "aplicacion" {
+  class ApiFailure <<RuntimeException>> {
+    +status(): int
+    +code(): String
+    +detail(): String
+    +with(key, value): ApiFailure
+    +extras(): Map
+    +{static} forbidden()
+    +{static} missing()
+    +{static} unauthenticated()
+    +{static} invalid()
+    +{static} conflict()
+  }
+  class ProblemDetails <<final>> {
+    +{static} of(ApiFailure): Map
+  }
+  class IdempotencyService
+  class "IdempotencyService.Receipt" as Receipt <<record>> {
+    status: int
+    body: Map
+  }
+  class OpaqueSecrets {
+    +issue(): String
+    +{static} hash(secret): String
+    +hmac(input): String
+  }
+  class AcademicAudit
+  class NominalAccessGuard {
+    +check(deadline: Instant)
+  }
+  class RecordAbsences {
+    +record(session)
+  }
+  class ServerTime {
+    +serverClock(): Clock
+    +{static} received(HttpServletRequest): Instant
+  }
+  class RequestCorrelation <<final>> {
+    +{static} begin(): UUID
+    +{static} id(): UUID
+    +{static} clear()
+  }
+}
+package "dominio" {
+  class Cedula <<record>> {
+    value: String
+    +{static} of(raw): Cedula
+  }
+  class RetentionPolicy <<final>> {
+    +{static} expires(closed): Instant
+    +{static} expired(deadline, now): boolean
+  }
+}
+package "persistencia" {
+  class AttendanceLocks {
+    +activity(id, exclusive)
+    +session(id)
+    +person(id)
+    +guestStart(id)
+    +attempt(id)
+    +allSessions(activity)
+  }
+}
+
+ProblemDetails ..> ApiFailure
+IdempotencyService --> OpaqueSecrets
+IdempotencyService +-- Receipt
+NominalAccessGuard ..> RetentionPolicy
+@enduml

@@ -1,0 +1,89 @@
+@startuml sesiones
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/sesiones
+!include _estilo.iuml
+title Sesiones (ciclo de vida, programación y geolocalización)
+
+package "presentacion" {
+  class SessionController
+  class ActivitySessionController
+  class GeolocationController
+}
+package "aplicacion" {
+  class SessionLifecycle {
+    +change(user, session, key, start): Receipt
+  }
+  class ManageScheduledSessions {
+    +list(user, activity, page, size): Map
+    +create(user, activityId, key, Changes): Receipt
+    +edit(user, session, Changes): Map
+    +cancel(user, session): Map
+  }
+  class ConfigureSessionGeolocation {
+    +configure(user, sessionId, Command): Map
+  }
+  class ReadSessionGeolocation {
+    +read(user, sessionId): Map
+  }
+  class SessionCycle {
+    +tick()
+  }
+  class SessionCycleScheduler {
+    +tick()
+  }
+}
+package "dominio" {
+  interface GeographicCapability {
+    +available(): boolean
+    +configured(session): boolean
+  }
+}
+package "persistencia" {
+  class SessionRepository {
+    +find(id): Session
+    +requireGpsConfigured(id)
+    +method(id): String
+    +{static} usesQr(method): boolean
+    +{static} dto(Session): Map
+  }
+  class "SessionRepository.Session" as Session <<record>>
+}
+package "otros módulos (usado)" {
+  class ActivityRepository
+  class ActivityAuthorization
+  class ActivityAuditWriter
+  class SpaceMethodRules
+  class RecordAbsences
+  class AttendanceLocks
+  class IdempotencyService
+  class NoGeographyAdapter
+  class PostgisProximityAdapter
+}
+
+SessionController --> SessionLifecycle
+SessionController --> ManageScheduledSessions
+ActivitySessionController --> ManageScheduledSessions
+GeolocationController --> ConfigureSessionGeolocation
+SessionCycleScheduler --> SessionCycle
+SessionLifecycle --> SessionRepository
+SessionLifecycle --> ActivityRepository
+SessionLifecycle --> ActivityAuthorization
+SessionLifecycle --> RecordAbsences
+SessionLifecycle --> AttendanceLocks
+SessionLifecycle --> IdempotencyService
+ManageScheduledSessions --> ActivityRepository
+ManageScheduledSessions --> ActivityAuthorization
+ManageScheduledSessions --> SpaceMethodRules
+ManageScheduledSessions --> IdempotencyService
+ConfigureSessionGeolocation --> SessionRepository
+ConfigureSessionGeolocation --> GeographicCapability
+ConfigureSessionGeolocation --> ActivityAuthorization
+ConfigureSessionGeolocation --> ActivityAuditWriter
+ReadSessionGeolocation --> ActivityAuthorization
+SessionCycle --> SessionRepository
+SessionCycle --> RecordAbsences
+SessionCycle --> SpaceMethodRules
+SessionCycle --> ActivityAuditWriter
+SessionRepository *-- Session
+NoGeographyAdapter ..|> GeographicCapability
+PostgisProximityAdapter ..|> GeographicCapability
+@enduml
