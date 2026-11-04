@@ -9,7 +9,7 @@ componente por pieza nueva y E2E que mide clics/altura. `WEB` = `apps/web/src`. 
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirmar rama `feature/007-optimizacion-ux-web` y `.specify/feature.json`; guardar la auditoría base (métricas de la spec) en `docs/validation/ux-auditoria-007.md`
+- [X] T001 Confirmar rama `feature/007-optimizacion-ux-web` y `.specify/feature.json`; guardar la auditoría base (métricas de la spec) en `docs/validation/ux-auditoria-007.md`
 
 ## Phase 2: Foundational — sistema visual (bloquea todo)
 
