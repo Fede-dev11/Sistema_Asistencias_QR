@@ -13,10 +13,34 @@ import org.springframework.web.bind.annotation.*;
 public class GuestManagementController {
   private final ConfigureGuests settings;
   private final ReplaceGuestList list;
+  private final ReadActivityConfiguration reads;
 
-  public GuestManagementController(ConfigureGuests settings, ReplaceGuestList list) {
+  public GuestManagementController(
+      ConfigureGuests settings, ReplaceGuestList list, ReadActivityConfiguration reads) {
     this.settings = settings;
     this.list = list;
+    this.reads = reads;
+  }
+
+  @GetMapping("/guest-settings")
+  public Map<String, Object> getSettings(
+      @AuthenticationPrincipal UserSession user, @PathVariable UUID activityId) {
+    return reads.guestSettings(user, activityId);
+  }
+
+  @GetMapping("/guest-list")
+  public Map<String, Object> getList(
+      @AuthenticationPrincipal UserSession user,
+      @PathVariable UUID activityId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "20") int size) {
+    return reads.guestList(user, activityId, page, size);
+  }
+
+  @GetMapping("/schedule")
+  public Map<String, Object> getSchedule(
+      @AuthenticationPrincipal UserSession user, @PathVariable UUID activityId) {
+    return reads.schedule(user, activityId);
   }
 
   public record Settings(
