@@ -1,0 +1,46 @@
+@startuml reportes
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/reportes
+!include _estilo.iuml
+title Reportes (consulta y exportación de asistencias, auditoría)
+
+package "presentacion" {
+  class AttendanceQueryController
+  class AttendanceExportController
+  class AuditQueryController
+}
+package "aplicacion" {
+  class FindAttendances {
+    +{static} validate(page, size, state)
+    +{static} dto(Row): Map
+  }
+  class ExportAttendancesCsv {
+    +export(user, session, state): String
+    ~{static} cell(value): String
+  }
+}
+package "persistencia" {
+  class AttendanceReadRepository {
+    +find(session, state, limit, offset): List<Row>
+    +count(session, state): long
+    +all(session, state): List<Row>
+  }
+  class "AttendanceReadRepository.Row" as Row <<record>>
+}
+package "otros módulos (usado)" {
+  class ActivityRepository
+  class ActivityAuthorization
+  class ActivityAuditWriter
+}
+
+AttendanceQueryController --> FindAttendances
+AttendanceExportController --> ExportAttendancesCsv
+AuditQueryController --> ActivityAuthorization
+FindAttendances --> ActivityRepository
+FindAttendances --> ActivityAuthorization
+FindAttendances --> AttendanceReadRepository
+ExportAttendancesCsv --> ActivityRepository
+ExportAttendancesCsv --> ActivityAuthorization
+ExportAttendancesCsv --> AttendanceReadRepository
+ExportAttendancesCsv --> ActivityAuditWriter
+AttendanceReadRepository *-- Row
+@enduml
