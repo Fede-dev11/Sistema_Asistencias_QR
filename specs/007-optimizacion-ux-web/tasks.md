@@ -41,8 +41,8 @@ componente por pieza nueva y E2E que mide clics/altura. `WEB` = `apps/web/src`. 
 
 ## Phase 6: US4 — Jerarquía visual coherente (P2)
 
-- [ ] T018 [US4] Reemplazar botones y estados en todas las pantallas por `Button` (una sola primaria por pantalla) y `StatusTag`; quitar `window.confirm` restantes (usar `ConfirmInline`); estados vacíos con `EmptyState`
-- [ ] T019 [P] [US4] Revisión de accesibilidad: contraste de tokens, foco visible, objetivos ≥ 44 px, sin desplazamiento horizontal a 375 px; documentar en `docs/validation/ux-auditoria-007.md`
+- [X] T018 [US4] Reemplazar botones y estados en todas las pantallas por `Button` (una sola primaria por pantalla) y `StatusTag`; quitar `window.confirm` restantes (usar `ConfirmInline`); estados vacíos con `EmptyState`
+- [X] T019 [P] [US4] Revisión de accesibilidad: contraste de tokens, foco visible, objetivos ≥ 44 px, sin desplazamiento horizontal a 375 px; documentar en `docs/validation/ux-auditoria-007.md`
 
 ## Phase 7: US5 — Administración con panel lateral (P2)
 

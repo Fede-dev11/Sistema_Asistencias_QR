@@ -5,6 +5,7 @@ import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { GeoEvidencePanel } from './GeoEvidencePanel';
 import { SpaceForm, type Space } from './SpaceForm';
+import { Button } from '../ui/Button';
 
 type Page = components['schemas']['SpacePage'];
 
@@ -34,14 +35,14 @@ export function SpacePicker({ onSelect }: { onSelect: (space: Space) => void }) 
       <ul>
         {items.map(space => (
           <li key={space.id}>
-            <button type="button" onClick={() => onSelect(space)}>{space.codigo} — {space.nombre}</button>
-            <button type="button" aria-label={`Ver evidencias de ${space.codigo}`} aria-pressed={viewing === space.id} onClick={() => setViewing(viewing === space.id ? null : space.id)}>Evidencias</button>
+            <Button variant="secondary" type="button" onClick={() => onSelect(space)}>{space.codigo} — {space.nombre}</Button>
+            <Button variant="text" type="button" aria-label={`Ver evidencias de ${space.codigo}`} aria-pressed={viewing === space.id} onClick={() => setViewing(viewing === space.id ? null : space.id)}>Evidencias</Button>
             {viewing === space.id && <GeoEvidencePanel spaceId={space.id} />}
           </li>
         ))}
       </ul>
       {error && <p role="alert">{error}</p>}
-      <button type="button" onClick={() => setCreating(true)}>Crear nuevo espacio</button>
+      <Button variant="secondary" type="button" onClick={() => setCreating(true)}>Crear nuevo espacio</Button>
     </div>
   );
 }

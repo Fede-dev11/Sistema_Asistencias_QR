@@ -6,6 +6,8 @@ import { request } from '../../lib/api/client';
 import { Paginated } from '../common/Paginated';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { usePage } from '../common/usePage';
+import { Button } from '../ui/Button';
+import { StatusTag } from '../ui/StatusTag';
 
 type Absence = components['schemas']['Absence'];
 
@@ -30,14 +32,14 @@ export function AbsencesPanel({ sessionId }: { sessionId: string }) {
     <Paginated items={data?.items ?? null} total={data?.total ?? 0} page={page} size={data?.size ?? 20} onPage={setPage}
       empty="No hay ausencias."
       renderItem={a => <>
-        {a.nombres} ({a.cedula}) — {a.estado}{' '}
+        {a.nombres} ({a.cedula}) — <StatusTag status={a.estado} />{' '}
         {a.estado === 'AUSENTE' && (open === a.persona_id
           ? <>
             <label>Razón de justificación<input value={reason} onChange={e => setReason(e.target.value)} /></label>
-            <button type="button" onClick={() => void justify(a.persona_id)}>Confirmar justificación</button>
-            <button type="button" onClick={() => { setOpen(null); setReason(''); }}>Descartar</button>
+            <Button variant="primary" type="button" onClick={() => void justify(a.persona_id)}>Confirmar justificación</Button>
+            <Button variant="text" type="button" onClick={() => { setOpen(null); setReason(''); }}>Descartar</Button>
           </>
-          : <button type="button" onClick={() => { setOpen(a.persona_id); setReason(''); }}>Justificar {a.nombres}</button>)}
+          : <Button variant="secondary" type="button" onClick={() => { setOpen(a.persona_id); setReason(''); }}>Justificar {a.nombres}</Button>)}
       </>} />
   </section>;
 }

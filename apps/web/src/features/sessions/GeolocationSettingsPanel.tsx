@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { Button } from '../ui/Button';
 
 type Status = components['schemas']['GeolocationStatus'];
 
@@ -66,7 +67,7 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
           <label>Antigüedad máxima (s)<input aria-label="Antigüedad máxima (s)" type="number" min="1" step="1" required value={age} onChange={event => setAge(event.target.value)} /></label>
         </>
       )}
-      <button disabled={busy || !sessionId}>Guardar ubicación</button>
+      <Button variant="primary" type="submit" disabled={busy || !sessionId}>Guardar ubicación</Button>
       {status && <p role="status">Modo efectivo: {status.modo_efectivo.replaceAll('_', ' ')}.</p>}
       {error && <p role="alert">{error}</p>}
     </form>

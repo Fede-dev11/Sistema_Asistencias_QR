@@ -6,6 +6,7 @@ import { request } from '../../lib/api/client';
 import { useSession } from '../auth/SessionProvider';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { pct } from './ActivityStats';
+import { Button } from '../ui/Button';
 
 type Group = components['schemas']['GroupStats'];
 
@@ -42,12 +43,12 @@ export function GroupStatsView({ title, path, careers }: { title: string; path: 
         )}
         <label>Desde<input type="date" name="desde" /></label>
         <label>Hasta (exclusivo)<input type="date" name="hasta" /></label>
-        <button disabled={busy}>Consultar</button>
+        <Button variant="primary" type="submit" disabled={busy}>Consultar</Button>
       </form>
       <ProblemMessage error={error} />
       {busy && <p role="status">Cargando…</p>}
       {rows && (rows.length === 0 ? <p>No hay datos para el periodo.</p> : (
-        <table>
+        <div className="table-wrap"><table>
           <caption>{title}</caption>
           <thead><tr><th>Carrera</th>{withParallel && <th>Paralelo</th>}<th>Sesiones</th><th>Asistencias</th><th>Ausencias</th><th>Porcentaje</th></tr></thead>
           <tbody>{rows.map((r, i) => (
@@ -57,7 +58,7 @@ export function GroupStatsView({ title, path, careers }: { title: string; path: 
               <td>{r.sesiones_computables}</td><td>{r.asistencias}</td><td>{r.ausencias}</td><td>{pct(r.porcentaje)}</td>
             </tr>
           ))}</tbody>
-        </table>
+        </table></div>
       ))}
     </section>
   );

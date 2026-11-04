@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { MethodSelect } from '../sessions/MethodSelect';
+import { Button } from '../ui/Button';
+import { StatusTag } from '../ui/StatusTag';
 
 type Page = components['schemas']['SessionPage'];
 type Session = components['schemas']['ScheduledSession'];
@@ -49,16 +51,16 @@ export function ClassSessions({ activityId }: { activityId: string }) {
                 <label>Inicio<input type="datetime-local" value={start} onChange={e => setStart(e.target.value)} /></label>
                 <label>Fin<input type="datetime-local" value={end} onChange={e => setEnd(e.target.value)} /></label>
                 <MethodSelect value={method} onChange={setMethod} />
-                <button type="button" onClick={() => void save(s)}>Guardar</button>
-                <button type="button" onClick={() => setEditing(null)}>Descartar</button>
+                <Button variant="primary" type="button" onClick={() => void save(s)}>Guardar</Button>
+                <Button variant="text" type="button" onClick={() => setEditing(null)}>Descartar</Button>
               </>
             ) : (
               <>
-                <Link href={`/sesiones/${s.id}`}>{new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })}</Link> — {s.estado} — {s.metodo_verificacion}
+                <Link href={`/sesiones/${s.id}`}>{new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })}</Link> — <StatusTag status={s.estado} /> — {s.metodo_verificacion}
                 {s.estado === 'PROGRAMADA' && (
                   <>
-                    <button type="button" onClick={() => edit(s)}>Editar</button>
-                    <button type="button" onClick={() => void run(() => request(`/sessions/${s.id}/cancel`, { method: 'POST' }))}>Cancelar sesión</button>
+                    <Button variant="secondary" type="button" onClick={() => edit(s)}>Editar</Button>
+                    <Button variant="danger" type="button" onClick={() => void run(() => request(`/sessions/${s.id}/cancel`, { method: 'POST' }))}>Cancelar sesión</Button>
                   </>
                 )}
               </>
@@ -66,7 +68,7 @@ export function ClassSessions({ activityId }: { activityId: string }) {
           </li>
         ))}
       </ul>
-      <button type="button" onClick={() => void addLoose()}>Añadir sesión suelta (próxima hora)</button>
+      <Button variant="secondary" type="button" onClick={() => void addLoose()}>Añadir sesión suelta (próxima hora)</Button>
       {error && <p role="alert">{error}</p>}
     </section>
   );

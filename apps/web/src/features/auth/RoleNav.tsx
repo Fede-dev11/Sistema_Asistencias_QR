@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from './SessionProvider';
+import { Button } from '../ui/Button';
 
 type Item = { href: string; label: string; roles: readonly string[] };
 const RESPONSABLES = ['DOCENTE', 'ENCARGADO'];
@@ -40,12 +41,12 @@ export function RoleNav() {
   const link = (i: Item) => <Link key={i.href} href={i.href} onClick={() => setOpen(false)} aria-current={pathname === i.href || pathname.startsWith(i.href + '/') ? 'page' : undefined}>{i.label}</Link>;
   const tests = pruebas ? mine(TEST_ITEMS) : [];
   return <nav aria-label="Principal" className={`role-nav${open ? ' open' : ''}`}>
-    <button type="button" className="role-nav-toggle" aria-expanded={open} aria-controls="role-nav-list" onClick={() => setOpen(o => !o)}>Menú</button>
+    <Button variant="secondary" type="button" className="role-nav-toggle" aria-expanded={open} aria-controls="role-nav-list" onClick={() => setOpen(o => !o)}>Menú</Button>
     <div id="role-nav-list" className="role-nav-list">
       {session && <span className="role-nav-user">{profile?.nombres} <small>({session.roles.join(', ')})</small></span>}
       {mine(NAV_ITEMS).map(link)}
       {tests.length > 0 && <div role="group" aria-label="Pruebas" className="role-nav-tests"><strong>Pruebas</strong>{tests.map(link)}</div>}
-      {session ? <button type="button" onClick={() => { void logout().catch(() => undefined); }}>Salir</button> : <Link href="/login">Ingresar</Link>}
+      {session ? <Button variant="secondary" type="button" onClick={() => { void logout().catch(() => undefined); }}>Salir</Button> : <Link href="/login">Ingresar</Link>}
       {!session && ssoLogoutUrl && <a href={ssoLogoutUrl}>Cerrar también la sesión universitaria</a>}
     </div>
   </nav>;

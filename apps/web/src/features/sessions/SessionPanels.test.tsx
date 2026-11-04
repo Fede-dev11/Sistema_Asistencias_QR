@@ -22,7 +22,8 @@ describe('SessionPicker', () => {
     vi.mocked(request).mockResolvedValue({ items: [sess], total: 1, page: 0, size: 10 });
     const onSelect = vi.fn();
     render(<SessionPicker activityId="a1" onSelect={onSelect} />);
-    await screen.findByText(/ACTIVA — SOLO_QR/);
+    await screen.findByText("Activa");
+    expect(screen.getByText(/SOLO_QR/)).toBeTruthy();
     expect(request).toHaveBeenCalledWith('/activities/a1/sessions?page=0&size=10');
     fireEvent.click(screen.getByRole('button', { name: 'Abrir' }));
     expect(onSelect).toHaveBeenCalledWith(sess);

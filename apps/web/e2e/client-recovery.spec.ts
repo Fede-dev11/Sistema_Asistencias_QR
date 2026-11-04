@@ -14,7 +14,7 @@ test('recupera QR activo al autenticarse otra vez y logout elimina la sesión lo
   await page.goto(projection); // recarga completa: el QR activo se recupera
   await expect(page.getByAltText('Código QR de asistencia de la sesión activa')).toBeVisible();
   await page.goto('/');
-  await page.getByRole('link', { name: 'Ingresar con credenciales' }).click();
+  await page.getByRole('link', { name: 'Ingresar', exact: true }).click();
   await page.getByRole('button', { name: 'Cerrar sesión', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Ingresar con cuenta universitaria' })).toBeVisible();
 });

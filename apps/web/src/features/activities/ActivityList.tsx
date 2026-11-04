@@ -54,7 +54,7 @@ export function ActivityList() {
       </div>
       <ProblemMessage error={error} />
       {items && shown.length === 0 && <EmptyState title="No hay actividades" text={items.length ? 'Ninguna coincide con los filtros.' : 'Crea tu primera clase o evento.'} />}
-      {shown.length > 0 && <table>
+      {shown.length > 0 && <div className="table-wrap"><table>
         <thead><tr><th scope="col">Nombre</th><th scope="col">Tipo</th><th scope="col">Estado</th><th scope="col">Próxima sesión</th></tr></thead>
         <tbody>{shown.map(a => (
           <tr key={a.id}>
@@ -63,7 +63,7 @@ export function ActivityList() {
             <td><StatusTag status={a.estado} /></td>
             <td><NextSession id={a.id} /></td>
           </tr>))}</tbody>
-      </table>}
+      </table></div>}
     </section>
   );
 }

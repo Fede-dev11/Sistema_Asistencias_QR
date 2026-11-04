@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
+import { Button } from '../ui/Button';
 
 type Student = components['schemas']['AuthorizedStudent'];
 
@@ -38,7 +39,7 @@ export function ManualAttendanceForm({ activityId, sessionId }: { activityId: st
       {students.map(s => <option key={s.persona_id} value={s.persona_id}>{s.nombres} ({s.cedula})</option>)}
     </select></label>
     <label>Razón<input value={reason} maxLength={2000} onChange={e => setReason(e.target.value)} /></label>
-    <button disabled={busy}>Registrar asistencia</button>
+    <Button variant="primary" type="submit" disabled={busy}>Registrar asistencia</Button>
     {message && <p role="status">{message}</p>}
     <ProblemMessage error={error} />
   </form>;

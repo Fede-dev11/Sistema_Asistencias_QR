@@ -58,3 +58,34 @@ SC-007: las metas anteriores se miden con pruebas E2E que cuentan clics y altura
 ## Resultado después de 007
 
 _Pendiente. Esta sección se completará con T023 (capturas antes/después) y T024 (revisión de verificación en `docs/validation/revision-incremento-007.md`)._
+
+## Accesibilidad (T019)
+
+Contraste calculado con `node tools/contracts/contrast.mjs` (fórmula WCAG 2.x; mínimo 4,5:1 para texto). Ningún par quedó por debajo, por lo que no se cambió ningún token.
+
+| Par (texto sobre fondo) | Ratio | Resultado |
+|---|---|---|
+| ink `#18302a` / paper `#f5f6f1` | 12,93 | OK |
+| ink / surface `#fff` | 14,05 | OK |
+| brand `#146b50` / paper | 5,95 | OK |
+| brand / surface | 6,46 | OK |
+| blanco / brand (botón primario) | 6,46 | OK |
+| danger `#a33726` / paper · surface | 6,17 · 6,71 | OK |
+| warn `#8a5a00` / paper · surface | 5,46 · 5,93 | OK |
+| muted `#4f665b` / paper · surface | 5,71 · 6,21 | OK |
+| info `#1c5ca3` / surface | 6,75 | OK |
+| StatusTag: brand/ok-soft · warn/warn-soft · danger/danger-soft · info/info-soft | 5,73 · 5,28 · 6,08 · 5,78 | OK |
+| Métodos HTTP de /documentacion (get, put, patch, delete) / blanco | 5,76 · 5,78 · 7,08 · 6,36 | OK |
+
+Los botones deshabilitados (opacidad .55) quedan exentos por WCAG (componentes inactivos).
+
+| Comprobación | Estado | Cómo |
+|---|---|---|
+| Foco visible | OK | `:focus-visible` global con contorno de 3 px `--color-brand` y desfase de 3 px |
+| Objetivos ≥ 44 px | OK | `.ui-btn`, `button`, `nav a`, pestañas, migas, chips de método, índice de documentación, resúmenes y casillas con `min-height:44px` |
+| Sin scroll horizontal a 375 px | OK por CSS (sin medición en navegador) | todas las tablas dentro de `.table-wrap` (`overflow-x:auto`); `main{min-width:0}` |
+| Etiquetas visibles | OK | todos los campos usan `<label>` visible; el buscador de /documentacion usa `aria-label` con marcador de posición |
+| `prefers-reduced-motion` | OK | regla global que anula transiciones y animaciones |
+| Color no es el único indicador | OK | `StatusTag` lleva icono y texto |
+
+No se ejecutó axe ni Playwright en este incremento: lo anterior es verificación por CSS y por cálculo.
