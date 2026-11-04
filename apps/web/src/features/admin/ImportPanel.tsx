@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
-import { AdminOnly } from './AdminOnly';
+import { RoleGuard } from '../common/RoleGuard';
 
 type Report = components['schemas']['ImportReport'];
 const KINDS = [
@@ -14,7 +14,7 @@ const KINDS = [
 const MAX_BYTES = 2 * 1024 * 1024;
 
 export function ImportPanel() {
-  return <AdminOnly><ImportContent /></AdminOnly>;
+  return <RoleGuard roles={['ADMINISTRADOR']}><ImportContent /></RoleGuard>;
 }
 
 function ImportContent() {
