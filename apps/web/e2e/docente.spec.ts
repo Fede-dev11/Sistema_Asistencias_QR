@@ -8,7 +8,7 @@ test('docente elige actividad y sesión, inicia, registra manual, cierra y justi
   // 106 queda autorizado y sin asistencia: será la ausencia a justificar.
   sql(`INSERT INTO estudiantes_autorizados VALUES ('${fixture.activity}','00000000-0000-0000-0000-000000000106',true);`);
   await ssoLogin(page, 'docente@example.test');
-  await page.getByRole('link', { name: 'Sesiones' }).click();
+  await page.goto('/sesiones');
   await page.getByLabel('Actividad', { exact: true }).selectOption(fixture.activity);
   await page.getByRole('button', { name: 'Elegir' }).click();
   await page.getByRole('button', { name: 'Iniciar sesión', exact: true }).click();

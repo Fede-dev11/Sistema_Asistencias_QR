@@ -9,7 +9,7 @@ test('responsable configura invitados, proyecta QR y cierra actividad',async({pa
  page.on('pageerror',()=>{scriptErrors++;});
  page.on('response',async response=>{if(response.url().endsWith(`/sessions/${fixture.session}/qr`)&&response.ok()){qrResponses++;const body=await response.json() as {qr_token:string};if(firstToken&&body.qr_token!==firstToken)serverRotated=true;firstToken??=body.qr_token;}});
  await ssoLogin(page,'encargado@example.test');
- await page.getByRole('link',{name:'Gestionar actividades'}).click();await page.getByLabel('Actividad',{exact:true}).selectOption(fixture.activity);await page.getByRole('button',{name:'Elegir'}).click();
+ await page.goto('/sesiones');await page.getByLabel('Actividad',{exact:true}).selectOption(fixture.activity);await page.getByRole('button',{name:'Elegir'}).click();
  await page.getByLabel('Tiempo del formulario de invitados (segundos)',{exact:true}).fill('120');await page.getByLabel('Habilitar invitados sin cuenta').check();await page.getByRole('button',{name:'Guardar configuración'}).click();await expect(page.getByRole('status')).toContainText('Configuración guardada');
  await page.getByLabel('Listado de invitados',{exact:true}).fill(JSON.stringify({invitados:[{cedula:'1701234567',nombres:'Invitado ficticio de prueba'}]}));await page.getByRole('button',{name:'Reemplazar listado'}).click();await expect(page.getByRole('status')).toContainText('Listado guardado: 1');
  await page.getByRole('button',{name:'Iniciar sesión',exact:true}).click();await expect(page.getByAltText('Código QR de asistencia de la sesión activa')).toBeVisible();await expect(page.getByText('Sesión activa. QR disponible.',{exact:true})).toBeVisible();

@@ -20,11 +20,11 @@ componente por pieza nueva y E2E que mide clics/altura. `WEB` = `apps/web/src`. 
 
 ## Phase 3: US1 — Llegar directo a mi trabajo (P1) 🎯 MVP
 
-- [ ] T006 [P] [US1] Pruebas: redirección post-ingreso por rol; re-autenticación silenciosa (con marca → redirige a SSO con `destino`; callback vuelve a `destino`; destino externo rechazado; fallo → sin bucle)
-- [ ] T007 [US1] `SessionProvider`/`CasCallback`: marca `sessionStorage['geoasist-sso']` (solo indicador), re-autenticación silenciosa al cargar sin sesión, `destino` validado como ruta interna; eliminar la página intermedia "Sesión iniciada" y redirigir al inicio del rol
-- [ ] T008 [US1] `WEB/features/home/TeacherToday.tsx` en `WEB/app/hoy/page.tsx`: sesiones de hoy de todas las actividades del docente (activas primero) con una acción principal por estado; estado vacío con la próxima sesión
-- [ ] T009 [P] [US1] `WEB/features/home/{DirectorSummary,AdminHome}.tsx` en `WEB/app/inicio/page.tsx` (resumen del ámbito con paralelos bajo umbral; tareas del administrador con contadores)
-- [ ] T010 [US1] Navegación (`RoleNav` → barra lateral en escritorio, menú compacto en teléfono; ≤ 5 entradas por rol según el plan; sección "Pruebas" separada con la bandera; `aria-current`)
+- [X] T006 [P] [US1] Pruebas: redirección post-ingreso por rol; re-autenticación silenciosa (con marca → redirige a SSO con `destino`; callback vuelve a `destino`; destino externo rechazado; fallo → sin bucle)
+- [X] T007 [US1] `SessionProvider`/`CasCallback`: marca `sessionStorage['geoasist-sso']` (solo indicador), re-autenticación silenciosa al cargar sin sesión, `destino` validado como ruta interna; eliminar la página intermedia "Sesión iniciada" y redirigir al inicio del rol
+- [X] T008 [US1] `WEB/features/home/TeacherToday.tsx` en `WEB/app/hoy/page.tsx`: sesiones de hoy de todas las actividades del docente (activas primero) con una acción principal por estado; estado vacío con la próxima sesión
+- [X] T009 [P] [US1] `WEB/features/home/{DirectorSummary,AdminHome}.tsx` en `WEB/app/inicio/page.tsx` (resumen del ámbito con paralelos bajo umbral; tareas del administrador con contadores)
+- [X] T010 [US1] Navegación (`RoleNav` → barra lateral en escritorio, menú compacto en teléfono; ≤ 5 entradas por rol según el plan; sección "Pruebas" separada con la bandera; `aria-current`)
 
 ## Phase 4: US2 — Sesión en un clic y proyección (P1)
 

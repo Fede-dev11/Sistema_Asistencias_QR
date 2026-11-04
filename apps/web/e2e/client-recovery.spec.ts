@@ -8,7 +8,7 @@ test('recupera QR activo al autenticarse otra vez y logout elimina la sesión lo
   const fixture = JSON.parse(execFileSync('python3', [fileURLToPath(new URL('../../../tests/fixtures/create-activity.py', import.meta.url)), 'EVENTO'], { encoding: 'utf8' })) as { activity: string; session: string };
   async function login() {
     await ssoLogin(page, 'encargado@example.test');
-    await page.getByRole('link', { name: 'Gestionar actividades' }).click();
+    await page.goto('/sesiones'); // la sesión vuelve sola por re-autenticación silenciosa
     await page.getByLabel('Actividad', { exact: true }).selectOption(fixture.activity);
     await page.getByRole('button', { name: 'Elegir' }).click(); // la UI ya no pide el código: se elige de la lista
   }
