@@ -92,6 +92,26 @@ Cuentas de desarrollo por rol (contraseña = valor de `DEV_SEED_PASSWORD`):
 | Director de carrera | `director-carrera@example.test` |
 | Administrador | `admin@dev.geoasist.local` |
 
+### Navegación web por rol (007)
+
+Tras ingresar, cada rol aterriza en su inicio: docente y encargado en `/hoy`; director institucional,
+director de carrera y administrador en `/inicio`; estudiante en `/pruebas/participante` solo con
+`NEXT_PUBLIC_HERRAMIENTAS_PRUEBA=true` (sin esa bandera no tiene inicio web).
+
+Menú por rol (máximo cinco entradas):
+
+- Docente y encargado: Hoy, Actividades, Estadísticas, Reportes.
+- Director institucional y de carrera: Resumen, Estadísticas, Reportes.
+- Administrador: Inicio, Personas, Carreras y paralelos, Espacios, Importar.
+- Pruebas (con la bandera, al pie): Participante (estudiante), Invitado (todos los roles).
+
+Recargar la página mantiene la sesión mientras la sesión universitaria (SSO) siga vigente: la pestaña
+guarda solo un indicador en `sessionStorage` (nunca el token). Flujos clave:
+
+- "Iniciar y proyectar QR" desde Hoy: inicia la sesión y abre la proyección en un clic.
+- Nueva actividad: asistente en `/actividades/nueva` (Qué, Dónde y cuándo, Quiénes).
+- Proyección del QR: `/sesiones/{id}/proyectar`.
+
 Cobertura de operaciones de la API en la web: `npm run coverage:web` dentro de `tools/contracts`; escribe
 `docs/validation/cobertura-web.md`.
 
