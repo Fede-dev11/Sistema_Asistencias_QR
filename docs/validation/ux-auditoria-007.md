@@ -29,9 +29,18 @@ Fecha de la auditoría: 2026-11-04. Referencia: `specs/007-optimizacion-ux-web/s
 
 | Pantalla | Alto | Botones | Campos |
 |---|---|---|---|
-| Mis actividades | 3 401 px | 24 | 22 |
+| Mis actividades (docente) | 3 401 px | 24 | 22 |
+| Sesiones (docente) | 356 px | 0 | 1 (solo el selector de actividad) |
+| Estadísticas (docente) | 888 px | 1 | 4 |
+| Reportes (docente) | 825 px | 2 | 4 |
+| Personas (administrador) | 1 932 px | 13 | 6 |
+| Carreras y paralelos (administrador) | 737 px | 1 | 3 |
+| Espacios (administrador) | 481 px | 1 | 1 |
+| Importar (administrador) | 636 px | 1 | 2 |
 
-La auditoría original no registra en este documento otras pantallas con valores medidos.
+Medido el 2026-11-04 con Playwright (Chromium, ventana 1366×850), navegando con el menú tras ingresar
+por el SSO; "Botones" y "Campos" cuentan solo elementos dentro de `main`. Las capturas se tomaron
+localmente y no se versionan.
 
 ## Metas
 

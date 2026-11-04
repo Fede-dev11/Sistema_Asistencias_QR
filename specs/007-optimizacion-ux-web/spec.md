@@ -10,7 +10,7 @@ No cambia el backend ni sus reglas.
 
 ## Problema que resuelve (auditoría del 2026-11-04)
 
-Recorrido real con SSO como docente y administrador (capturas en la auditoría del plan):
+Recorrido real con SSO como docente y administrador (detalle en `docs/validation/ux-auditoria-007.md`):
 
 | Hallazgo | Evidencia | Impacto |
 |---|---|---|
