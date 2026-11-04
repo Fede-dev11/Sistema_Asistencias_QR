@@ -5,7 +5,7 @@ import { SessionProvider } from './SessionProvider';
 import { CasCallback } from './CasCallback';
 const nav = vi.hoisted(() => ({ replace: vi.fn(), query: '' }));
 vi.mock('next/navigation', () => ({ useRouter: () => ({ replace: nav.replace }), useSearchParams: () => new URLSearchParams(nav.query) }));
-afterEach(() => { cleanup(); vi.unstubAllGlobals(); nav.replace.mockClear(); });
+afterEach(() => { cleanup(); sessionStorage.clear(); vi.unstubAllGlobals(); nav.replace.mockClear(); });
 const cfg = { ok: true, status: 200, json: async () => ({ web_service: 'https://web.example.test/auth/callback' }) };
 const montar = () => render(<StrictMode><SessionProvider><CasCallback /></SessionProvider></StrictMode>);
 describe('callback CAS', () => {
@@ -19,7 +19,25 @@ describe('callback CAS', () => {
   expect(cas).toHaveLength(1);
   expect(JSON.parse(cas[0][1].body)).toEqual({ ticket: 'ST-1-abc', service: 'https://web.example.test/auth/callback' });
   expect(nav.replace).toHaveBeenCalledWith('/auth/callback');
-  expect(setItem).not.toHaveBeenCalled();
+  expect(setItem.mock.calls).toEqual([['geoasist-sso', '1']]); // solo el indicador, nunca el token
+ });
+ it('vuelve a un destino interno y lo envía en el service; sin destino un docente va a /hoy', async () => {
+  nav.query = 'ticket=ST-3&destino=' + encodeURIComponent('/actividades/7?tab=a');
+  const fetcher = vi.fn().mockImplementation(async (url: string) => url.endsWith('/auth/sso-config') ? cfg : { ok: true, status: 200, json: async () => ({ access_token: 't', token_type: 'Bearer', vence_en: new Date(Date.now() + 60000).toISOString(), roles: ['DOCENTE'] }) });
+  vi.stubGlobal('fetch', fetcher); montar();
+  await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/actividades/7?tab=a'));
+  const cas = fetcher.mock.calls.find(c => String(c[0]).endsWith('/auth/cas'))!;
+  expect(JSON.parse(cas[1].body).service).toBe('https://web.example.test/auth/callback?destino=' + encodeURIComponent('/actividades/7?tab=a'));
+  cleanup(); nav.replace.mockClear(); nav.query = 'ticket=ST-4';
+  montar();
+  await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/hoy'));
+ });
+ it('rechaza un destino externo y va al inicio del rol', async () => {
+  nav.query = 'ticket=ST-5&destino=' + encodeURIComponent('//evil.test/x');
+  vi.stubGlobal('fetch', vi.fn().mockImplementation(async (url: string) => url.endsWith('/auth/sso-config') ? cfg : { ok: true, status: 200, json: async () => ({ access_token: 't', token_type: 'Bearer', vence_en: new Date(Date.now() + 60000).toISOString(), roles: ['DIRECTOR_CARRERA'] }) }));
+  montar();
+  await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/inicio'));
+  expect(nav.replace).not.toHaveBeenCalledWith('//evil.test/x');
  });
  it('sin ticket muestra error y enlace para reintentar sin llamar al servidor', async () => {
   nav.query = ''; const fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher); montar();

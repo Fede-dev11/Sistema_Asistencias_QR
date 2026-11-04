@@ -15,7 +15,7 @@ async function entrar(fetcher: ReturnType<typeof vi.fn>, ms: number) {
   await act(async () => { screen.getByText('entrar').click(); });
 }
 beforeEach(() => { vi.useFakeTimers(); });
-afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals(); setBearer(null); });
+afterEach(() => { cleanup(); sessionStorage.clear(); vi.useRealTimers(); vi.unstubAllGlobals(); setBearer(null); });
 
 describe('sesión: perfil y renovación', () => {
   it('carga /me y renueva 10 minutos antes de vencer', async () => {

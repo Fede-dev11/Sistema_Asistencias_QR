@@ -6,7 +6,7 @@ export async function ssoLogin(page: Page, email: string, password = process.env
   await page.goto('/login');
   await page.getByRole('button', { name: 'Ingresar con cuenta universitaria' }).click();
   const form = page.getByLabel('Correo', { exact: true });
-  const signedIn = page.getByRole('heading', { name: 'Sesión iniciada' });
+  const signedIn = page.getByRole('button', { name: 'Salir' }); // el menú con "Salir" aparece al volver del SSO con sesión
   await expect(form.or(signedIn)).toBeVisible();
   if (await form.isVisible()) {
     await form.fill(email);

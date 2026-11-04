@@ -24,7 +24,7 @@ test('simulador: mismo dispositivo en dos estudiantes e invitado en evento abier
     try {
       const page = await context.newPage();
       await ssoLogin(page, email);
-      await page.getByRole('link', { name: 'Simulador de participante' }).click();
+      await page.getByRole('link', { name: 'Participante' }).click();
       await page.getByRole('combobox', { name: 'Sesión' }).selectOption(fixture.session);
       await page.getByLabel('Token QR').fill(await qrToken());
       await page.getByLabel('Dispositivo de prueba').fill(device);

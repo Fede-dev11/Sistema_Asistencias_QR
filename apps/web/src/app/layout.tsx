@@ -7,5 +7,5 @@ import { SessionProvider } from '../features/auth/SessionProvider';
 import { RoleNav } from '../features/auth/RoleNav';
 export const metadata: Metadata = { title: 'UNL GeoAsist', description: 'Asistencia académica con QR dinámico.' };
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
- return <html lang="es" className={atkinson.variable}><body><SessionProvider><header><Link href="/">UNL · GeoAsist</Link><RoleNav /></header><main>{children}</main></SessionProvider></body></html>;
+ return <html lang="es" className={atkinson.variable}><body><div className="shell"><SessionProvider><header><Link href="/">UNL · GeoAsist</Link><RoleNav /></header><main>{children}</main></SessionProvider></div></body></html>;
 }

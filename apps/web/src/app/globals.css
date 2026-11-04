@@ -95,8 +95,25 @@ table { width:100%; border-collapse:collapse; } th,td { text-align:left; padding
   .docs-summary { grid-column:1; }
 }
 /* Navegación principal por rol. */
-header .role-nav { margin:0; align-items:center; gap:.5rem 1rem; }
-header .role-nav a[aria-current=page] { background:white; color:var(--accent); font-weight:800; }
+header .role-nav { margin:0; display:block; }
+.role-nav-list { display:none; flex-direction:column; gap:.25rem; margin-top:var(--space-3); }
+.role-nav.open .role-nav-list { display:flex; }
+.role-nav-user { font-size:var(--text-sm); color:var(--color-muted); padding:var(--space-2) 0; }
+header .role-nav a { background:transparent; color:var(--ink); border-color:transparent; display:flex; align-items:center; }
+header .role-nav a[aria-current=page] { background:var(--color-ok-soft); color:var(--accent); border-color:var(--accent); font-weight:800; }
+.role-nav-tests { display:flex; flex-direction:column; gap:.25rem; margin-top:var(--space-4); padding-top:var(--space-3); border-top:1px solid var(--color-line); }
+.role-nav-tests strong { font-size:var(--text-sm); color:var(--color-muted); }
+.role-nav-list > button { background:var(--color-surface); color:var(--accent); margin-top:var(--space-3); }
+/* Escritorio: barra lateral fija; teléfono: menú compacto con botón. */
+.shell > p[role=alert], .shell > p[role=status] { grid-column:1 / -1; margin:var(--space-3) 5vw; }
+@media (min-width:900px) {
+  .shell { display:grid; grid-template-columns:16rem minmax(0,1fr); align-items:start; }
+  .shell > header { flex-direction:column; justify-content:flex-start; position:sticky; top:0; height:100vh; overflow-y:auto; border-bottom:0; border-right:1px solid var(--color-line); padding:var(--space-6) var(--space-4); gap:var(--space-4); }
+  .shell > main { margin-top:2.5rem; }
+  .role-nav-toggle { display:none; }
+  .role-nav-list { display:flex; margin-top:0; }
+}
+@media (max-width:899px) { .shell > header { flex-wrap:wrap; align-items:flex-start; gap:var(--space-3); } .shell > header .role-nav { flex:1 1 100%; } .role-nav-toggle { background:var(--color-surface); color:var(--accent); } }
 
 /* ui: componentes de src/features/ui */
 .ui-btn { display:inline-flex; align-items:center; justify-content:center; gap:var(--space-2); min-height:44px; min-width:44px; padding:var(--space-3) var(--space-4); border:1px solid var(--color-brand); border-radius:var(--radius-control); font:inherit; font-weight:700; text-decoration:none; cursor:pointer; transition:background-color .15s,color .15s; }
