@@ -23,7 +23,7 @@ test('responsable exporta y directores solo leen su ámbito', async ({ page, req
   expect(attendance.status()).toBe(201);
 
   await ssoLogin(page, 'encargado@example.test');
-  await page.getByRole('link', { name: 'Consultar asistencias' }).click();
+  await page.getByRole('link', { name: 'Reportes', exact: true }).click();
   await page.getByLabel('Actividad').selectOption(fixture.activity);
   await page.getByLabel('Sesión').fill(fixture.session);
   await page.getByRole('button', { name: 'Consultar', exact: true }).click();
@@ -35,10 +35,11 @@ test('responsable exporta y directores solo leen su ámbito', async ({ page, req
   await page.getByRole('button', { name: 'Consultar auditoría' }).click();
   await expect(page.getByText('EXPORTAR_ASISTENCIAS')).toBeVisible();
 
-  await page.reload();
+  await page.getByRole('button', { name: 'Salir' }).click();
+  await expect(page.getByRole('link', { name: 'Ingresar', exact: true })).toBeVisible();
   await page.context().clearCookies(); // cierra la sesión SSO del encargado
   await ssoLogin(page, 'director@example.test');
-  await page.getByRole('link', { name: 'Consultar asistencias' }).click();
+  await page.getByRole('link', { name: 'Reportes', exact: true }).click();
   await page.getByLabel('Actividad').selectOption(fixture.activity);
   await page.getByLabel('Sesión').fill(fixture.session);
   await page.getByRole('button', { name: 'Consultar', exact: true }).click();

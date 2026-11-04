@@ -13,7 +13,7 @@ test('director institucional consulta estadísticas por carrera', async ({ page,
     expect(res.ok()).toBeTruthy();
   }
   await ssoLogin(page, 'director@example.test');
-  await page.getByRole('link', { name: 'Estadísticas' }).click();
+  await page.getByRole('link', { name: 'Estadísticas', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Estadísticas', exact: true })).toBeVisible();
   const careers = page.getByRole('region', { name: 'Estadísticas por carrera' });
   await careers.getByRole('button', { name: 'Consultar' }).click();

@@ -24,10 +24,10 @@ test('docente elige actividad y sesión, inicia, registra manual, cierra y justi
   await page.getByRole('tab', { name: 'Resumen' }).click();
 
   const absences = page.getByRole('region', { name: 'Ausencias' });
-  await expect(absences.getByText(/— AUSENTE/)).toHaveCount(1);
+  await expect(absences.getByText(/Ausente/)).toHaveCount(1);
   await absences.getByRole('button', { name: /^Justificar / }).click();
   await absences.getByLabel('Razón de justificación').fill('Certificado médico');
   await absences.getByRole('button', { name: 'Confirmar justificación' }).click();
-  await expect(absences.getByText(/— AUSENTE/)).toHaveCount(0);
-  await expect(absences.getByText(/— JUSTIFICAD/)).toHaveCount(1);
+  await expect(absences.getByText(/Ausente/)).toHaveCount(0);
+  await expect(absences.getByText(/Justificada/)).toHaveCount(1);
 });

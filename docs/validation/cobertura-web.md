@@ -10,12 +10,12 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
-| POST | `/auth/login` | pub | Sí | `apps/web/src/features/auth/CasCallback.tsx` |
+| POST | `/auth/login` | pub | Sí | `apps/web/src/app/page.tsx` |
 | POST | `/auth/cas` | pub | Sí | `apps/web/src/features/auth/CasCallback.tsx` |
 | GET | `/auth/sso-config` | pub | Sí | `apps/web/src/features/auth/CasCallback.tsx` |
 | POST | `/auth/logout` | cta | Sí | `apps/web/src/features/auth/SessionProvider.tsx` |
 | POST | `/auth/renew` | cta | Sí | `apps/web/src/features/auth/SessionProvider.tsx` |
-| GET | `/me` | cta | Sí | `apps/web/src/features/activities/CreateClassForm.tsx` |
+| GET | `/me` | cta | Sí | `apps/web/src/features/activities/ActivityWizard.tsx` |
 
 ## Administración académica (`admin`)
 
@@ -32,10 +32,10 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 | PATCH | `/admin/careers/{careerId}` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
 | GET | `/admin/careers/{careerId}/parallels` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
 | POST | `/admin/careers/{careerId}/parallels` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
-| GET | `/admin/parallels/{parallelId}/enrollments` | adm | Sí | `apps/web/src/features/admin/ParallelMembers.tsx` |
-| PUT | `/admin/parallels/{parallelId}/enrollments` | adm | Sí | `apps/web/src/features/admin/ParallelMembers.tsx` |
-| GET | `/admin/parallels/{parallelId}/teachers` | adm | Sí | `apps/web/src/features/admin/ParallelMembers.tsx` |
-| PUT | `/admin/parallels/{parallelId}/teachers` | adm | Sí | `apps/web/src/features/admin/ParallelMembers.tsx` |
+| GET | `/admin/parallels/{parallelId}/enrollments` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
+| PUT | `/admin/parallels/{parallelId}/enrollments` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
+| GET | `/admin/parallels/{parallelId}/teachers` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
+| PUT | `/admin/parallels/{parallelId}/teachers` | adm | Sí | `apps/web/src/features/admin/CareersPanel.tsx` |
 | POST | `/admin/imports/{kind}` | adm | Sí | `apps/web/src/features/admin/ImportPanel.tsx` |
 
 ## Espacios (`spaces`)
@@ -56,14 +56,14 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 | POST | `/activities` | doc, enc | Sí | `apps/web/src/app/actividades/[id]/page.tsx` |
 | GET | `/activities/{activityId}` | doc, enc, dir | Sí | `apps/web/src/app/actividades/[id]/page.tsx` |
 | PATCH | `/activities/{activityId}` | doc, enc | Sí | `apps/web/src/app/actividades/[id]/page.tsx` |
-| POST | `/activities/{activityId}/close` | doc, enc | Sí | `apps/web/src/features/sessions/ResponsibleSessionPanel.tsx` |
+| POST | `/activities/{activityId}/close` | doc, enc | Sí | `apps/web/src/features/sessions/SessionSummary.tsx` |
 | GET | `/activities/{activityId}/guest-settings` | doc, enc, dir | Sí | `apps/web/src/features/activities/GuestListView.tsx` |
 | PUT | `/activities/{activityId}/guest-settings` | doc, enc | Sí | `apps/web/src/features/activities/GuestListView.tsx` |
 | GET | `/activities/{activityId}/guest-list` | doc, enc, dir | Sí | `apps/web/src/features/activities/GuestListView.tsx` |
 | PUT | `/activities/{activityId}/guest-list` | doc, enc | Sí | `apps/web/src/features/activities/GuestListView.tsx` |
 | GET | `/activities/{activityId}/audit` | doc, enc, dir | Sí | `apps/web/src/features/reports/ActivityAuditPanel.tsx` |
-| GET | `/me/parallels` | doc, enc | Sí | `apps/web/src/features/activities/CreateClassForm.tsx` |
-| POST | `/activities/{activityId}/cancel` | doc, enc | Sí | `apps/web/src/features/activities/ClassSessions.tsx` |
+| GET | `/me/parallels` | doc, enc | Sí | `apps/web/src/features/activities/ActivityWizard.tsx` |
+| POST | `/activities/{activityId}/cancel` | doc, enc | Sí | `apps/web/src/features/activities/ActivityDetail.tsx` |
 | GET | `/activities/{activityId}/schedule` | doc, enc, dir | Sí | `apps/web/src/features/activities/SchedulePanel.tsx` |
 | PUT | `/activities/{activityId}/schedule` | doc | Sí | `apps/web/src/features/activities/SchedulePanel.tsx` |
 | GET | `/activities/{activityId}/students` | doc | Sí | `apps/web/src/features/activities/AuthorizedStudents.tsx` |
@@ -75,16 +75,16 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
-| POST | `/sessions/{sessionId}/start` | doc, enc | Sí | `apps/web/src/features/sessions/ResponsibleSessionPanel.tsx` |
-| POST | `/sessions/{sessionId}/close` | doc, enc | Sí | `apps/web/src/features/sessions/ResponsibleSessionPanel.tsx` |
-| GET | `/sessions/{sessionId}/qr` | doc, enc | Sí | `apps/web/src/features/sessions/ResponsibleSessionPanel.tsx` |
+| POST | `/sessions/{sessionId}/start` | doc, enc | Sí | `apps/web/src/features/home/TeacherToday.tsx` |
+| POST | `/sessions/{sessionId}/close` | doc, enc | Sí | `apps/web/src/features/sessions/ProjectionView.tsx` |
+| GET | `/sessions/{sessionId}/qr` | doc, enc | Sí | `apps/web/src/features/sessions/ProjectionView.tsx` |
 | GET | `/sessions/{sessionId}/geolocation` | doc, enc, dir | Sí | `apps/web/src/features/sessions/GeolocationSettingsPanel.tsx` |
 | PUT | `/sessions/{sessionId}/geolocation` | doc, enc | Sí | `apps/web/src/features/sessions/GeolocationSettingsPanel.tsx` |
 | GET | `/sessions/{sessionId}/attendances` | doc, enc, dir | Sí | `apps/web/src/features/corrections/ManualAttendanceForm.tsx` |
 | GET | `/sessions/{sessionId}/attendances/export` | doc, enc | Sí | `apps/web/src/features/reports/AttendanceReportPage.tsx` |
-| GET | `/activities/{activityId}/sessions` | doc, enc | Sí | `apps/web/src/features/activities/ClassSessions.tsx` |
-| POST | `/activities/{activityId}/sessions` | doc, enc | Sí | `apps/web/src/features/activities/ClassSessions.tsx` |
-| PATCH | `/sessions/{sessionId}` | doc, enc | Sí | `apps/web/src/app/sesiones/page.tsx` |
+| GET | `/activities/{activityId}/sessions` | doc, enc | Sí | `apps/web/src/features/activities/ActivityList.tsx` |
+| POST | `/activities/{activityId}/sessions` | doc, enc | Sí | `apps/web/src/features/activities/ActivityList.tsx` |
+| PATCH | `/sessions/{sessionId}` | doc, enc | Sí | `apps/web/src/app/sesiones/[id]/page.tsx` |
 | POST | `/sessions/{sessionId}/cancel` | doc, enc | Sí | `apps/web/src/features/activities/ClassSessions.tsx` |
 
 ## Registro de asistencia (`attendance`)
@@ -123,7 +123,7 @@ Criterio: el archivo de `apps/web/src` (sin `generated/` ni `*.test.*`) menciona
 | Método | Ruta | Roles | Cubierta | Primer archivo |
 |---|---|---|---|---|
 | GET | `/activities/{activityId}/stats` | doc, enc, dir | Sí | `apps/web/src/features/stats/ActivityStats.tsx` |
-| GET | `/stats/parallels` | doc, enc, dir | Sí | `apps/web/src/features/stats/ParallelStats.tsx` |
+| GET | `/stats/parallels` | doc, enc, dir | Sí | `apps/web/src/features/home/DirectorSummary.tsx` |
 | GET | `/stats/careers` | doc, enc, dir | Sí | `apps/web/src/features/stats/CareerStats.tsx` |
 | GET | `/sessions/{sessionId}/absences` | doc, enc, dir | Sí | `apps/web/src/features/corrections/AbsencesPanel.tsx` |
 | GET | `/me/attendances` | est | Sí | `apps/web/src/features/testing/ParticipantSimulator.tsx` |

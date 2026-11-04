@@ -51,9 +51,9 @@ componente por pieza nueva y E2E que mide clics/altura. `WEB` = `apps/web/src`. 
 
 ## Phase 8: Polish y medición
 
-- [ ] T022 E2E `apps/web/e2e/ux-clics.spec.ts`: mide SC-001..SC-006 (clics contados y altura de "Mis actividades" con 10 actividades) y falla si se supera la meta; ajustar E2E existentes a la nueva navegación
-- [ ] T023 [P] Actualizar `README.md` (navegación por rol) y capturas antes/después en `docs/validation/ux-auditoria-007.md`
-- [ ] T024 Verificación: lint, typecheck, test, build, Playwright completo, cobertura web 73/73 (`npm run coverage:web`); resultados reales en `docs/validation/revision-incremento-007.md`
+- [X] T022 E2E `apps/web/e2e/ux-clics.spec.ts`: mide SC-001..SC-006 (clics contados y altura de "Mis actividades" con 10 actividades) y falla si se supera la meta; ajustar E2E existentes a la nueva navegación
+- [X] T023 [P] Actualizar `README.md` (navegación por rol) y capturas antes/después en `docs/validation/ux-auditoria-007.md`
+- [X] T024 Verificación: lint, typecheck, test, build, Playwright completo, cobertura web 73/73 (`npm run coverage:web`); resultados reales en `docs/validation/revision-incremento-007.md`
 
 ## Dependencies
 

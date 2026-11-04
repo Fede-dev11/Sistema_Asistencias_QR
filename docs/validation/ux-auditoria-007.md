@@ -57,7 +57,37 @@ SC-007: las metas anteriores se miden con pruebas E2E que cuentan clics y altura
 
 ## Resultado después de 007
 
-_Pendiente. Esta sección se completará con T023 (capturas antes/después) y T024 (revisión de verificación en `docs/validation/revision-incremento-007.md`)._
+Medido el 2026-11-04 con Playwright (Chromium, ventana 1366×850) sobre una pila local aislada (proyecto compose `geoasist-e2e`), con inicio de sesión SSO real y el mismo método de la línea base ("Botones" y "Campos" cuentan elementos dentro de `main`, incluidas las pestañas). Las capturas antes/después se tomaron localmente y **no se versionan**.
+
+### Valores medidos
+
+| Pantalla | Alto antes | Alto después | Botones antes → después | Campos antes → después |
+|---|---|---|---|---|
+| Mis actividades (docente, 10 actividades) | 3 401 px | 850 px | 24 → 0 | 22 → 3 (buscar, tipo, estado) |
+| Sesiones (docente) | 356 px | sustituida por Hoy y `/sesiones/[id]` | 0 | 1 |
+| Hoy (docente, 10 sesiones hoy) | — | 1 733 px | — → 10 (uno por sesión) | — → 0 |
+| Estadísticas (docente) | 888 px | 910 px | 1 → 1 | 4 → 4 |
+| Reportes (docente) | 825 px | 850 px | 2 → 2 | 4 → 4 |
+| Personas (administrador) | 1 932 px | 1 322 px | 13 → 3 | 6 → 1 |
+| Carreras y paralelos (administrador) | 737 px | 850 px | 1 → 1 | 3 → 0 |
+| Espacios (administrador) | 481 px | 850 px | 1 → 3 | 1 → 1 |
+| Importar (administrador) | 636 px | 850 px | 1 → 1 | 2 → 2 |
+
+Notas: 850 px es el alto mínimo de la ventana (el documento cabe sin desplazamiento). "Hoy" crece con el número de sesiones del día (un botón "Iniciar y proyectar QR" por sesión programada); con una sola sesión mide 1 botón. Personas pagina la tabla. Estadísticas y Reportes no cambiaron de estructura.
+
+### Metas (SC)
+
+| Meta | Antes | Meta | Medido después | Resultado |
+|---|---|---|---|---|
+| SC-001 abrir la sesión de hoy y proyectar el QR | ≈ 6 clics | 1 | **1 clic** (Hoy → proyección con QR visible) | cumple |
+| SC-002 recargar con la sesión universitaria vigente | 3+ clics y contraseña | 0 | **0 clics**, misma página tras recargar | cumple |
+| SC-003 justificar una ausencia tras cerrar | otra página + elegir sesión | 2 | **2 clics** (Justificar, Confirmar justificación) | cumple |
+| SC-004 director: paralelos bajo umbral | menú + formulario + consultar | 0 | **0 clics**: "1 de 1 paralelos están por debajo de 70 %." en `/inicio` | cumple |
+| SC-005 altura de Mis actividades con 10 actividades | 3 401 px | ≤ 900 px | **850 px** | cumple |
+| SC-006 botones sin paneles abiertos (sin contar pestañas) | hasta 24 | ≤ 8 | Hoy 1, actividades 0, actividad 2, sesión cerrada 5, estadísticas 1, reportes 2, personas 3, carreras 1, espacios 3, importar 1 | cumple |
+| SC-007 accesibilidad | — | sin violaciones serias | `@axe-core/playwright` no está instalado y no se añadió: ver comprobaciones manuales abajo | **no verificado con axe** |
+
+SC-007: el cálculo de contraste y las comprobaciones por CSS están en la sección siguiente; no se ejecutó axe. Pendiente recorrer con teclado y lector de pantalla las pantallas principales.
 
 ## Accesibilidad (T019)
 
@@ -88,4 +118,4 @@ Los botones deshabilitados (opacidad .55) quedan exentos por WCAG (componentes i
 | `prefers-reduced-motion` | OK | regla global que anula transiciones y animaciones |
 | Color no es el único indicador | OK | `StatusTag` lleva icono y texto |
 
-No se ejecutó axe ni Playwright en este incremento: lo anterior es verificación por CSS y por cálculo.
+No se ejecutó axe: lo anterior es verificación por CSS y por cálculo (Playwright se ejecutó después, ver T022/T024).
