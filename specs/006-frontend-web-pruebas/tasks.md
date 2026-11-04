@@ -45,9 +45,9 @@ de componente por panel nuevo (Vitest + Testing Library, API simulada) y E2E por
 
 ## Phase 7: US5 — Simulador de participante e invitado (P1)
 
-- [ ] T018 [P] [US5] Pruebas `WEB/features/testing/{ParticipantSimulator,GuestSimulator}.test.tsx` (bandera desactivada → no se renderiza; dispositivo de prueba editable y reutilizable; envío de QR pegado o `sesion_id` según método; ubicación manual; respuesta y motivo visibles; invitado cerrado y abierto)
-- [ ] T019 [US5] `WEB/app/pruebas/participante/page.tsx` (`notFound()` sin bandera) + `WEB/features/testing/ParticipantSimulator.tsx`: sesiones activas, formulario de intento (`dispositivo_id` UUID en `sessionStorage`, botón "Nuevo dispositivo"), historial (`/me/attendances`), porcentajes (`/me/stats`), solicitar justificación; aviso visible "Herramienta de pruebas: en producción el registro es desde la app"
-- [ ] T020 [US5] `WEB/app/pruebas/invitado/page.tsx` (pública, `notFound()` sin bandera) + `WEB/features/testing/GuestSimulator.tsx`: `GET /events/open/{sessionId}`, `POST /guest-registrations` (QR o `sesion_id`), `POST /guest-registrations/submit` (cédula, `nombres` si es abierto, `dispositivo_id`)
+- [X] T018 [P] [US5] Pruebas `WEB/features/testing/{ParticipantSimulator,GuestSimulator}.test.tsx` (bandera desactivada → no se renderiza; dispositivo de prueba editable y reutilizable; envío de QR pegado o `sesion_id` según método; ubicación manual; respuesta y motivo visibles; invitado cerrado y abierto)
+- [X] T019 [US5] `WEB/app/pruebas/participante/page.tsx` (`notFound()` sin bandera) + `WEB/features/testing/ParticipantSimulator.tsx`: sesiones activas, formulario de intento (`dispositivo_id` UUID en `sessionStorage`, botón "Nuevo dispositivo"), historial (`/me/attendances`), porcentajes (`/me/stats`), solicitar justificación; aviso visible "Herramienta de pruebas: en producción el registro es desde la app"
+- [X] T020 [US5] `WEB/app/pruebas/invitado/page.tsx` (pública, `notFound()` sin bandera) + `WEB/features/testing/GuestSimulator.tsx`: `GET /events/open/{sessionId}`, `POST /guest-registrations` (QR o `sesion_id`), `POST /guest-registrations/submit` (cédula, `nombres` si es abierto, `dispositivo_id`)
 
 ## Phase 8: Polish
 
