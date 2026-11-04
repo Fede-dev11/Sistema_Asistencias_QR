@@ -26,11 +26,11 @@ de componente por panel nuevo (Vitest + Testing Library, API simulada) y E2E por
 
 ## Phase 4: US2 — Docente opera una sesión de principio a fin (P1)
 
-- [ ] T008 [P] [US2] Pruebas de componente: `SessionPicker`, `SessionPanel` (iniciar/QR/cerrar, asistencias en vivo cada 5 s), `ManualAttendanceForm`, `AbsencesPanel` (justificar), `JustificationInbox` (aprobar/rechazar), `SchedulePanel` (ver/reemplazar con vista previa), `GuestListView`
-- [ ] T009 [US2] `WEB/features/sessions/SessionPicker.tsx` (actividad → `GET /activities/{id}/sessions` paginado con fecha, estado, método) y rehacer `WEB/app/sesiones/page.tsx` sobre él, reutilizando `ResponsibleSessionPanel`, `GeolocationSettingsPanel` (cargar `GET /sessions/{id}/geolocation` antes de editar) y `ReviewPanel`; quitar el campo "Código de sesión"
-- [ ] T010 [US2] `WEB/features/sessions/LiveAttendances.tsx` (`GET /sessions/{id}/attendances`, refresco cada 5 s mientras ACTIVA, filtro por estado, enlace al CSV)
-- [ ] T011 [US2] `WEB/features/corrections/{ManualAttendanceForm,AbsencesPanel,JustificationInbox}.tsx` (`POST /sessions/{id}/manual-attendances` con `Idempotency-Key`; `GET /sessions/{id}/absences` + justify; `GET /activities/{id}/justification-requests?estado=` + decision)
-- [ ] T012 [US2] `WEB/app/actividades/[id]/page.tsx` (ficha): estudiantes + sincronizar (`POST …/students/sync`), `SchedulePanel` (`GET/PUT …/schedule`, reutilizar `schedulePreview.ts`), `GuestListView` (`GET …/guest-list` y `…/guest-settings` antes de editar, reutilizar `GuestSettingsPanel`), bandeja de justificaciones y `ActivityAuditPanel`; enlazar la ficha desde `ClassesPanel`
+- [X] T008 [P] [US2] Pruebas de componente: `SessionPicker`, `SessionPanel` (iniciar/QR/cerrar, asistencias en vivo cada 5 s), `ManualAttendanceForm`, `AbsencesPanel` (justificar), `JustificationInbox` (aprobar/rechazar), `SchedulePanel` (ver/reemplazar con vista previa), `GuestListView`
+- [X] T009 [US2] `WEB/features/sessions/SessionPicker.tsx` (actividad → `GET /activities/{id}/sessions` paginado con fecha, estado, método) y rehacer `WEB/app/sesiones/page.tsx` sobre él, reutilizando `ResponsibleSessionPanel`, `GeolocationSettingsPanel` (cargar `GET /sessions/{id}/geolocation` antes de editar) y `ReviewPanel`; quitar el campo "Código de sesión"
+- [X] T010 [US2] `WEB/features/sessions/LiveAttendances.tsx` (`GET /sessions/{id}/attendances`, refresco cada 5 s mientras ACTIVA, filtro por estado, enlace al CSV)
+- [X] T011 [US2] `WEB/features/corrections/{ManualAttendanceForm,AbsencesPanel,JustificationInbox}.tsx` (`POST /sessions/{id}/manual-attendances` con `Idempotency-Key`; `GET /sessions/{id}/absences` + justify; `GET /activities/{id}/justification-requests?estado=` + decision)
+- [X] T012 [US2] `WEB/app/actividades/[id]/page.tsx` (ficha): estudiantes + sincronizar (`POST …/students/sync`), `SchedulePanel` (`GET/PUT …/schedule`, reutilizar `schedulePreview.ts`), `GuestListView` (`GET …/guest-list` y `…/guest-settings` antes de editar, reutilizar `GuestSettingsPanel`), bandeja de justificaciones y `ActivityAuditPanel`; enlazar la ficha desde `ClassesPanel`
 
 ## Phase 5: US3 — Estadísticas (P2)
 

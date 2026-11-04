@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { AuthorizedStudents } from './AuthorizedStudents';
@@ -32,7 +33,7 @@ export function ClassesPanel() {
       <ul>
         {items.map(a => (
           <li key={a.id}>
-            <button type="button" onClick={() => setSelected(a.id)}>{a.nombre}</button> — {a.estado}
+            <button type="button" onClick={() => setSelected(a.id)}>{a.nombre}</button> — {a.estado} — <Link href={`/actividades/${a.id}`}>Ficha de {a.nombre}</Link>
             {a.estado === 'ABIERTA' && <button type="button" onClick={() => void cancel(a.id)}>Cancelar clase</button>}
           </li>
         ))}
