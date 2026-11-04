@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
 import { RoleGuard } from '../common/RoleGuard';
+import { ParallelMembers } from './ParallelMembers';
 
 type Career = components['schemas']['AdminCareer'];
 type Parallel = components['schemas']['AdminParallel'];
@@ -21,6 +22,7 @@ function CareersContent() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
+  const [managing, setManaging] = useState('');
 
   const [reload, setReload] = useState(0);
 
@@ -83,9 +85,11 @@ function CareersContent() {
             <button disabled={busy}>Crear paralelo</button>
           </form>
           <table>
-            <thead><tr><th>Paralelo</th><th>Matriculados</th><th>Docentes</th></tr></thead>
-            <tbody>{parallels.map(p => <tr key={p.id}><td>{p.codigo}</td><td>{p.matriculados}</td><td>{p.docentes}</td></tr>)}</tbody>
+            <thead><tr><th>Paralelo</th><th>Matriculados</th><th>Docentes</th><th>Gestión</th></tr></thead>
+            <tbody>{parallels.map(p => <tr key={p.id}><td>{p.codigo}</td><td>{p.matriculados}</td><td>{p.docentes}</td>
+              <td><button type="button" aria-pressed={managing === p.id} onClick={() => setManaging(managing === p.id ? '' : p.id)}>Miembros de {p.codigo}</button></td></tr>)}</tbody>
           </table>
+          {managing && <ParallelMembers key={managing} parallelId={managing} onChanged={() => setReload(n => n + 1)} />}
         </>
       )}
     </section>

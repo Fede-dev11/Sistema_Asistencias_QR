@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { GeoEvidencePanel } from './GeoEvidencePanel';
 import { SpaceForm, type Space } from './SpaceForm';
 
 type Page = components['schemas']['SpacePage'];
@@ -12,6 +13,7 @@ export function SpacePicker({ onSelect }: { onSelect: (space: Space) => void }) 
   const [items, setItems] = useState<Space[]>([]);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+  const [viewing, setViewing] = useState<string | null>(null);
 
   useEffect(() => {
     let current = true;
@@ -33,6 +35,8 @@ export function SpacePicker({ onSelect }: { onSelect: (space: Space) => void }) 
         {items.map(space => (
           <li key={space.id}>
             <button type="button" onClick={() => onSelect(space)}>{space.codigo} — {space.nombre}</button>
+            <button type="button" aria-label={`Ver evidencias de ${space.codigo}`} aria-pressed={viewing === space.id} onClick={() => setViewing(viewing === space.id ? null : space.id)}>Evidencias</button>
+            {viewing === space.id && <GeoEvidencePanel spaceId={space.id} />}
           </li>
         ))}
       </ul>

@@ -34,14 +34,14 @@ de componente por panel nuevo (Vitest + Testing Library, API simulada) y E2E por
 
 ## Phase 5: US3 — Estadísticas (P2)
 
-- [ ] T013 [P] [US3] Prueba `WEB/features/stats/StatsPage.test.tsx` (tabla por estudiante con "bajo umbral" resaltado; "sin datos"; filtros de periodo/carrera)
-- [ ] T014 [US3] `WEB/app/estadisticas/page.tsx` + `WEB/features/stats/{ActivityStats,ParallelStats,CareerStats}.tsx` con `RoleGuard` (docente/encargado/directores); periodo con dos fechas y carrera desde `GET /admin/careers` si es administrador o desde `GET /me` (carreras del director)
+- [X] T013 [P] [US3] Prueba `WEB/features/stats/StatsPage.test.tsx` (tabla por estudiante con "bajo umbral" resaltado; "sin datos"; filtros de periodo/carrera)
+- [X] T014 [US3] `WEB/app/estadisticas/page.tsx` + `WEB/features/stats/{ActivityStats,ParallelStats,CareerStats}.tsx` con `RoleGuard` (docente/encargado/directores); periodo con dos fechas y carrera desde `GET /admin/careers` si es administrador o desde `GET /me` (carreras del director)
 
 ## Phase 6: US4 — Paralelos y evidencias de GPS (P2)
 
-- [ ] T015 [P] [US4] Pruebas `WEB/features/admin/ParallelMembers.test.tsx` y `WEB/features/spaces/GeoEvidencePanel.test.tsx`
-- [ ] T016 [US4] `WEB/features/admin/ParallelMembers.tsx` en la pantalla de carreras: ver (`GET …/enrollments`, `…/teachers`) y reemplazar (`PUT`, lista de cédulas o correos) con informe de rechazados
-- [ ] T017 [US4] `WEB/app/admin/espacios/page.tsx` + `WEB/features/spaces/GeoEvidencePanel.tsx`: lista de espacios (`GET /spaces`), historial y alta de evidencia (`GET/POST /spaces/{id}/geo-evidence`); mostrar el historial (solo lectura) en `SpacePicker` para docentes
+- [X] T015 [P] [US4] Pruebas `WEB/features/admin/ParallelMembers.test.tsx` y `WEB/features/spaces/GeoEvidencePanel.test.tsx`
+- [X] T016 [US4] `WEB/features/admin/ParallelMembers.tsx` en la pantalla de carreras: ver (`GET …/enrollments`, `…/teachers`) y reemplazar (`PUT`, lista de cédulas o correos) con informe de rechazados
+- [X] T017 [US4] `WEB/app/admin/espacios/page.tsx` + `WEB/features/spaces/GeoEvidencePanel.tsx`: lista de espacios (`GET /spaces`), historial y alta de evidencia (`GET/POST /spaces/{id}/geo-evidence`); mostrar el historial (solo lectura) en `SpacePicker` para docentes
 
 ## Phase 7: US5 — Simulador de participante e invitado (P1)
 
