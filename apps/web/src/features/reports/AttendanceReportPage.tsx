@@ -1,11 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { type FormEvent, useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request, requestText } from '../../lib/api/client';
 import { useSession } from '../auth/SessionProvider';
 import { ActivityAuditPanel } from './ActivityAuditPanel';
+import { Button, ButtonLink } from '../ui/Button';
 
 type Activity = components['schemas']['Activity'];
 type ActivityPage = components['schemas']['ActivityPage'];
@@ -45,7 +45,7 @@ export function AttendanceReportPage() {
     return () => clearTimeout(timer);
   }, [selectedDeadline]);
 
-  if (!session) return <section><h1>Consultar asistencias</h1><p>Ingresa para consultar tu ámbito autorizado.</p><Link href="/login">Ingresar</Link></section>;
+  if (!session) return <section><h1>Consultar asistencias</h1><p>Ingresa para consultar tu ámbito autorizado.</p><ButtonLink href="/login">Ingresar</ButtonLink></section>;
 
   const canOfferExport = session.roles.some(role => role === 'DOCENTE' || role === 'ENCARGADO');
   const query = state ? `?estado=${state}` : '';
@@ -91,11 +91,11 @@ export function AttendanceReportPage() {
         <label>Actividad<select aria-label="Actividad" required value={activityId} onChange={event => setActivityId(event.target.value)}><option value="">Selecciona</option>{activities.map(activity => <option key={activity.id} value={activity.id}>{activity.nombre} · {activity.paralelo_ids.join(', ') || 'sin paralelo'}</option>)}</select></label>
         <label>Sesión (UUID)<input aria-label="Sesión" required value={sessionId} onChange={event => setSessionId(event.target.value.trim())} /></label>
         <label>Estado<select aria-label="Estado" value={state} onChange={event => setState(event.target.value as State)}><option value="">Todos</option><option value="CONFIRMADA">Confirmada</option><option value="PENDIENTE_REVISION">Pendiente de revisión</option><option value="RECHAZADA">Rechazada</option></select></label>
-        <button disabled={busy}>Consultar</button>{' '}
-        {canOfferExport && <button type="button" disabled={busy || !sessionId} onClick={() => void download()}>Descargar CSV</button>}
+        <Button variant="primary" type="submit" disabled={busy}>Consultar</Button>{' '}
+        {canOfferExport && <Button variant="secondary" type="button" disabled={busy || !sessionId} onClick={() => void download()}>Descargar CSV</Button>}
       </form>
       {page && <p role="status">{page.total} persona(s) en el resultado.</p>}
-      {page && page.items.length > 0 && <table><thead><tr><th>Cédula</th><th>Nombres</th><th>Estado</th><th>Fecha</th><th>Motivo</th></tr></thead><tbody>{page.items.map(row => <tr key={row.persona_id}><td>{row.cedula}</td><td>{row.nombres}</td><td>{row.estado.replaceAll('_', ' ')}</td><td>{new Date(row.registrada_en).toLocaleString('es-EC')}</td><td>{row.mensaje}</td></tr>)}</tbody></table>}
+      {page && page.items.length > 0 && <div className="table-wrap"><table><thead><tr><th>Cédula</th><th>Nombres</th><th>Estado</th><th>Fecha</th><th>Motivo</th></tr></thead><tbody>{page.items.map(row => <tr key={row.persona_id}><td>{row.cedula}</td><td>{row.nombres}</td><td>{row.estado.replaceAll('_', ' ')}</td><td>{new Date(row.registrada_en).toLocaleString('es-EC')}</td><td>{row.mensaje}</td></tr>)}</tbody></table></div>}
       {error && <p role="alert">{error}</p>}
       {activityId && <ActivityAuditPanel key={activityId} activityId={activityId} />}
     </section>

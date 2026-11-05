@@ -188,7 +188,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Consultar acceso de invitados
+         * @description Responsable de la actividad; los directores leen dentro de su ámbito.
+         */
+        get: operations["getGuestSettings"];
         /**
          * Configurar acceso de invitados
          * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo EVENTO abierto. Formulario exclusivo de personas sin cuenta precargadas. La tolerancia se copia al crear cada inicio; cambios posteriores no prolongan inicios ya emitidos. Deshabilitar impide nuevos envíos.
@@ -208,7 +212,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Consultar listado de invitados
+         * @description Responsable de la actividad; los directores leen dentro de su ámbito. Paginado; evento abierto o clase devuelven página vacía.
+         */
+        get: operations["listGuests"];
         /**
          * Reemplazar listado de invitados
          * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo EVENTO abierto. Reemplazo atómico; validar todo antes de guardar. Cada cédula identifica una persona sin crear cuenta. No autorregistro. Una cuenta existente, incluso inactiva, exige credenciales y no habilita la vía invitada. El límite inicial de 1000 entradas es técnico y fijo en este contrato; cambiarlo requiere actualizar el contrato y su versión. No es una regla institucional. Eliminar una entrada no elimina asistencias ya registradas.
@@ -288,7 +296,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Consultar configuración GPS de la sesión
+         * @description Responsable de la actividad; los directores leen dentro de su ámbito. Legible en cualquier estado de la sesión. Sin configuración guardada devuelve habilitada=false, modo OFF y nulos.
+         */
+        get: operations["getSessionGeolocation"];
         /**
          * Configurar GPS opcional
          * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo PROGRAMADA. Habilitar exige capacidad geográfica disponible y radio_m, precision_max_m y antiguedad_max_s válidos. El servidor determina el modo: piloto/revisión permitido; rechazo automático solo con evidencia de campo verificada, sin aceptar una declaración del cliente como prueba. Sin GPS no se solicitan permisos ni se almacenan coordenadas. Capacidad ausente: 409 CAPACIDAD_GPS_NO_DISPONIBLE.
@@ -698,7 +710,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Listar matriculados de un paralelo (ADMINISTRADOR)
+         * @description Paginado, incluye matrículas no vigentes.
+         */
+        get: operations["adminListEnrollments"];
         /**
          * Reemplazar matriculados de un paralelo (ADMINISTRADOR)
          * @description Lista de cédulas; solo personas con rol ESTUDIANTE. Las demás vuelven en rechazadas.
@@ -718,7 +734,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Listar docentes de un paralelo (ADMINISTRADOR)
+         * @description Paginado, incluye asignaciones no vigentes.
+         */
+        get: operations["adminListTeachers"];
         /**
          * Reemplazar docentes de un paralelo (ADMINISTRADOR)
          * @description Lista de correos de cuentas con rol DOCENTE o ENCARGADO.
@@ -832,6 +852,32 @@ export interface paths {
         patch: operations["updateSpace"];
         trace?: never;
     };
+    "/spaces/{spaceId}/geo-evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Consultar evidencias geográficas de un espacio
+         * @description Historial inmutable ordenado desde la versión más reciente.
+         */
+        get: operations["listGeoEvidence"];
+        put?: never;
+        /**
+         * Registrar evidencia geográfica de campo
+         * @description Solo ADMINISTRADOR. Crea la versión siguiente; no se puede editar ni eliminar. Requiere que el espacio tenga coordenadas.
+         */
+        post: operations["createGeoEvidence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activities/{activityId}/cancel": {
         parameters: {
             query?: never;
@@ -859,7 +905,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Consultar el horario recurrente
+         * @description Responsable de la actividad; los directores leen dentro de su ámbito. Clase sin horario: 404 SIN_HORARIO.
+         */
+        get: operations["getSchedule"];
         /**
          * Reemplazar el horario recurrente
          * @description Solo RESPONSABLE de una clase ABIERTA. Borra y regenera únicamente las sesiones PROGRAMADA futuras del horario sin intentos ni tokens QR; conserva las demás.
@@ -1176,6 +1226,29 @@ export interface components {
             size: number;
             total: number;
         };
+        GeoEvidence: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            espacio_id: string;
+            version: number;
+            referencia: string;
+            /** Format: date-time */
+            realizada_en: string;
+            /** Format: uuid */
+            responsable_id: string;
+            falsos_positivos: number;
+            falsos_negativos: number;
+            /** Format: date-time */
+            verificada_en: string;
+        };
+        GeoEvidenceCreate: {
+            referencia: string;
+            /** Format: date-time */
+            realizada_en: string;
+            falsos_positivos: number;
+            falsos_negativos: number;
+        };
         CreateSpaceRequest: {
             codigo: string;
             nombre: string;
@@ -1274,6 +1347,15 @@ export interface components {
             responsable_id: string;
             carrera_ids: string[];
             paralelo_ids: string[];
+            /**
+             * @description Solo los eventos tienen acceso; las clases devuelven null.
+             * @enum {string|null}
+             */
+            acceso: "CERRADO" | "ABIERTO" | null;
+            /** Format: uuid */
+            espacio_id: string;
+            /** @enum {string} */
+            metodo_verificacion: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
             ciclo_automatico: boolean;
             umbral_asistencia: number;
         };
@@ -1768,6 +1850,63 @@ export interface components {
             paralelo_ids?: string[];
             carrera_ids?: string[];
             sesiones: components["schemas"]["SessionSummary"][];
+        };
+        GuestPage: {
+            items: components["schemas"]["GuestRow"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        GuestRow: {
+            /** Format: uuid */
+            persona_id: string;
+            cedula: string;
+            nombres: string;
+            activo: boolean;
+        };
+        GeolocationConfig: {
+            habilitada: boolean;
+            radio_m: number | null;
+            precision_max_m: number | null;
+            antiguedad_max_s: number | null;
+            /** @enum {string} */
+            modo: "OFF" | "REVIEW_ONLY" | "AUTO";
+            /** Format: uuid */
+            evidencia_id: string | null;
+            /** @description El espacio de la sesión tiene al menos una evidencia de campo registrada. */
+            evidencia_vigente: boolean;
+        };
+        ScheduleCurrent: components["schemas"]["Schedule"] & {
+            /** Format: uuid */
+            espacio_id: string | null;
+            /** @example America/Guayaquil */
+            zona: string;
+        };
+        EnrollmentPage: {
+            items: components["schemas"]["EnrollmentRow"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        EnrollmentRow: {
+            /** Format: uuid */
+            persona_id: string;
+            cedula: string;
+            nombres: string;
+            vigente: boolean;
+        };
+        TeacherPage: {
+            items: components["schemas"]["TeacherRow"][];
+            page: number;
+            size: number;
+            total: number;
+        };
+        TeacherRow: {
+            /** Format: uuid */
+            cuenta_id: string;
+            correo: string;
+            nombres: string;
+            vigente: boolean;
         };
         ScheduleReplaced: {
             /** Format: uuid */
@@ -2513,6 +2652,32 @@ export interface operations {
             429: components["responses"]["RateLimited"];
         };
     };
+    getGuestSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado actual. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestSettings"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
     setGuestSettings: {
         parameters: {
             query?: never;
@@ -2550,6 +2715,35 @@ export interface operations {
             409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    listGuests: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado actual. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GuestPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     replaceGuestList: {
@@ -2692,6 +2886,32 @@ export interface operations {
             409: components["responses"]["Conflict"];
             410: components["responses"]["Gone"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    getSessionGeolocation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                sessionId: components["parameters"]["sessionId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado actual. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeolocationConfig"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     setSessionGeolocation: {
@@ -3639,6 +3859,35 @@ export interface operations {
             409: components["responses"]["Conflict"];
         };
     };
+    adminListEnrollments: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                parallelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado actual. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnrollmentPage"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
     adminReplaceEnrollments: {
         parameters: {
             query?: never;
@@ -3666,6 +3915,35 @@ export interface operations {
                         matriculados: number;
                         rechazadas: components["schemas"]["AdminRejectedEntry"][];
                     };
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminListTeachers: {
+        parameters: {
+            query?: {
+                page?: components["parameters"]["Page"];
+                size?: components["parameters"]["Size"];
+            };
+            header?: never;
+            path: {
+                parallelId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado actual. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherPage"];
                 };
             };
             400: components["responses"]["BadRequest"];
@@ -3888,6 +4166,72 @@ export interface operations {
             429: components["responses"]["RateLimited"];
         };
     };
+    listGeoEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Evidencias del espacio. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoEvidence"][];
+                };
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+        };
+    };
+    createGeoEvidence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                spaceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GeoEvidenceCreate"];
+            };
+        };
+        responses: {
+            /** @description Evidencia registrada y auditada. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeoEvidence"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description ESPACIO_SIN_UBICACION. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["Problem"];
+                };
+            };
+            429: components["responses"]["RateLimited"];
+        };
+    };
     cancelActivity: {
         parameters: {
             query?: never;
@@ -3914,6 +4258,32 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    getSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado actual. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScheduleCurrent"];
+                };
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
         };
     };
     replaceSchedule: {

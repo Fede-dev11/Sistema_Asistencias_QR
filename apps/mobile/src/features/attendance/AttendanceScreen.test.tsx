@@ -1,4 +1,4 @@
-import { jest, test, expect, beforeEach } from '@jest/globals';
+import { jest, test, expect, beforeAll, beforeEach } from '@jest/globals';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 import { request } from '../../services/api';
@@ -29,6 +29,14 @@ jest.mock('expo-secure-store', () => ({
 }));
 jest.mock('expo-crypto', () => ({ randomUUID: () => '11111111-1111-4111-8111-111111111111' }));
 jest.mock('../../services/api', () => ({ request: jest.fn() }));
+
+// Bajo carga la primera renderización carga y transforma el árbol de react-native/expo;
+// se paga una vez aquí para que los tests mantengan el tiempo por defecto.
+beforeAll(async () => {
+  mockRequestCameraPermission.mockResolvedValue({ granted: false });
+  jest.mocked(SecureStore.getItemAsync).mockResolvedValue(null);
+  (await render(<AttendanceScreen session={null} />)).unmount();
+}, 120_000);
 
 beforeEach(() => {
   jest.clearAllMocks();

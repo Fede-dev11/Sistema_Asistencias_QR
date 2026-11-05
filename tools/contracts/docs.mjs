@@ -35,9 +35,12 @@ export function rolesFor(method, path) {
   if (['/guest-registrations', '/guest-registrations/submit'].includes(path) || path.startsWith('/events/open/')) return [['inv'], null];
   if (['/attendance/attempts', '/me/active-sessions', '/me/attendances', '/me/stats'].includes(path) || path.startsWith('/me/absences/')) return [['est'], null];
   if (path === '/me/parallels') return [RESP, null];
+  if (path === '/spaces/{spaceId}/geo-evidence')
+    return [method === 'POST' ? ['adm'] : ['doc', 'enc', 'adm'], method === 'POST' ? 'La evidencia es inmutable; una corrección crea una versión nueva.' : null];
   if (path.startsWith('/spaces')) return [['doc', 'enc', 'adm'], method === 'PATCH' ? 'Solo el creador del espacio o un administrador puede editarlo.' : null];
   if (path.startsWith('/stats/') || /\/(stats|absences|audit)$/.test(path)) return [READ, SCOPE];
   if (method === 'GET' && (['/activities', '/activities/{activityId}'].includes(path) || path.endsWith('/attendances'))) return [READ, SCOPE];
+  if (method === 'GET' && /\/(guest-list|guest-settings|schedule|geolocation)$/.test(path)) return [READ, SCOPE];
   if (path.endsWith('/schedule') || path.includes('/students')) return [['doc'], 'Solo clases; el responsable es el docente que la creó.'];
   if (path === '/activities' && method === 'POST') return [RESP, 'CLASE: solo DOCENTE. EVENTO: DOCENTE o ENCARGADO.'];
   return [RESP, 'Solo el responsable de la actividad.'];

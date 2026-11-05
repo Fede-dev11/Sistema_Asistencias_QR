@@ -1,5 +1,7 @@
-import { ClassesPanel } from '../../features/activities/ClassesPanel';
+import { Suspense } from 'react';
+import { ActivityList } from '../../features/activities/ActivityList';
+import { RoleGuard } from '../../features/common/RoleGuard';
 
 export default function ActivitiesPage() {
-  return <ClassesPanel />;
+  return <RoleGuard roles={['DOCENTE', 'ENCARGADO']}><Suspense><ActivityList /></Suspense></RoleGuard>;
 }

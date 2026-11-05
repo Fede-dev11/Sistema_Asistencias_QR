@@ -1,0 +1,82 @@
+@startuml sso-usuarios
+' Fuente: services/auth/src/main/java/ec/edu/unl/sso/usuarios
+!include _estilo.iuml
+title Servicio SSO · administración de usuarios
+
+package "presentacion" {
+  class AdminController
+  class StatusController
+}
+package "aplicacion" {
+  class ManageUsers {
+    +{static} lista(raw): List<String>
+    +fijarActivo(actor, id, activo)
+    +restablecer(actor, id): String
+  }
+  class "ManageUsers.Creado" as Creado <<record>> {
+    usuario; temporal
+  }
+  class CsvUserImport {
+    +importar(actor, data): Informe
+  }
+  class "CsvUserImport.Fila" as Fila <<record>> {
+    fila: int
+    correo; estado; detalle; temporal
+  }
+  class "CsvUserImport.Informe" as Informe <<record>> {
+    +rechazadas(): long
+  }
+  class "CsvUserImport.ArchivoInvalido" as ArchivoInvalido <<RuntimeException>>
+}
+package "persistencia" {
+  class UserRepository {
+    +porCorreo(correo): Optional<Usuario>
+    +porId(id): Optional<Usuario>
+    +porCedula(cedula): Optional<Usuario>
+    +buscar(q, limit, offset): List<Usuario>
+    +contar(q): int
+    +insertar(Usuario)
+    +actualizar(Usuario)
+    +fijarActivo(id, activo)
+    +fijarPasswordTemporal(id, hash)
+    +cambiarPassword(id, hash)
+  }
+  class "UserRepository.Usuario" as Usuario <<record>> {
+    id; correo; cedula; nombres
+    passwordHash: String
+    activo; debeCambiarPassword: boolean
+    roles; carreras: List<String>
+  }
+}
+package "otros paquetes (usado)" {
+  class SsoSessions
+  class AdminAudit
+  class RateLimiter
+  class LoginLog
+  class ManageServices
+  class ServiceRegistry
+}
+
+AdminController --> SsoSessions
+AdminController --> UserRepository
+AdminController --> ManageUsers
+AdminController --> CsvUserImport
+AdminController --> ManageServices
+AdminController --> ServiceRegistry
+AdminController --> RateLimiter
+AdminController --> LoginLog
+StatusController --> ServiceRegistry
+StatusController --> UserRepository
+ManageUsers --> UserRepository
+ManageUsers --> SsoSessions
+ManageUsers --> AdminAudit
+ManageUsers +-- Creado
+CsvUserImport --> UserRepository
+CsvUserImport --> AdminAudit
+CsvUserImport +-- Fila
+CsvUserImport +-- Informe
+CsvUserImport +-- ArchivoInvalido
+Informe o-- Fila
+UserRepository +-- Usuario
+Creado --> Usuario
+@enduml

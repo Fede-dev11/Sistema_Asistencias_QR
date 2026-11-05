@@ -1,0 +1,186 @@
+@startuml asistencia
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/asistencia
+!include _estilo.iuml
+title Asistencia (registro, validación geográfica, correcciones e invitados)
+
+package "presentacion" {
+  class AttendanceController {
+    {static} response(Receipt): ResponseEntity
+  }
+  class GuestRegistrationController
+  class CorrectionController
+  class ReviewController
+  class ActiveSessionsController
+  class OpenEventController {
+    +get(sessionId): Map
+  }
+  class AttendanceRequestLimits {
+    +account(person, session)
+    +opening(ip, session)
+    +submission(ip, secret)
+  }
+  class AttendanceInputs <<final>> {
+    Location; AccountAttempt; GuestStart; GuestSubmit
+  }
+}
+package "aplicacion" {
+  class RecordAuthenticatedAttendance
+  class StartGuestRegistration {
+    +open(value, sessionId, received): Map
+  }
+  class SubmitGuestAttendance
+  class ManualAttendance {
+    +Command(personId, reason)
+  }
+  class Justifications
+  class ResolveAttendanceReview {
+    +Command(decision, reason)
+  }
+  class ListActiveSessions {
+    +list(user, page, size): Map
+  }
+  class AttendanceRecording {
+    +{static} requireChannel(method, withToken, withSession)
+    +requireActive(Activity, Session)
+    +deviceHash(deviceId): String
+    +{static} deviceConflict(): ApiFailure
+  }
+  class AttendanceGeography {
+    +validatePayload(session, GeoMeasurement)
+  }
+  class AttendanceEligibility {
+    +account(UserSession, Activity): Person
+    +selfRegistered(Activity, cedula, names): Person
+    +personId(cedula): Optional<UUID>
+    +guest(activity, person): Person
+  }
+  class CorrectionWindow {
+    +require(Session)
+  }
+  class TransientSecretCleanup {
+    +cleanup(): Result
+  }
+}
+package "dominio" {
+  interface ProximityPort {
+    +available(): boolean
+    +configured(session): boolean
+    +distanceMeters(session, GeoMeasurement): OptionalDouble
+  }
+  class GeoMeasurement <<record>> {
+    latitude; longitude; precision: double
+    measuredAt: Instant
+  }
+  class GeographicPolicy {
+    +decide(Config, GeoMeasurement, distance, previousUncertainties, received): AttendanceOutcome
+  }
+  class "GeographicPolicy.Config" as GeoConfig <<record>> {
+    enabled; mode; radius
+    maximumPrecision; maximumAgeSeconds
+    verifiedEvidence
+    +{static} off()
+    +{static} reviewOnly(radius, precision, age)
+    +{static} automatic(radius, precision, age, verified)
+  }
+  enum "GeographicPolicy.Mode" as Mode {
+    OFF
+    REVIEW_ONLY
+    AUTO
+  }
+  class AttendanceOutcome <<record>> {
+    result; code; message
+    distance; precision
+    +{static} accepted()
+    +{static} rejected(code, message)
+    +{static} repeat(...)
+    +{static} pending(...)
+    +{static} duplicate()
+  }
+  enum "AttendanceOutcome.Result" as Result {
+    ACEPTADO
+    RECHAZADO
+    REPETIR
+    PENDIENTE_REVISION
+  }
+}
+package "persistencia" {
+  class AttemptRepository {
+    +existing(session, person): Optional<Attendance>
+    +confirm(session, Person, attempt, received, form): boolean
+    +existingDevice(session, deviceHash)
+    +consecutiveUncertainty(session, person): int
+    +{static} receipt(Attendance, message): Map
+  }
+  class GuestStartRepository {
+    +bySecret(secret): Start
+    +find(id): Start
+    +bind(id, person)
+    +consume(id, person, attendance, now)
+  }
+  class ActiveSessionsRepository {
+    +list(account, person, now, page, size): Map
+  }
+  class PostgisProximityAdapter
+  class NoGeographyAdapter
+  class GeoMigrationRunner {
+    +run(ApplicationArguments)
+  }
+}
+package "otros módulos (usado)" {
+  class IssueSessionQr
+  class ActivityRepository
+  class ActivityAuthorization
+  class SessionRepository
+  class RequestBudget
+  class IdempotencyService
+  class NominalAccessGuard
+  class AttendanceLocks
+  class ActivityAuditWriter
+}
+
+AttendanceController --> RecordAuthenticatedAttendance
+AttendanceController --> AttendanceRequestLimits
+AttendanceController --> IssueSessionQr
+GuestRegistrationController --> StartGuestRegistration
+GuestRegistrationController --> SubmitGuestAttendance
+GuestRegistrationController --> AttendanceRequestLimits
+GuestRegistrationController --> IssueSessionQr
+CorrectionController --> ManualAttendance
+CorrectionController --> Justifications
+ReviewController --> ResolveAttendanceReview
+ActiveSessionsController --> ListActiveSessions
+AttendanceRequestLimits --> RequestBudget
+ListActiveSessions --> ActiveSessionsRepository
+RecordAuthenticatedAttendance --> IssueSessionQr
+RecordAuthenticatedAttendance --> AttendanceEligibility
+RecordAuthenticatedAttendance --> AttendanceRecording
+RecordAuthenticatedAttendance --> NominalAccessGuard
+RecordAuthenticatedAttendance --> IdempotencyService
+StartGuestRegistration --> GuestStartRepository
+StartGuestRegistration --> AttendanceRecording
+StartGuestRegistration --> IssueSessionQr
+SubmitGuestAttendance --> GuestStartRepository
+SubmitGuestAttendance --> AttendanceEligibility
+SubmitGuestAttendance --> AttendanceRecording
+ManualAttendance --> AttemptRepository
+ManualAttendance --> CorrectionWindow
+ManualAttendance --> ActivityAuthorization
+Justifications --> CorrectionWindow
+Justifications --> ActivityAuthorization
+ResolveAttendanceReview --> AttemptRepository
+ResolveAttendanceReview --> GuestStartRepository
+ResolveAttendanceReview --> CorrectionWindow
+AttendanceRecording --> AttemptRepository
+AttendanceRecording --> AttendanceGeography
+AttendanceGeography --> ProximityPort
+AttendanceGeography *-- GeographicPolicy
+GeographicPolicy ..> GeoMeasurement
+GeographicPolicy ..> AttendanceOutcome
+GeographicPolicy +-- GeoConfig
+GeographicPolicy +-- Mode
+GeoConfig --> Mode
+AttendanceOutcome +-- Result
+PostgisProximityAdapter ..|> ProximityPort
+NoGeographyAdapter ..|> ProximityPort
+AttendanceInputs ..> GeoMeasurement
+@enduml

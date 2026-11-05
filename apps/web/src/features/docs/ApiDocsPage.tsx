@@ -1,6 +1,8 @@
 'use client';
+import { DocsNav } from './DocsNav';
 import { useMemo, useState } from 'react';
 import docs from '../../generated/api-docs.json';
+import { Button } from '../ui/Button';
 
 type Op = (typeof docs.ops)[number];
 type Field = { name: string; type: string; required: boolean; desc: string; rules: string; in?: string };
@@ -82,14 +84,15 @@ export function ApiDocsPage() {
 
   return (
     <section className="docs">
+      <DocsNav />
       <p className="eyebrow">REST {docs.server} · contrato {docs.version}</p>
       <h1>Documentación de la API</h1>
       <p>{docs.ops.length} operaciones generadas desde el contrato OpenAPI que valida el CI. Obtén el token con <code>POST /auth/cas</code> tras ingresar en el servicio universitario y envíalo como <code>Authorization: Bearer …</code> (<code>POST /auth/login</code> solo existe en modo local o de pruebas); los <code>POST</code> que crean registros aceptan <code>Idempotency-Key</code>; los errores llegan en formato Problem Details con un <code>code</code> estable.</p>
 
       <div className="docs-bar">
         <div className="docs-seg" role="group" aria-label="Agrupar por">
-          <button type="button" aria-pressed={view === 'group'} onClick={() => setView('group')}>Por funcionalidad</button>
-          <button type="button" aria-pressed={view === 'role'} onClick={() => setView('role')}>Por rol</button>
+          <Button variant="secondary" type="button" aria-pressed={view === 'group'} onClick={() => setView('group')}>Por funcionalidad</Button>
+          <Button variant="secondary" type="button" aria-pressed={view === 'role'} onClick={() => setView('role')}>Por rol</Button>
         </div>
         <input type="search" aria-label="Buscar endpoint" placeholder="Buscar ruta, acción o campo (ej. cedula, qr, csv)" value={query} onChange={(e) => setQuery(e.target.value)} />
         <div className="docs-filter" role="group" aria-label="Filtrar por método">

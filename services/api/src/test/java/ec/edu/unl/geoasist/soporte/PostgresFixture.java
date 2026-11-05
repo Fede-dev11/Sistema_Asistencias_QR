@@ -34,7 +34,11 @@ public abstract class PostgresFixture {
     clock.set(java.time.Instant.parse("2026-10-20T01:00:00Z"));
   }
 
-  protected static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17.7");
+  // Cada contexto de Spring en caché conserva su pool (hasta 10 conexiones); con varios contextos
+  // distintos
+  // se superan las 100 conexiones por defecto de PostgreSQL ("too many clients").
+  protected static final PostgreSQLContainer POSTGRES =
+      new PostgreSQLContainer("postgres:17.7").withCommand("postgres", "-c", "max_connections=400");
 
   static {
     POSTGRES.start();

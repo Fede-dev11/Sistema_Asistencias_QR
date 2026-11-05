@@ -12,7 +12,7 @@ describe('importación CSV', () => {
   it('solo se muestra a administradores', () => {
     roles = ['DOCENTE'];
     render(<ImportPanel />);
-    expect(screen.getByRole('alert')).toHaveTextContent('solo para administradores');
+    expect(screen.getByRole('alert')).toHaveTextContent('No tienes acceso a esta sección');
   });
 
   it('muestra el informe con las filas rechazadas', async () => {

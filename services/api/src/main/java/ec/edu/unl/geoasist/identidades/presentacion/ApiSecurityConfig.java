@@ -62,6 +62,16 @@ public class ApiSecurityConfig {
     http.authorizeHttpRequests(
         a ->
             a.requestMatchers(
+                    org.springframework.http.HttpMethod.GET,
+                    "/openapi.yaml",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/swagger-config") // solo la configuración de la UI (apunta a
+                // /openapi.yaml)
+                .permitAll()
+                .requestMatchers("/v3/api-docs/**")
+                .denyAll()
+                .requestMatchers(
                     "/api/v1/auth/login",
                     "/api/v1/auth/cas",
                     "/api/v1/auth/sso-config",
