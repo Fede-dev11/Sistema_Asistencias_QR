@@ -115,6 +115,15 @@ guarda solo un indicador en `sessionStorage` (nunca el token). Flujos clave:
 Cobertura de operaciones de la API en la web: `npm run coverage:web` dentro de `tools/contracts`; escribe
 `docs/validation/cobertura-web.md`.
 
+## Documentación de la API
+
+Swagger UI se genera siempre desde el contrato `specs/001-asistencia-qr-dinamico/contracts/openapi.yaml`
+(`npm run generate` en `tools/contracts` copia el contrato a la API y a la web; `npm run check` falla en CI si difieren).
+
+- API: `http://localhost:8080/swagger-ui.html`. Se desactiva con `GEOASIST_SWAGGER_UI=false` (por defecto `true`).
+- Web: `http://localhost:3000/documentacion/swagger` (la página por rol sigue en `/documentacion`).
+- "Authorize": pega el token de sesión (esquema `SessionBearer`); no se guarda.
+
 ## GitHub Spec Kit
 
 El proyecto incluye habilidades de Spec Kit para **Codex** en `.agents/skills/`.
