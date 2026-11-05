@@ -1,0 +1,69 @@
+---
+title: "Módulo asistencia"
+---
+
+## Responsabilidad
+
+Registrar y decidir la asistencia: intentos autenticados con QR y ubicación, registro de invitados, revisión de
+intentos pendientes, asistencia manual, justificaciones de ausencias y consulta de sesiones activas.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `AttendanceController`, `GuestRegistrationController`, `OpenEventController`, `ReviewController`, `CorrectionController`, `ActiveSessionsController` |
+| aplicacion | `RecordAuthenticatedAttendance`, `AttendanceRecording`, `AttendanceEligibility`, `AttendanceGeography`, `StartGuestRegistration`, `SubmitGuestAttendance`, `ResolveAttendanceReview`, `ManualAttendance`, `Justifications`, `CorrectionWindow`, `ListActiveSessions`, `TransientSecretCleanup` |
+| dominio | `AttendanceOutcome` (ACEPTADO, RECHAZADO, REPETIR, PENDIENTE_REVISION), `GeographicPolicy` (OFF, REVIEW_ONLY, AUTO), `GeoMeasurement`, `ProximityPort` |
+| persistencia | `AttemptRepository`, `GuestStartRepository`, `ActiveSessionsRepository`, `PostgisProximityAdapter`, `NoGeographyAdapter`, `GeoMigrationRunner` |
+
+## Endpoints
+
+| Método y ruta | Roles |
+|---|---|
+| `POST /api/v1/attendance/attempts` | Autenticado (participante) |
+| `GET /api/v1/me/active-sessions` | Autenticado |
+| `POST /api/v1/guest-registrations`, `POST .../submit` | Público |
+| `GET /api/v1/events/open/{sessionId}` | Público (datos mínimos del evento abierto) |
+| `POST /api/v1/attempts/{attemptId}/review` | Responsable de la actividad |
+| `POST /api/v1/sessions/{sessionId}/manual-attendances` | Responsable (dentro de la ventana de corrección) |
+| `POST /api/v1/sessions/{sessionId}/absences/{personId}/justify` | Responsable |
+| `POST /api/v1/me/absences/{sessionId}/justification-requests` | ESTUDIANTE |
+| `GET /api/v1/activities/{activityId}/justification-requests` | Responsable |
+| `POST /api/v1/justification-requests/{id}/decision` | Responsable |
+
+## Tablas
+
+`intentos_asistencia`, `asistencias`, `revisiones_asistencia`, `ausencias`, `justificaciones`,
+`inicios_invitado`, `invitados_evento`; lee `sesiones`, `tokens_qr`, `estudiantes_autorizados`,
+`configuracion_geografica`, `configuracion_invitados`, `espacios`, `matriculas`; usa `idempotencias` y
+`contadores_limite`. Migraciones: V004, V005, V006, V011, V015.
+
+## Reglas de negocio
+
+- El resultado de cada intento es una de cuatro salidas (`AttendanceOutcome`); un duplicado devuelve `YA_REGISTRADO` como aceptado.
+- La política geográfica tiene tres modos: apagada, solo revisión (los fuera de radio quedan pendientes) y automática (requiere evidencia verificada); fija radio, precisión máxima y edad máxima de la lectura.
+- Un dispositivo no puede registrar a dos personas en la misma sesión (pruebas `DeviceUniquenessTest`, `DeviceConcurrencyTest`).
+- Solo participa quien está autorizado o matriculado (`AttendanceEligibility`); los invitados siguen un inicio con plazo (`GuestDeadlineTest`).
+- Las correcciones manuales y justificaciones solo se aceptan hasta `geoasist.correccion.dias` días (7 por defecto) tras el cierre (`CorrectionWindow`).
+- `TransientSecretCleanup` borra periódicamente secretos transitorios (gracia de 25 h para reintentos).
+- Los registros usan bloqueos (`AttendanceLocks`) e idempotencia para soportar concurrencia.
+
+## Dependencias
+
+`sesiones`, `qr`, `actividades` (autorización y lectura), `identidades`, `compartido`.
+
+## Configuración
+
+`geoasist.geography-enabled` (selecciona `PostgisProximityAdapter` o `NoGeographyAdapter`),
+`geoasist.correccion.dias`, `geoasist.secret-cleanup-delay-ms` (3 600 000 por defecto), `GEOASIST_HMAC_KEY`.
+
+## Pruebas
+
+`AttendanceContractTest`, `AttendanceConcurrencyTest`, `MethodAttendanceTest`, `ParticipantEligibilityTest`,
+`GeographicPolicyTest`, `GeographyReviewContractTest`, `LocationDisabledTest`, `ReviewConcurrencyTest`,
+`DeviceUniquenessTest`, `DeviceConcurrencyTest`, `GuestDeadlineTest`, `OpenEventTest`, `ActiveSessionsTest`,
+`ManualAttendanceTest`, `JustificationTest`, `AbsenceRecordingTest`, `TransientSecretCleanupTest`.
+
+## Diagrama de clases
+
+[Asistencia en el nivel 4](../04-codigo.qmd#fig-asistencia) (`puml/asistencia.puml`).

@@ -13,6 +13,24 @@ website:
       - 02-contenedores.qmd
       - 03-componentes.qmd
       - 04-codigo.qmd
+      - section: "Módulos"
+        contents:
+          - modulos/index.qmd
+          - modulos/identidades.qmd
+          - modulos/academico.qmd
+          - modulos/actividades.qmd
+          - modulos/espacios.qmd
+          - modulos/sesiones.qmd
+          - modulos/qr.qmd
+          - modulos/asistencia.qmd
+          - modulos/estadisticas.qmd
+          - modulos/reportes.qmd
+          - modulos/conservacion.qmd
+          - modulos/compartido.qmd
+          - modulos/auth.qmd
+          - modulos/web.qmd
+          - modulos/mobile.qmd
+          - modulos/contracts.qmd
 
 format:
   html:
