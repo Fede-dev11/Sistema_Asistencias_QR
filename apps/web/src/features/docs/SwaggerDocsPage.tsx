@@ -16,11 +16,11 @@ const toApi: Interceptor = (req) => {
 
 export function SwaggerDocsPage() {
   return (
-    <main className="swagger-docs">
+    <div className="swagger-docs">
       <p><Link href="/documentacion">Documentación por rol</Link></p>
       <div data-testid="swagger-container">
         <SwaggerUI url="/openapi.yaml" persistAuthorization={false} requestInterceptor={toApi} />
       </div>
-    </main>
+    </div>
   );
 }

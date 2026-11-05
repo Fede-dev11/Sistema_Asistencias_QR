@@ -109,7 +109,7 @@ header .role-nav a[aria-current=page] { background:var(--color-ok-soft); color:v
 @media (min-width:900px) {
   .shell { display:grid; grid-template-columns:16rem minmax(0,1fr); align-items:start; }
   .shell > header { flex-direction:column; justify-content:flex-start; position:sticky; top:0; height:100vh; overflow-y:auto; border-bottom:0; border-right:1px solid var(--color-line); padding:var(--space-6) var(--space-4); gap:var(--space-4); }
-  .shell > main { margin-top:2.5rem; }
+  .shell > main { margin-top:2.5rem; width:100%; box-sizing:border-box; }
   .role-nav-toggle { display:none; }
   .role-nav-list { display:flex; margin-top:0; }
 }
@@ -173,3 +173,7 @@ main { min-width:0; overflow-wrap:break-word; }
 .ui-crumbs a { display:inline-flex; align-items:center; min-height:44px; }
 label:has(> input[type=checkbox]), label:has(> input[type=radio]) { display:flex; align-items:center; gap:var(--space-2); min-height:44px; }
 input[type=checkbox], input[type=radio] { width:1.25rem; height:1.25rem; }
+/* Swagger UI: ancho completo y sin los estilos globales de elementos de la app. */
+.shell > main:has(.swagger-docs) { max-width:none; }
+/* Misma especificidad que las reglas globales de elementos (y después): las anula; las reglas propias de Swagger (más específicas) siguen ganando. */
+:where(.swagger-docs .swagger-ui) :is(button,input,select,textarea,label,p,h1,h2,a,table,th,td) { all:revert; }
