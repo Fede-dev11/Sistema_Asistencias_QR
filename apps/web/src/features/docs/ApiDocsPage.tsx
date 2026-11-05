@@ -1,5 +1,5 @@
 'use client';
-import Link from 'next/link';
+import { DocsNav } from './DocsNav';
 import { useMemo, useState } from 'react';
 import docs from '../../generated/api-docs.json';
 import { Button } from '../ui/Button';
@@ -84,9 +84,9 @@ export function ApiDocsPage() {
 
   return (
     <section className="docs">
+      <DocsNav />
       <p className="eyebrow">REST {docs.server} · contrato {docs.version}</p>
       <h1>Documentación de la API</h1>
-      <p><Link href="/documentacion/swagger">Probar en Swagger UI</Link></p>
       <p>{docs.ops.length} operaciones generadas desde el contrato OpenAPI que valida el CI. Obtén el token con <code>POST /auth/cas</code> tras ingresar en el servicio universitario y envíalo como <code>Authorization: Bearer …</code> (<code>POST /auth/login</code> solo existe en modo local o de pruebas); los <code>POST</code> que crean registros aceptan <code>Idempotency-Key</code>; los errores llegan en formato Problem Details con un <code>code</code> estable.</p>
 
       <div className="docs-bar">

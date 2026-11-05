@@ -123,6 +123,10 @@ Swagger UI se genera siempre desde el contrato `specs/001-asistencia-qr-dinamico
 - API: `http://localhost:8080/swagger-ui.html`. Se desactiva con `GEOASIST_SWAGGER_UI=false` (por defecto `true`).
 - Web: `http://localhost:3000/documentacion/swagger` (la página por rol sigue en `/documentacion`).
 - "Authorize": pega el token de sesión (esquema `SessionBearer`); no se guarda.
+- Arquitectura en la web: `http://localhost:3000/documentacion/arquitectura` muestra los diagramas C4, de clases,
+  el modelo de datos y los módulos del sitio Quarto (`docs/arquitectura`). Para publicarlo o actualizarlo, en `apps/web`:
+  `npm run docs:arquitectura` (requiere Quarto, Python y Java; con `-- --sin-render` copia el último render sin volver a
+  generarlo). La copia en `apps/web/public/arquitectura/` no se versiona; sin ella la página explica cómo generarla.
 
 ## GitHub Spec Kit
 

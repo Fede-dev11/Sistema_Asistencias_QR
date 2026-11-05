@@ -1,6 +1,6 @@
 'use client';
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
+import { DocsNav } from './DocsNav';
 import 'swagger-ui-react/swagger-ui.css';
 
 const SwaggerUI = dynamic(() => import('swagger-ui-react'), { ssr: false });
@@ -17,7 +17,7 @@ const toApi: Interceptor = (req) => {
 export function SwaggerDocsPage() {
   return (
     <div className="swagger-docs">
-      <p><Link href="/documentacion">Documentación por rol</Link></p>
+      <DocsNav />
       <div data-testid="swagger-container">
         <SwaggerUI url="/openapi.yaml" persistAuthorization={false} requestInterceptor={toApi} />
       </div>
