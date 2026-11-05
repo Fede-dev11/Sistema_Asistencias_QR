@@ -111,30 +111,90 @@ C4Component
 
 ## Aplicación web (`apps/web`)
 
+Tras 006 (vistas para probar todas las funcionalidades) y 007 (optimización de la experiencia) la web se organiza en
+tres capas: **páginas** (`src/app`, solo componen), **features** (una carpeta por funcionalidad) y el **cliente API**
+único. Las rutas por rol llevan al inicio de cada persona (`homeFor` en `features/auth/sso.ts`).
+
 ```{mermaid}
 C4Component
-  title Web - componentes
+  title Web - páginas, features y cliente API
   Container_Boundary(web, "Aplicación web Next.js") {
-    Component(app, "src/app", "Rutas Next.js", "Páginas: actividades, sesiones, estadísticas, reportes, admin, pruebas, documentacion")
-    Component(auth, "features/auth", "React", "SessionProvider, LoginForm, CasCallback, RoleNav")
-    Component(feat, "features de negocio", "React", "activities, sessions, corrections, spaces, stats, reports, reviews, admin")
-    Component(extra, "features de apoyo", "React", "common: RoleGuard, Paginated, testing: simuladores, docs: ApiDocsPage")
-    Component(client, "lib/api/client.ts", "TypeScript", "Cliente HTTP único")
-    Component(gen, "generated", "TypeScript", "api.ts y api-docs.json generados del contrato")
+    Component(pages, "src/app (páginas)", "Rutas Next.js", "/hoy, /inicio, /actividades, /actividades/nueva, /actividades/[id], /sesiones, /sesiones/[id], /sesiones/[id]/proyectar, /estadisticas, /reportes, /admin/*, /pruebas/*, /documentacion, /login, /auth/callback")
+    Component(auth, "features/auth", "React", "SessionProvider, LoginForm, CasCallback, RoleNav, sso.ts")
+    Component(home, "features/home", "React", "TeacherToday, DirectorSummary, AdminHome")
+    Component(act, "features/activities", "React", "ActivityList, ActivityWizard, ActivityDetail, SchedulePanel, GuestSettingsPanel, AuthorizedStudents, ClassSessions")
+    Component(ses, "features/sessions", "React", "SessionList, SessionSummary, ProjectionView, LiveAttendances, GeolocationSettingsPanel")
+    Component(oper, "features operativas", "React", "corrections, reviews, stats, reports, spaces")
+    Component(adm, "features/admin", "React", "CareersPanel, PeoplePanel, ParallelMembers, ImportPanel (en cajones laterales)")
+    Component(test, "features/testing", "React", "ParticipantSimulator, GuestSimulator; visibles con NEXT_PUBLIC_HERRAMIENTAS_PRUEBA")
+    Component(docs, "features/docs", "React", "ApiDocsPage; Swagger UI en /documentacion/swagger (planificado)")
+    Component(ui, "features/ui y common", "React", "Drawer, Tabs, Stepper, Breadcrumbs, Button, StatusTag, RoleGuard, Paginated, ProblemMessage")
+    Component(client, "lib/api/client.ts", "TypeScript", "Cliente HTTP único; token en memoria")
+    Component(gen, "generated", "TypeScript", "api.ts y api-docs.json generados del contrato; copia estática de openapi.yaml (planificado)")
   }
   Container_Ext(api, "API", "REST /api/v1")
   Container_Ext(sso, "Servicio de autenticación", "CAS")
   System_Ext(osm, "OpenStreetMap", "Teselas")
-  Rel(app, auth, "Usa")
-  Rel(app, feat, "Compone")
-  Rel(app, extra, "Compone")
-  Rel(feat, client, "Llama")
+  Rel(pages, auth, "Sesión y menú")
+  Rel(pages, home, "Compone")
+  Rel(pages, act, "Compone")
+  Rel(pages, ses, "Compone")
+  Rel(pages, oper, "Compone")
+  Rel(pages, adm, "Compone")
+  Rel(pages, test, "Compone")
+  Rel(pages, docs, "Compone")
+  Rel(act, ui, "Usa")
+  Rel(ses, ui, "Usa")
+  Rel(adm, ui, "Usa")
+  Rel(home, client, "Llama")
+  Rel(act, client, "Llama")
+  Rel(ses, client, "Llama")
+  Rel(oper, client, "Llama")
+  Rel(adm, client, "Llama")
+  Rel(test, client, "Llama")
   Rel(auth, client, "Llama")
   Rel(client, gen, "Tipos")
+  Rel(docs, gen, "Lee metadatos")
   Rel(client, api, "HTTPS/JSON")
   Rel(auth, sso, "Redirige")
-  Rel(feat, osm, "Teselas: spaces")
+  Rel(oper, osm, "Teselas: spaces")
 ```
+
+### Re-autenticación silenciosa (SSO)
+
+El token de acceso vive solo en memoria (nunca se guarda en el navegador). Para que recargar la página o abrir un
+enlace no obligue a ingresar de nuevo, `SessionProvider` guarda en `sessionStorage` solo un **indicador**
+(`geoasist-sso`, ver `features/auth/sso.ts`). Sin sesión en memoria pero con indicador, pide un ticket nuevo al SSO,
+que reconoce su propia cookie, sin mostrar formulario; `CasCallback` lo entrega a la API y vuelve a la ruta pedida
+(`?destino=`, validada por `safeDestino`: solo rutas internas).
+
+```{mermaid}
+sequenceDiagram
+  participant N as Navegador
+  participant W as Web (SessionProvider)
+  participant S as SSO (/cas/login)
+  participant A as API (/api/v1)
+  N->>W: Recarga o abre /sesiones/123
+  W->>W: Sin token en memoria; indicador geoasist-sso presente
+  W-->>N: Restableciendo tu sesión
+  N->>S: Redirige a /cas/login con service y destino
+  S-->>N: Cookie SSO vigente: redirige con ticket
+  N->>W: /auth/callback con ticket y destino
+  W->>A: Canjea el ticket (la API hace serviceValidate al SSO)
+  A-->>W: Token de sesión y perfil
+  W-->>N: Navega a /sesiones/123
+```
+
+Si la cookie del SSO venció, el SSO muestra su formulario; si el almacenamiento está bloqueado, simplemente no hay
+re-autenticación silenciosa.
+
+### Documentación de la API y Swagger UI
+
+| Elemento | Dónde | Estado |
+|---|---|---|
+| `ApiDocsPage` | Web `/documentacion`: operaciones del contrato (`api-docs.json`); el detalle se dibuja al abrir cada una | Implementado |
+| Swagger UI de la API | `GET /swagger-ui.html`, servido por `services/api` | Planificado |
+| Swagger UI en la web | `/documentacion/swagger`, lee una copia estática de `openapi.yaml` | Planificado |
 
 ## Aplicación móvil (`apps/mobile`)
 
@@ -162,8 +222,8 @@ C4Component
 
 | Contenedor | Elemento | Responsabilidad |
 |---|---|---|
-| Web | `src/app` | Rutas por rol (`RoleNav`, `RoleGuard`) que componen las funcionalidades. |
-| Web | `features/*` | Una carpeta por funcionalidad, con sus pruebas junto al código. |
+| Web | `src/app` | Rutas por rol (`RoleNav`, `RoleGuard`) que solo componen funcionalidades; inicio por rol (`/hoy`, `/inicio`). |
+| Web | `features/*` | Una carpeta por funcionalidad, con sus pruebas junto al código; formularios largos en asistente (`ActivityWizard`) y administración en cajones laterales. |
 | Web | `lib/api/client.ts`, `generated` | Acceso único a la API; tipos y metadatos de documentación generados, no se editan a mano. |
 | Móvil | `features/auth` | Inicio de sesión CAS y almacenamiento de sesión. |
 | Móvil | `features/sessions`, `features/attendance` | Lista de sesiones activas y registro de asistencia con ubicación. |

@@ -1,0 +1,146 @@
+@startuml datos-geoasist-asistencia
+' Fuente: V004-V006, V011, V015, V017. Area: QR, invitados, asistencia, revision, ausencias y evidencia geografica.
+skinparam shadowing false
+skinparam linetype ortho
+hide circle
+title Base geoasist - QR, invitados y asistencia
+
+entity sesiones {
+  * id : uuid <<PK>>
+}
+entity actividades {
+  * id : uuid <<PK>>
+}
+entity personas {
+  * id : uuid <<PK>>
+}
+entity espacios {
+  * id : uuid <<PK>>
+}
+
+entity tokens_qr {
+  * id : uuid <<PK>>
+  --
+  * sesion_id : uuid <<FK>>
+  * secreto_hash <<UQ>>
+  * emitido_en
+  * expira_en : = emitido_en + 40 s
+}
+entity configuracion_invitados {
+  * actividad_id : uuid <<PK, FK>>
+  --
+  * habilitado
+  * tolerancia_invitado_segundos : > 40
+  * version, acceso_generacion
+}
+entity invitados_evento {
+  * actividad_id : uuid <<PK, FK>>
+  * persona_id : uuid <<PK, FK>>
+  --
+  * nombres, activo
+  * cargado_por : uuid <<FK cuentas>>
+  * version
+}
+entity inicios_invitado {
+  * id : uuid <<PK>>
+  --
+  * sesion_id : uuid <<FK>>
+  * secreto_hash <<UQ>>
+  * estado : ABIERTO | CONSUMIDO
+  * inicio_en, vence_en, tolerancia_segundos
+  persona_vinculada_id : uuid <<FK>>
+  persona_consumida_id : uuid <<FK>>
+  recibo_asistencia_id : uuid <<FK>>
+}
+entity intentos_asistencia {
+  * id : uuid <<PK>>
+  --
+  * secuencia : identity <<UQ>>
+  * sesion_id : uuid <<FK>>
+  persona_id : uuid <<FK>>
+  inicio_invitado_id : uuid <<FK>>
+  * resultado : ACEPTADO | RECHAZADO | REPETIR | PENDIENTE_REVISION
+  * canal : CREDENCIALES | INVITADO_LISTADO | AUTORREGISTRO | MANUAL
+  * recibido_en
+  distancia_m, precision_m
+  dispositivo_hash
+}
+entity asistencias {
+  * id : uuid <<PK>>
+  --
+  * sesion_id : uuid <<FK>>
+  * persona_id : uuid <<FK>>
+  * intento_id : uuid <<FK, UQ>>
+  * forma : CREDENCIALES | INVITADO_LISTADO | REVISION | AUTORREGISTRO | MANUAL
+  * registrada_en
+  razon_manual
+  registrada_por : uuid <<FK cuentas>>
+  dispositivo_hash : <<UQ con sesion_id>>
+  (sesion_id, persona_id) <<UQ>>
+}
+entity revisiones_asistencia {
+  * intento_id : uuid <<PK, FK>>
+  --
+  * revisor_id : uuid <<FK cuentas>>
+  * decision : APROBAR | RECHAZAR
+  * razon, revisada_en
+  asistencia_id : uuid <<FK>>
+}
+entity ausencias {
+  * sesion_id : uuid <<PK, FK>>
+  * persona_id : uuid <<PK, FK>>
+  --
+  * estado : AUSENTE | JUSTIFICADA
+  * registrada_en
+}
+entity justificaciones {
+  * id : uuid <<PK>>
+  --
+  * sesion_id, persona_id : <<FK ausencias>>
+  * origen : ESTUDIANTE | RESPONSABLE
+  * estado : PENDIENTE | APROBADA | RECHAZADA
+  * motivo
+  decidida_por : uuid <<FK cuentas>>
+  (una PENDIENTE por ausencia) <<UQ parcial>>
+}
+entity evidencias_geograficas {
+  * id : uuid <<PK>>
+  --
+  * espacio_id : uuid <<FK>>
+  * version
+  * responsable_id : uuid <<FK cuentas>>
+  * referencia, realizada_en
+  * falsos_positivos, falsos_negativos
+  (espacio_id, version) <<UQ>>
+}
+entity configuracion_geografica {
+  * sesion_id : uuid <<PK, FK>>
+  --
+  * habilitada
+  * modo : OFF | REVIEW_ONLY | AUTO
+  radio_m, precision_max_m, antiguedad_max_s
+  evidencia_id : uuid <<FK>> (obligatoria en AUTO)
+  * configurada_por : uuid <<FK cuentas>>
+}
+
+sesiones ||--o{ tokens_qr
+actividades ||--o| configuracion_invitados
+actividades ||--o{ invitados_evento
+personas ||--o{ invitados_evento
+sesiones ||--o{ inicios_invitado
+sesiones ||--o{ intentos_asistencia
+personas |o--o{ intentos_asistencia
+inicios_invitado |o--o{ intentos_asistencia
+intentos_asistencia ||--o| asistencias
+sesiones ||--o{ asistencias
+personas ||--o{ asistencias
+asistencias |o--o{ inicios_invitado : recibo
+intentos_asistencia ||--o| revisiones_asistencia
+asistencias |o--o| revisiones_asistencia
+sesiones ||--o{ ausencias
+personas ||--o{ ausencias
+ausencias ||--o{ justificaciones
+espacios ||--o{ evidencias_geograficas
+sesiones ||--o| configuracion_geografica
+evidencias_geograficas |o--o{ configuracion_geografica
+@enduml

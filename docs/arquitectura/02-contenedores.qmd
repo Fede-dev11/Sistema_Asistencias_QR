@@ -40,9 +40,9 @@ C4Container
 
 | Contenedor | Tecnología | Responsabilidad |
 |---|---|---|
-| Aplicación web | Next.js 16 (`apps/web`), Leaflet 1.9.4 | Gestión de actividades, sesiones, correcciones, estadísticas, reportes, administración, simuladores de prueba y documentación de la API. |
+| Aplicación web | Next.js 16 (`apps/web`), Leaflet 1.9.4 | Gestión de actividades, sesiones, correcciones, estadísticas, reportes, administración, simuladores de prueba (tras una bandera), re-autenticación silenciosa y documentación de la API (Swagger UI en `/documentacion/swagger`, planificado). |
 | Aplicación móvil | Expo 57 (`apps/mobile`) | Ingreso CAS, sesiones activas, registro de asistencia por QR y ubicación. |
-| API | Spring Boot (`services/api`) | Lógica de negocio, reglas de asistencia, seguridad de sesión, programadores de tareas. Contrato REST `/api/v1`. |
+| API | Spring Boot (`services/api`) | Lógica de negocio, reglas de asistencia, seguridad de sesión, programadores de tareas. Contrato REST `/api/v1`. Servirá Swagger UI en `/swagger-ui.html` (planificado). |
 | Servicio de autenticación | Spring Boot (`services/auth`) | CAS 3.0 simulado: `/cas/login`, `/cas/logout`, validación de ticket; administración de usuarios y servicios. |
 | `geoasist` | PostgreSQL 17.7, migraciones Flyway; PostGIS opcional | Base de la API; con PostGIS se verifica proximidad, sin él se usa un adaptador sin geografía. |
 | `geoasist_auth` | PostgreSQL 17.7 | Base lógica del SSO, creada por `infra/db-init/01-auth-db.sql` en la misma instancia. |
@@ -56,4 +56,5 @@ C4Container
 | API → Auth | `serviceValidate` servidor a servidor | Se autentica con `SSO_SERVICE_KEY`; solo el módulo `identidades` lo usa. |
 | API → `geoasist` | JDBC | Perfil `dev` con cuentas de desarrollo. |
 | Auth → `geoasist_auth` | JDBC | Sin acceso cruzado entre bases. |
+| Web → Auth (re-autenticación) | Redirección CAS sin formulario | Con cookie SSO vigente e indicador `geoasist-sso`; ver nivel 3. |
 | Web → OpenStreetMap | HTTPS | Solo en el formulario de espacios. |

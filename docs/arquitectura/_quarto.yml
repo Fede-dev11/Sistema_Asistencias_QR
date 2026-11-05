@@ -13,6 +13,7 @@ website:
       - 02-contenedores.qmd
       - 03-componentes.qmd
       - 04-codigo.qmd
+      - 05-datos.qmd
 
 format:
   html:

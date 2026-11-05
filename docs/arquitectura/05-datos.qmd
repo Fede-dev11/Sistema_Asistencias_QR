@@ -1,0 +1,87 @@
+---
+title: "Modelo de datos (ER)"
+---
+
+Modelo entidad-relación de las dos bases PostgreSQL (`infra/docker-compose.yml`), derivado de las migraciones Flyway:
+`geoasist` (`services/api/src/main/resources/db/migration`, V001 a V019) y `geoasist_auth`
+(`services/auth/src/main/resources/db/migration`, V001). No hay claves foráneas entre las dos bases.
+
+Los diagramas son **PlantUML como código** (`puml/datos-*.puml`, renderizados por `render_plantuml.py`). Notación:
+`*` columna obligatoria, `<<PK>>` clave primaria, `<<FK>>` clave foránea, `<<UQ>>` restricción única.
+Solo se muestran las columnas clave; el detalle está en las migraciones.
+
+::: {.callout-note}
+## PostGIS es opcional
+Ninguna tabla usa tipos geográficos: espacios guardan `latitud`/`longitud` como `double precision`, y la
+proximidad se calcula con `PostgisProximityAdapter` si hay PostGIS (`infra/docker-compose.geo.yml`) o se omite con
+`NoGeographyAdapter`. El esquema es idéntico en ambos casos.
+:::
+
+## Base `geoasist`
+
+### Identidad, académico, actividades y sesiones
+
+![Identidad, académico, actividades y sesiones](_generated/datos-geoasist.svg){#fig-datos-geoasist}
+
+| Tabla | Propósito |
+|---|---|
+| `personas` | Toda persona por cédula única; `tipo` INSTITUCIONAL o EXTERNA (invitados). |
+| `cuentas` | Cuenta de acceso de una persona (1:1); proveedor `CAS` sin contraseña local (V019). |
+| `roles_cuenta` | Roles de una cuenta (docente, encargado, estudiante, directores, administrador). |
+| `sesiones_acceso` | Sesiones opacas de la API (solo el hash del secreto). |
+| `carreras`, `paralelos` | Catálogo académico; un paralelo es único por carrera. |
+| `direcciones_carrera` | Qué cuentas dirigen qué carreras (ámbito del director). |
+| `matriculas`, `docentes_paralelo` | Estudiantes matriculados y docentes que dictan cada paralelo. |
+| `espacios` | Aulas y lugares con código único y coordenadas opcionales (par latitud/longitud). |
+| `actividades` | Clase o evento, con estado, acceso, método de verificación y fechas de cierre y anonimización. |
+| `actividad_carreras`, `actividad_paralelos` | Alcance académico de una actividad. |
+| `estudiantes_autorizados` | Lista nominal de estudiantes habilitados. |
+| `horarios_clase` | Recurrencia semanal de una clase, de la que se generan sesiones. |
+| `sesiones` | Instancia con ventana, estado y método de verificación. |
+
+### QR, invitados y asistencia
+
+![QR, invitados y asistencia](_generated/datos-geoasist-asistencia.svg){#fig-datos-asistencia}
+
+| Tabla | Propósito |
+|---|---|
+| `tokens_qr` | QR rotativo: solo hash del secreto, vigencia fija de 40 s. |
+| `configuracion_invitados`, `invitados_evento` | Autorregistro de invitados y su lista por evento. |
+| `inicios_invitado` | Inicio temporal de un invitado hasta que consume su asistencia. |
+| `intentos_asistencia` | Bitácora de todo intento (aceptado, rechazado, repetido o en revisión). |
+| `asistencias` | Asistencia vigente: única por sesión y persona (y por dispositivo si se informa). |
+| `revisiones_asistencia` | Decisión inmutable sobre un intento pendiente (trigger). |
+| `ausencias`, `justificaciones` | Ausencias al cerrar la sesión y sus justificaciones (una pendiente por ausencia). |
+| `evidencias_geograficas` | Ensayo de campo por espacio y versión, con tasas de error. |
+| `configuracion_geografica` | Geolocalización por sesión; el modo AUTO exige evidencia. |
+
+### Auditoría, idempotencia y conservación
+
+![Auditoría, idempotencia y conservación](_generated/datos-geoasist-soporte.svg){#fig-datos-soporte}
+
+| Tabla | Propósito |
+|---|---|
+| `idempotencias` | Resultado guardado por operación, actor y clave para reintentos seguros. |
+| `contadores_limite` | Contadores de límite de intentos por ventana. |
+| `auditoria_actividad`, `auditoria_academica`, `auditoria_espacios` | Registro de cambios con valores anterior y nuevo (JSON). |
+| `tratamientos_conservacion` | Fases de la anonimización de una actividad vencida. |
+| `estadisticas_anonimas` | Celdas anuales sin identificadores (mínimo 10 participantes). |
+| `catalogo_copias`, `politica_copias` | Inventario de copias de respaldo y política de saneamiento; solo las escribe el operador de conservación. |
+
+## Base `geoasist_auth`
+
+![Usuarios, servicios y tickets CAS](_generated/datos-auth.svg){#fig-datos-auth}
+
+| Tabla | Propósito |
+|---|---|
+| `usuarios` | Cuenta universitaria: correo y cédula únicos, hash de contraseña, estado. |
+| `usuario_roles`, `usuario_carreras` | Roles y carreras (por código) que viajan en la respuesta CAS. |
+| `servicios` | Servicios registrados con sus URL de retorno y la clave (hash) con que validan tickets. |
+| `sesiones_sso` | Sesión SSO (cookie) con vencimiento absoluto y por inactividad. |
+| `tickets` | Ticket de un solo uso (`usado_en`) emitido para un servicio. |
+| `registro_ingresos` | Bitácora de ingresos y su resultado. |
+| `auditoria_admin` | Cambios hechos por administradores. |
+| `contadores_limite` | Limitador de intentos de ingreso. |
+
+`usuario_carreras.carrera_codigo` referencia por código a `carreras.codigo` de `geoasist`, sin clave foránea
+real entre bases.
