@@ -65,7 +65,9 @@ public class ApiSecurityConfig {
                     org.springframework.http.HttpMethod.GET,
                     "/openapi.yaml",
                     "/swagger-ui.html",
-                    "/swagger-ui/**")
+                    "/swagger-ui/**",
+                    "/v3/api-docs/swagger-config") // solo la configuración de la UI (apunta a
+                // /openapi.yaml)
                 .permitAll()
                 .requestMatchers("/v3/api-docs/**")
                 .denyAll()

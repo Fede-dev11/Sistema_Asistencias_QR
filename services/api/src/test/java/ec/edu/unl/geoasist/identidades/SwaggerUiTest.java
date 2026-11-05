@@ -11,5 +11,9 @@ class SwaggerUiTest extends PostgresFixture {
   void contractAndUiArePublic() throws Exception {
     api.perform(get("/openapi.yaml")).andExpect(status().isOk());
     api.perform(get("/swagger-ui/index.html")).andExpect(status().isOk());
+    api.perform(get("/v3/api-docs/swagger-config"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.url").value("/openapi.yaml"));
+    api.perform(get("/v3/api-docs")).andExpect(status().isUnauthorized());
   }
 }
