@@ -1,0 +1,54 @@
+---
+title: "Módulo estadísticas"
+---
+
+## Responsabilidad
+
+Consultas de solo lectura: ausencias por sesión, porcentajes de asistencia por estudiante, paralelo y carrera, e
+historial propio del participante.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `StatsController`, `MyHistoryController` |
+| aplicacion | `AttendanceStats` |
+| persistencia | `StatsRepository` |
+
+## Endpoints
+
+| Método y ruta | Roles |
+|---|---|
+| `GET /api/v1/activities/{id}/stats` | Responsable o director con ámbito |
+| `GET /api/v1/stats/parallels`, `GET /api/v1/stats/careers` | DOCENTE, ENCARGADO, DIRECTOR_CARRERA, DIRECTOR_INSTITUCIONAL |
+| `GET /api/v1/sessions/{id}/absences` | Responsable o director con ámbito |
+| `GET /api/v1/me/attendances`, `GET /api/v1/me/stats` | Autenticado (datos propios) |
+
+## Tablas
+
+Solo lee: `actividades`, `sesiones`, `asistencias`, `ausencias`, `justificaciones`, `intentos_asistencia`,
+`estudiantes_autorizados`, `matriculas`, `paralelos`, `carreras`, `personas`, `actividad_paralelos`,
+`actividad_carreras`, `direcciones_carrera`. Índices de consulta: V007.
+
+## Reglas de negocio
+
+- El porcentaje se compara con el `umbral_asistencia` de la actividad y marca `bajo_umbral`.
+- El alcance depende del rol: el responsable ve sus actividades; el director de carrera, las de su carrera; el institucional, todas.
+- No usa la capa `presentacion` de otros módulos (regla de `ArchitectureDependencyTest`).
+- Existe una prueba de rendimiento de las consultas (`StatsPerformanceTest`).
+
+## Dependencias
+
+`actividades` (`ActivityAuthorization`), `identidades`, `compartido`.
+
+## Configuración
+
+Sin variables propias.
+
+## Pruebas
+
+`AttendanceStatsTest`, `MyHistoryTest`, `StatsPerformanceTest`.
+
+## Diagrama de clases
+
+[Estadísticas en el nivel 4](../04-codigo.qmd#fig-estadisticas) (`puml/estadisticas.puml`).

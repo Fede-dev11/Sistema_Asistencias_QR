@@ -1,0 +1,64 @@
+---
+title: "Módulo auth (SSO CAS simulado)"
+---
+
+## Responsabilidad
+
+Servicio independiente (`services/auth`, paquete `ec.edu.unl.sso`) que simula el SSO universitario con el
+protocolo CAS 3.0: formulario de ingreso, emisión de tickets, validación `serviceValidate`, cierre de sesión y
+una consola de administración de usuarios y servicios registrados. Es un contenedor aparte de la API.
+
+## Capas y paquetes
+
+| Paquete | Clases clave |
+|---|---|
+| `cas` (presentacion) | `LoginController`, `LogoutController`, `ValidateController` |
+| `cas` (aplicacion, persistencia) | `Tickets`, `SsoSessions`, `LoginLog` |
+| `usuarios` | `AdminController`, `StatusController`, `ManageUsers`, `CsvUserImport`, `UserRepository` |
+| `servicios` | `ManageServices`, `ServiceMatcher`, `ServiceRegistry` |
+| `compartido` | `SecurityConfig`, `RateLimiter`, `Secrets`, `Cedula`, `AdminAudit`, `RetentionJob`, `DevelopmentSeed` |
+
+## Endpoints
+
+| Método y ruta | Uso |
+|---|---|
+| `GET, POST /cas/login` | Formulario de ingreso y emisión del ticket |
+| `GET, POST /cas/password` | Cambio de contraseña |
+| `GET /cas/logout` | Cierre de la sesión SSO |
+| `GET /cas/p3/serviceValidate` | Validación del ticket (la llama la API con la clave de servicio) |
+| `GET /api/v1/users/status` | Estado de un usuario (consulta con clave de servicio) |
+| `/admin/**` (login, `usuarios`, `importar`, `servicios`) | Consola HTML del administrador del SSO |
+
+## Tablas (base `geoasist_auth`)
+
+`usuarios`, `usuario_roles`, `usuario_carreras`, `servicios`, `sesiones_sso`, `tickets`, `registro_ingresos`,
+`auditoria_admin`, `contadores_limite`. Migración: `V001__usuarios_y_servicios.sql`.
+
+## Reglas de negocio
+
+- El ticket vive 10 s y es de un solo uso; solo se entrega al `service` registrado (`ServiceMatcher`).
+- La sesión SSO caduca a las 8 h de inactividad o 24 h absolutas.
+- Límite de intentos de ingreso: 5 por correo y 50 por IP (`RateLimiter`).
+- Ticket, contraseña y `CASTGC` se enmascaran en los registros (`NoSecretsInLogsTest`).
+- Limpieza programada de datos vencidos (`RetentionJob`).
+- Importación CSV de usuarios (`CsvUserImport`).
+
+## Dependencias
+
+Ninguna hacia la API. La API ([identidades](identidades.qmd)), la web y la móvil lo usan.
+
+## Configuración
+
+`AUTH_PORT` (8081), `AUTH_DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `SSO_COOKIE_SECURE`,
+`DEV_SEED_PASSWORD`, `SSO_SERVICE_KEY`, `SSO_WEB_RETURN`, `SSO_RETENTION_CRON`.
+
+## Pruebas
+
+`ContractTest`, `LoginTest`, `ServiceValidateTest`, `SingleSignOnTest`, `AdminUsersTest`, `CsvImportTest`,
+`StatusEndpointTest`, `ServiceMatcherTest`, `CedulaTest`, `RateLimiterTest`, `RetentionJobTest`,
+`NoSecretsInLogsTest`.
+
+## Diagramas de clases
+
+[SSO CAS](../04-codigo.qmd#fig-sso-cas) (`puml/sso-cas.puml`) y
+[SSO usuarios](../04-codigo.qmd#fig-sso-usuarios) (`puml/sso-usuarios.puml`).

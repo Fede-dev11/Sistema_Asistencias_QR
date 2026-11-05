@@ -1,0 +1,51 @@
+---
+title: "Módulo compartido"
+---
+
+## Responsabilidad
+
+Piezas transversales sin dependencias hacia otros módulos: errores Problem Details, idempotencia, bloqueos de
+concurrencia, auditoría académica, secretos opacos, correlación de solicitudes y tiempo del servidor.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| aplicacion | `ApiFailure`, `ProblemDetails`, `IdempotencyService`, `OpaqueSecrets`, `NominalAccessGuard`, `AcademicAudit`, `RecordAbsences`, `RequestCorrelation`, `ServerTime` |
+| dominio | `Cedula`, `RetentionPolicy` |
+| persistencia | `AttendanceLocks` |
+
+## Endpoints
+
+Ninguno.
+
+## Tablas
+
+`idempotencias` (respuestas guardadas 24 h), `auditoria_academica`; `RecordAbsences` escribe `ausencias` y lee
+`estudiantes_autorizados`, `asistencias`, `sesiones`; `NominalAccessGuard` y `AttendanceLocks` operan sobre
+`actividades` y `sesiones`.
+
+## Reglas de negocio
+
+- Todas las fallas llegan al cliente como Problem Details con código estable (`ApiFailure`).
+- `IdempotencyService` repite la respuesta original ante la misma clave de idempotencia durante 24 h.
+- `OpaqueSecrets` genera secretos y los guarda solo como hash con la clave HMAC.
+- `Cedula` valida la cédula ecuatoriana; `RetentionPolicy` fija 5 años de retención.
+- `NominalAccessGuard` impide el acceso nominal a datos con retención vencida.
+
+## Dependencias
+
+Ninguna (es la base; todos los módulos la importan).
+
+## Configuración
+
+`GEOASIST_HMAC_KEY` (obligatoria, usada por `OpaqueSecrets`).
+
+## Pruebas
+
+`CedulaTest`; transversales en `soporte`: `ArchitectureDependencyTest`, `PrivacyAndLimitsTest`
+(y utilitarios `PostgresFixture`, `MutableClock`, `ScenarioFixtures`).
+
+## Diagrama de clases
+
+[Compartido en el nivel 4](../04-codigo.qmd#fig-compartido) (`puml/compartido.puml`).

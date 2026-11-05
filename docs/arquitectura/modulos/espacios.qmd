@@ -1,0 +1,51 @@
+---
+title: "Módulo espacios"
+---
+
+## Responsabilidad
+
+Catálogo de espacios (aulas y lugares compartidos) con coordenadas y tolerancia geográfica, y registro de
+evidencia geográfica de campo que respalda la verificación por GPS.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `SpaceController` |
+| aplicacion | `ManageSpaces`, `GeoEvidence` |
+| dominio | `SpaceCode` |
+| persistencia | `SpaceRepository` |
+
+## Endpoints
+
+| Método y ruta | Roles |
+|---|---|
+| `GET /api/v1/spaces`, `POST /api/v1/spaces`, `PATCH /api/v1/spaces/{spaceId}` | DOCENTE, ENCARGADO, ADMINISTRADOR |
+| `GET /api/v1/spaces/{spaceId}/geo-evidence` | DOCENTE, ENCARGADO, ADMINISTRADOR |
+| `POST /api/v1/spaces/{spaceId}/geo-evidence` | ADMINISTRADOR |
+
+## Tablas
+
+`espacios`, `evidencias_geograficas`, `auditoria_espacios`. Migraciones: V006, V009, V013.
+
+## Reglas de negocio
+
+- El código de espacio se normaliza y valida (`SpaceCode`).
+- Los espacios son compartidos entre actividades; los cambios se auditan en `auditoria_espacios`.
+- Una evidencia de campo registrada por el administrador respalda la verificación geográfica de las sesiones.
+
+## Dependencias
+
+`identidades` (`UserSession`), `compartido`.
+
+## Configuración
+
+`geoasist.geography-enabled` (PostGIS) afecta el uso posterior de las coordenadas, ver [asistencia](asistencia.qmd).
+
+## Pruebas
+
+`SpaceTest`, `SpaceCodeTest`, `SpaceSnapshotTest`, `GeoEvidenceTest`.
+
+## Diagrama de clases
+
+[Espacios en el nivel 4](../04-codigo.qmd#fig-espacios) (`puml/espacios.puml`).
