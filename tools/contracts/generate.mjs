@@ -6,10 +6,13 @@ import { buildDocs } from './docs.mjs';
 const schema = new URL('../../specs/001-asistencia-qr-dinamico/contracts/openapi.yaml', import.meta.url);
 const types = astToString(await openapiTS(schema));
 const docs = JSON.stringify(buildDocs(await SwaggerParser.parse(fileURLToPath(schema))), null, 2) + '\n';
+const spec = await readFile(schema, 'utf8');
 const outputs = [
   ['../../apps/web/src/generated/api.ts', types],
   ['../../apps/mobile/src/generated/api.ts', types],
   ['../../apps/web/src/generated/api-docs.json', docs],
+  ['../../services/api/src/main/resources/static/openapi.yaml', spec],
+  ['../../apps/web/public/openapi.yaml', spec],
 ];
 for (const [file, output] of outputs) {
   const destination = new URL(file, import.meta.url);
