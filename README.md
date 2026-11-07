@@ -123,6 +123,16 @@ Swagger UI se genera siempre desde el contrato `specs/001-asistencia-qr-dinamico
 - API: `http://localhost:8080/swagger-ui.html`. Se desactiva con `GEOASIST_SWAGGER_UI=false` (por defecto `true`).
 - Web: `http://localhost:3000/documentacion/swagger` (la página por rol sigue en `/documentacion`).
 - "Authorize": pega el token de sesión (esquema `SessionBearer`); no se guarda.
+- Referencia Quarto del API: `docs/api` genera, desde el mismo contrato, una página por funcionalidad con
+  parámetros, roles, cuerpos, respuestas, ejemplos JSON y llamadas `curl`, más el catálogo de esquemas y una
+  copia publicada de Swagger UI. En `docs/api`: `pip install pyyaml && quarto render`.
+- Publicación en GitHub Pages (`.github/workflows/pages.yml`):
+  - API: <https://fede-dev11.github.io/Sistema_Asistencias_QR/api/>
+  - Swagger UI: <https://fede-dev11.github.io/Sistema_Asistencias_QR/api/swagger.html>
+  - Arquitectura C4: <https://fede-dev11.github.io/Sistema_Asistencias_QR/arquitectura/>
+
+  El flujo se ejecuta al cambiar `docs/`, el contrato o el propio workflow. Para habilitarlo una sola vez:
+  Settings → Pages → Build and deployment → Source: **GitHub Actions**.
 - Arquitectura en la web: `http://localhost:3000/documentacion/arquitectura` muestra los diagramas C4, de clases,
   el modelo de datos y los módulos del sitio Quarto (`docs/arquitectura`). Para publicarlo o actualizarlo, en `apps/web`:
   `npm run docs:arquitectura` (requiere Quarto, Python y Java; con `-- --sin-render` copia el último render sin volver a

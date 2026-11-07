@@ -1,0 +1,9 @@
+_site/
+.quarto/
+/.quarto/
+**/*.quarto_ipynb
+
+# Generados en el pre-render desde el contrato OpenAPI.
+referencia/
+esquemas.qmd
+openapi.yaml

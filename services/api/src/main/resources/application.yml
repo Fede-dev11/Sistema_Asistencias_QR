@@ -31,6 +31,14 @@ springdoc:
     enabled: ${GEOASIST_SWAGGER_UI:true}
     url: /openapi.yaml
     persist-authorization: false
+    doc-expansion: list
+    filter: true
+    display-request-duration: true
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    default-models-expand-depth: 1
+    default-model-expand-depth: 1
 server:
   port: ${API_PORT:8080}
   error:

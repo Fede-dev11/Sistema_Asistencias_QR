@@ -14,6 +14,7 @@ export function DocsNav() {
   return (
     <nav aria-label="Documentación" className="docs-nav">
       {LINKS.map(l => <Link key={l.href} href={l.href} aria-current={path === l.href ? 'page' : undefined}>{l.label}</Link>)}
+      <a href="https://fede-dev11.github.io/Sistema_Asistencias_QR/api/" target="_blank" rel="noopener">API completa (GitHub Pages)</a>
       <a href="/arquitectura/index.html" target="_blank" rel="noopener">Sitio Quarto completo</a>
     </nav>
   );
