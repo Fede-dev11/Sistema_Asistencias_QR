@@ -6,6 +6,13 @@ declare module 'swagger-ui-dist/swagger-ui-es-bundle.js' {
     url: string;
     persistAuthorization?: boolean;
     requestInterceptor?: (req: Request) => Request;
+    deepLinking?: boolean;
+    docExpansion?: 'list' | 'full' | 'none';
+    filter?: boolean;
+    displayRequestDuration?: boolean;
+    tryItOutEnabled?: boolean;
+    defaultModelsExpandDepth?: number;
+    defaultModelExpandDepth?: number;
   }) => unknown;
   export default SwaggerUIBundle;
 }

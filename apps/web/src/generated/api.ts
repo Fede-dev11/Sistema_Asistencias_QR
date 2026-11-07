@@ -46,7 +46,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Obtener las URLs públicas del SSO */
+        /**
+         * Obtener las URLs públicas del SSO
+         * @description Devuelve las URLs de login y logout del servicio CAS y los prefijos de servicio web y móvil. Es pública para que la web y la app construyan la redirección sin credenciales.
+         */
         get: operations["getSsoConfiguration"];
         put?: never;
         post?: never;
@@ -103,7 +106,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Perfil propio sin secretos */
+        /**
+         * Perfil propio sin secretos
+         * @description Devuelve la identidad, los roles y el ámbito de la sesión autenticada. No expone tokens, contraseñas ni datos de contacto innecesarios.
+         */
         get: operations["getMe"];
         put?: never;
         post?: never;
@@ -380,7 +386,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Consultar datos publicos minimos de un evento abierto activo */
+        /**
+         * Consultar datos publicos minimos de un evento abierto activo
+         * @description Público. Devuelve solo los datos mínimos para que un invitado sin cuenta se autorregistre en un evento abierto activo (nombre, ámbito y estado); no expone listados ni datos personales.
+         */
         get: operations["getOpenEvent"];
         put?: never;
         post?: never;
@@ -577,10 +586,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar personas (ADMINISTRADOR) */
+        /**
+         * Listar personas (ADMINISTRADOR)
+         * @description Búsqueda paginada de personas por cédula, nombres o correo. Solo ADMINISTRADOR; los filtros nunca amplían el ámbito.
+         */
         get: operations["adminListPeople"];
         put?: never;
-        /** Crear persona (ADMINISTRADOR) */
+        /**
+         * Crear persona (ADMINISTRADOR)
+         * @description Registra una persona con rol académico (ESTUDIANTE, DOCENTE o ENCARGADO). Solo ADMINISTRADOR; admite Idempotency-Key para reintentos seguros.
+         */
         post: operations["adminCreatePerson"];
         delete?: never;
         options?: never;
@@ -593,18 +608,25 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la persona. */
                 personId: string;
             };
             cookie?: never;
         };
-        /** Ver persona (ADMINISTRADOR) */
+        /**
+         * Ver persona (ADMINISTRADOR)
+         * @description Devuelve los datos académicos de la persona y su cuenta asociada, si existe. Solo ADMINISTRADOR.
+         */
         get: operations["adminGetPerson"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
-        /** Editar nombres de una persona (ADMINISTRADOR) */
+        /**
+         * Editar nombres de una persona (ADMINISTRADOR)
+         * @description Actualiza únicamente nombres y apellidos. Solo ADMINISTRADOR; no modifica cédula, correo ni roles.
+         */
         patch: operations["adminRenamePerson"];
         trace?: never;
     };
@@ -655,10 +677,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Listar carreras (ADMINISTRADOR) */
+        /**
+         * Listar carreras (ADMINISTRADOR)
+         * @description Lista todas las carreras registradas con su código y nombre. Solo ADMINISTRADOR.
+         */
         get: operations["adminListCareers"];
         put?: never;
-        /** Crear carrera (ADMINISTRADOR) */
+        /**
+         * Crear carrera (ADMINISTRADOR)
+         * @description Crea una carrera con código único. Solo ADMINISTRADOR; un código duplicado responde 409.
+         */
         post: operations["adminCreateCareer"];
         delete?: never;
         options?: never;
@@ -679,7 +707,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Editar nombre de carrera (ADMINISTRADOR) */
+        /**
+         * Editar nombre de carrera (ADMINISTRADOR)
+         * @description Cambia el nombre de una carrera existente. Solo ADMINISTRADOR; el código no se modifica.
+         */
         patch: operations["adminRenameCareer"];
         trace?: never;
     };
@@ -688,14 +719,21 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la carrera. */
                 careerId: string;
             };
             cookie?: never;
         };
-        /** Paralelos de una carrera (ADMINISTRADOR) */
+        /**
+         * Paralelos de una carrera (ADMINISTRADOR)
+         * @description Lista los paralelos de la carrera con el número de matriculados y docentes. Solo ADMINISTRADOR.
+         */
         get: operations["adminListParallels"];
         put?: never;
-        /** Crear paralelo (ADMINISTRADOR) */
+        /**
+         * Crear paralelo (ADMINISTRADOR)
+         * @description Crea un paralelo dentro de la carrera indicada. Solo ADMINISTRADOR; el código es único dentro de la carrera.
+         */
         post: operations["adminCreateParallel"];
         delete?: never;
         options?: never;
@@ -778,7 +816,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Paralelos asignados al docente o encargado */
+        /**
+         * Paralelos asignados al docente o encargado
+         * @description Devuelve los paralelos vigentes asignados al docente o encargado autenticado, con el número de matriculados. No incluye paralelos de otras personas.
+         */
         get: operations["listMyParallels"];
         put?: never;
         post?: never;
@@ -857,6 +898,7 @@ export interface paths {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador del espacio. */
                 spaceId: string;
             };
             cookie?: never;
@@ -1157,7 +1199,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Porcentajes propios por actividad de clase */
+        /**
+         * Porcentajes propios por actividad de clase
+         * @description Devuelve los porcentajes de asistencia del estudiante autenticado por actividad de clase. No incluye datos de otras personas.
+         */
         get: operations["getMyStats"];
         put?: never;
         post?: never;
@@ -1171,6 +1216,7 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Error en formato Problem Details (RFC 7807) con un código estable en `code`. */
         Problem: {
             /**
              * Format: uri-reference
@@ -1200,13 +1246,17 @@ export interface components {
             espacio_id?: string;
             correlation_id?: string;
         };
-        /** @enum {string} */
+        /**
+         * @description Método de verificación de asistencia de una actividad o sesión.
+         * @enum {string}
+         */
         VerificationMethod: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
         /**
          * Format: uuid
          * @description Identificador de instalación generado por la app; el servidor solo guarda su HMAC.
          */
         DeviceId: string;
+        /** @description Espacio físico (aula, laboratorio, auditorio, exterior u otro) con coordenadas y tolerancia. */
         Space: {
             /** Format: uuid */
             id: string;
@@ -1220,12 +1270,14 @@ export interface components {
             precision_defecto_m: number;
             editable: boolean;
         };
+        /** @description Página de espacios. */
         SpacePage: {
             items: components["schemas"]["Space"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Versión inmutable de la evidencia geográfica de campo de un espacio. */
         GeoEvidence: {
             /** Format: uuid */
             id: string;
@@ -1242,6 +1294,7 @@ export interface components {
             /** Format: date-time */
             verificada_en: string;
         };
+        /** @description Datos para registrar una nueva versión de evidencia geográfica. */
         GeoEvidenceCreate: {
             referencia: string;
             /** Format: date-time */
@@ -1249,6 +1302,7 @@ export interface components {
             falsos_positivos: number;
             falsos_negativos: number;
         };
+        /** @description Datos para crear un espacio. */
         CreateSpaceRequest: {
             codigo: string;
             nombre: string;
@@ -1258,6 +1312,7 @@ export interface components {
             radio_defecto_m?: number;
             precision_defecto_m?: number;
         };
+        /** @description Datos editables de un espacio; el código no cambia. */
         UpdateSpaceRequest: {
             nombre?: string;
             tipo?: components["schemas"]["SpaceType"];
@@ -1266,8 +1321,12 @@ export interface components {
             radio_defecto_m?: number;
             precision_defecto_m?: number;
         };
-        /** @enum {string} */
+        /**
+         * @description Tipo de espacio.
+         * @enum {string}
+         */
         SpaceType: "AULA" | "LABORATORIO" | "AUDITORIO" | "EXTERIOR" | "OTRO";
+        /** @description Resultado de una importación CSV con conteos y filas rechazadas. */
         ImportReport: {
             procesadas: number;
             creadas: number;
@@ -1278,18 +1337,21 @@ export interface components {
                 motivo: string;
             }[];
         };
+        /** @description Credenciales locales de desarrollo (solo si `GEOASIST_LOCAL_LOGIN=true`). */
         LoginRequest: {
             /** Format: email */
             correo: string;
             /** Format: password */
             password: string;
         };
+        /** @description Ticket CAS y servicio para canjear por una sesión. */
         CasLoginRequest: {
             /** @description Ticket CAS de un solo uso; nunca se registra. */
             ticket: string;
             /** Format: uri */
             service: string;
         };
+        /** @description URLs públicas del SSO para clientes web y móvil. */
         SsoConfiguration: {
             /** Format: uri */
             login_url: string;
@@ -1300,6 +1362,7 @@ export interface components {
             /** Format: uri */
             mobile_service_prefix: string;
         };
+        /** @description Sesión emitida: bearer opaco, vencimiento y roles. */
         LoginResult: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             access_token: string;
@@ -1311,6 +1374,7 @@ export interface components {
             /** @description Siempre false para cuentas CAS (conservado por compatibilidad). */
             debe_cambiar_password?: boolean;
         };
+        /** @description Perfil de la sesión actual sin secretos. */
         MeProfile: {
             /** Format: uuid */
             cuenta_id: string;
@@ -1359,26 +1423,31 @@ export interface components {
             ciclo_automatico: boolean;
             umbral_asistencia: number;
         };
+        /** @description Página de actividades. */
         ActivityPage: {
             items: components["schemas"]["Activity"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Configuración de invitados de una actividad. */
         GuestSettings: {
             habilitado: boolean;
             /** @description Solo para el formulario de invitados sin cuenta precargados. No modifica la vigencia ordinaria del QR. */
             tolerancia_invitado_segundos: number;
         };
+        /** @description Entrada de la lista autorizada de invitados. */
         GuestEntry: {
             /** @description Diez dígitos ASCII como cadena; conservar ceros iniciales. Identifica la entrada del listado, no acredita titularidad. */
             cedula: string;
             nombres: string;
         };
+        /** @description Lista completa de invitados que reemplaza la anterior. */
         GuestListReplacement: {
             /** @description Límite técnico inicial fijo de 1000 entradas en este contrato; cambiarlo requiere actualizar el contrato y su versión. No es una regla institucional. Reemplazo completo y atómico; rechazar cédulas duplicadas y cualquier fila inválida. */
             invitados: components["schemas"]["GuestEntry"][];
         };
+        /** @description Resultado de reemplazar la lista de invitados. */
         GuestListResult: {
             /** Format: uuid */
             activity_id: string;
@@ -1386,6 +1455,7 @@ export interface components {
             /** Format: date-time */
             actualizada_en: string;
         };
+        /** @description Sesión de una actividad y su estado. */
         Session: {
             /** Format: uuid */
             id: string;
@@ -1398,6 +1468,7 @@ export interface components {
             /** Format: date-time */
             cerrada_en: string | null;
         };
+        /** @description Token QR vigente y sus tiempos de rotación y vencimiento. */
         Qr: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
             qr_token: string;
@@ -1418,6 +1489,7 @@ export interface components {
             precision_max_m?: number;
             antiguedad_max_s?: number;
         };
+        /** @description Estado de la configuración geográfica de una sesión. */
         GeolocationStatus: {
             configuracion: components["schemas"]["GeolocationSettings"];
             capacidad_disponible: boolean;
@@ -1425,6 +1497,7 @@ export interface components {
             modo_efectivo: "DESACTIVADA" | "PILOTO_REVISION" | "VALIDACION_AUTOMATICA";
             evidencia_campo_verificada: boolean;
         };
+        /** @description Ubicación reportada por el dispositivo. */
         Location: {
             latitud: number;
             longitud: number;
@@ -1432,6 +1505,7 @@ export interface components {
             /** Format: date-time */
             medido_en: string;
         };
+        /** @description Intento de asistencia con QR o sesión y ubicación. */
         AttendanceAttemptRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
             qr_token?: string;
@@ -1457,6 +1531,7 @@ export interface components {
             registrada_en: string;
             mensaje: string;
         };
+        /** @description Comprobante de intento pendiente de revisión. */
         PendingReceipt: {
             /** Format: uuid */
             attempt_id: string;
@@ -1465,6 +1540,7 @@ export interface components {
             code: string;
             mensaje: string;
         };
+        /** @description Inicio del flujo de invitado con QR o sesión. */
         GuestStartRequest: {
             /** @description Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento tras leerlo. */
             qr_token?: string;
@@ -1474,6 +1550,7 @@ export interface components {
              */
             sesion_id?: string;
         };
+        /** @description Token temporal para completar el registro de invitado. */
         GuestStartResult: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             registro_invitado_token: string;
@@ -1483,6 +1560,7 @@ export interface components {
             vence_en: string;
             evento_abierto: boolean;
         };
+        /** @description Datos del invitado para completar su registro. */
         GuestSubmitRequest: {
             /** @description Secreto opaco aleatorio. No incluirlo en URL, logs o telemetría. */
             registro_invitado_token: string;
@@ -1491,6 +1569,7 @@ export interface components {
             dispositivo_id: components["schemas"]["DeviceId"];
             ubicacion?: components["schemas"]["Location"];
         };
+        /** @description Datos públicos mínimos de un evento abierto activo. */
         OpenEvent: {
             /** Format: uuid */
             sesion_id: string;
@@ -1531,17 +1610,20 @@ export interface components {
             /** @description Razón del responsable cuando forma es MANUAL. */
             razon_manual: string | null;
         };
+        /** @description Página de asistencias. */
         AttendancePage: {
             items: components["schemas"]["AttendanceRow"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Decisión y razón de la revisión de un intento. */
         ReviewRequest: {
             /** @enum {string} */
             decision: "APROBAR" | "RECHAZAR";
             razon: string;
         };
+        /** @description Resultado de la revisión de un intento. */
         ReviewResult: {
             /** Format: uuid */
             attempt_id: string;
@@ -1552,11 +1634,13 @@ export interface components {
             /** Format: date-time */
             revisada_en: string;
         };
+        /** @description Datos para registrar una asistencia manual. */
         ManualAttendanceRequest: {
             /** Format: uuid */
             persona_id: string;
             razon: string;
         };
+        /** @description Resultado de la asistencia manual. */
         ManualAttendanceResult: {
             /** Format: uuid */
             asistencia_id: string;
@@ -1571,17 +1655,21 @@ export interface components {
             /** Format: date-time */
             registrada_en: string;
         };
+        /** @description Razón para justificar una ausencia. */
         JustifyAbsenceRequest: {
             razon: string;
         };
+        /** @description Motivo de la solicitud de justificación del estudiante. */
         JustificationRequestBody: {
             motivo: string;
         };
+        /** @description Decisión y razón sobre una solicitud de justificación. */
         JustificationDecisionRequest: {
             /** @enum {string} */
             decision: "APROBAR" | "RECHAZAR";
             razon: string;
         };
+        /** @description Resumen de una solicitud de justificación. */
         JustificationSummary: {
             /** Format: uuid */
             id: string;
@@ -1594,6 +1682,7 @@ export interface components {
             /** Format: date-time */
             instante: string;
         };
+        /** @description Justificación de una ausencia. */
         Justification: {
             /** Format: uuid */
             id: string;
@@ -1614,6 +1703,7 @@ export interface components {
             /** Format: date-time */
             decidida_en: string | null;
         };
+        /** @description Página de justificaciones. */
         JustificationPage: {
             items: components["schemas"]["Justification"][];
             page: number;
@@ -1640,6 +1730,7 @@ export interface components {
         } & {
             [key: string]: unknown;
         };
+        /** @description Fila de auditoría de una actividad. */
         AuditRow: {
             /** Format: uuid */
             id: string;
@@ -1681,12 +1772,14 @@ export interface components {
                 umbral_asistencia?: number;
             } | null;
         };
+        /** @description Página de auditoría. */
         AuditPage: {
             items: components["schemas"]["AuditRow"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Cuenta de acceso de una persona. */
         AdminAccount: {
             /** Format: uuid */
             id: string;
@@ -1694,6 +1787,7 @@ export interface components {
             activa: boolean;
             roles: string[];
         };
+        /** @description Persona con sus roles y cuenta. */
         AdminPerson: {
             /** Format: uuid */
             id: string;
@@ -1703,32 +1797,38 @@ export interface components {
             tipo: "INSTITUCIONAL" | "EXTERNA";
             cuenta: components["schemas"]["AdminAccount"] | null;
         };
+        /** @description Página de personas. */
         AdminPersonPage: {
             items: components["schemas"]["AdminPerson"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Datos para crear una persona. */
         AdminPersonCreate: {
             cedula: string;
             nombres: string;
         };
+        /** @description Datos para crear una cuenta. */
         AdminAccountCreate: {
             /** Format: uuid */
             persona_id: string;
             correo: string;
             roles: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
         };
+        /** @description Cambios de rol o estado de una cuenta. */
         AdminAccountPatch: {
             roles?: ("DOCENTE" | "ENCARGADO" | "ESTUDIANTE" | "DIRECTOR_INSTITUCIONAL" | "DIRECTOR_CARRERA" | "ADMINISTRADOR")[];
             activa?: boolean;
         };
+        /** @description Carrera académica. */
         AdminCareer: {
             /** Format: uuid */
             id: string;
             codigo: string;
             nombre: string;
         };
+        /** @description Paralelo de una carrera con conteos. */
         AdminParallel: {
             /** Format: uuid */
             id: string;
@@ -1736,10 +1836,12 @@ export interface components {
             matriculados: number;
             docentes: number;
         };
+        /** @description Fila rechazada durante una importación o reemplazo. */
         AdminRejectedEntry: {
             entrada: string;
             motivo: string;
         };
+        /** @description Sesión activa donde el participante puede registrar asistencia. */
         ActiveSession: {
             /** Format: uuid */
             sesion_id: string;
@@ -1763,12 +1865,14 @@ export interface components {
             /** Format: date-time */
             fin: string;
         };
+        /** @description Página de sesiones activas. */
         ActiveSessionPage: {
             items: components["schemas"]["ActiveSession"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Paralelo asignado al docente o encargado. */
         MyParallel: {
             /** Format: uuid */
             paralelo_id: string;
@@ -1779,6 +1883,7 @@ export interface components {
             carrera_nombre: string;
             matriculados: number;
         };
+        /** @description Datos para crear una clase o evento. */
         CreateActivityRequest: {
             /** @enum {string} */
             modalidad: "CLASE" | "EVENTO";
@@ -1799,6 +1904,7 @@ export interface components {
             tolerancia_invitado_segundos: number;
             carrera_ids?: string[];
         };
+        /** @description Horario semanal de una clase. */
         Schedule: {
             dias: number[];
             /** @example 08:00 */
@@ -1810,6 +1916,7 @@ export interface components {
             /** Format: date */
             hasta: string;
         };
+        /** @description Cambios editables de una actividad. */
         UpdateActivityRequest: {
             nombre?: string;
             /** Format: uuid */
@@ -1821,6 +1928,7 @@ export interface components {
             /** @enum {string} */
             acceso?: "CERRADO" | "ABIERTO";
         };
+        /** @description Resumen de una sesión dentro de una actividad. */
         SessionSummary: {
             /** Format: uuid */
             id: string;
@@ -1831,6 +1939,7 @@ export interface components {
             /** Format: date-time */
             fin: string;
         };
+        /** @description Actividad creada con sus sesiones generadas. */
         CreatedActivity: {
             /** Format: uuid */
             id: string;
@@ -1851,12 +1960,14 @@ export interface components {
             carrera_ids?: string[];
             sesiones: components["schemas"]["SessionSummary"][];
         };
+        /** @description Página de invitados de una actividad. */
         GuestPage: {
             items: components["schemas"]["GuestRow"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Fila de invitado con su estado. */
         GuestRow: {
             /** Format: uuid */
             persona_id: string;
@@ -1864,6 +1975,7 @@ export interface components {
             nombres: string;
             activo: boolean;
         };
+        /** @description Configuración geográfica aplicada a una sesión. */
         GeolocationConfig: {
             habilitada: boolean;
             radio_m: number | null;
@@ -1876,18 +1988,21 @@ export interface components {
             /** @description El espacio de la sesión tiene al menos una evidencia de campo registrada. */
             evidencia_vigente: boolean;
         };
+        /** @description Horario vigente de una actividad. */
         ScheduleCurrent: components["schemas"]["Schedule"] & {
             /** Format: uuid */
             espacio_id: string | null;
             /** @example America/Guayaquil */
             zona: string;
         };
+        /** @description Página de matriculados de un paralelo. */
         EnrollmentPage: {
             items: components["schemas"]["EnrollmentRow"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Fila de matrícula de un paralelo. */
         EnrollmentRow: {
             /** Format: uuid */
             persona_id: string;
@@ -1895,12 +2010,14 @@ export interface components {
             nombres: string;
             vigente: boolean;
         };
+        /** @description Página de docentes de un paralelo. */
         TeacherPage: {
             items: components["schemas"]["TeacherRow"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Fila de docente asignado a un paralelo. */
         TeacherRow: {
             /** Format: uuid */
             cuenta_id: string;
@@ -1908,15 +2025,18 @@ export interface components {
             nombres: string;
             vigente: boolean;
         };
+        /** @description Resultado de reemplazar el horario. */
         ScheduleReplaced: {
             /** Format: uuid */
             activity_id?: string;
             eliminadas: number;
             generadas: number;
         };
+        /** @description Datos para añadir un estudiante autorizado. */
         AddStudentRequest: {
             cedula: string;
         };
+        /** @description Estudiante autorizado en una actividad. */
         AuthorizedStudent: {
             /** Format: uuid */
             persona_id: string;
@@ -1926,17 +2046,20 @@ export interface components {
             /** Format: uuid */
             activity_id?: string;
         };
+        /** @description Página de estudiantes autorizados. */
         AuthorizedStudentPage: {
             items: components["schemas"]["AuthorizedStudent"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Resultado de sincronizar estudiantes desde los paralelos. */
         SyncResult: {
             /** Format: uuid */
             activity_id?: string;
             agregados: number;
         };
+        /** @description Datos para crear una sesión. */
         CreateSessionRequest: {
             /** Format: date-time */
             inicio: string;
@@ -1945,6 +2068,7 @@ export interface components {
             /** Format: uuid */
             espacio_id?: string;
         };
+        /** @description Cambios editables de una sesión. */
         UpdateSessionRequest: {
             /** Format: date-time */
             inicio?: string;
@@ -1955,6 +2079,7 @@ export interface components {
             /** @enum {string} */
             metodo_verificacion?: "QR_Y_GPS" | "SOLO_QR" | "SOLO_GPS" | "NINGUNO";
         };
+        /** @description Sesión programada de una actividad. */
         ScheduledSession: {
             /** Format: uuid */
             id: string;
@@ -1973,14 +2098,19 @@ export interface components {
             /** Format: uuid */
             horario_id?: string | null;
         };
+        /** @description Página de sesiones. */
         SessionPage: {
             items: components["schemas"]["ScheduledSession"][];
             page: number;
             size: number;
             total: number;
         };
-        /** @enum {string} */
+        /**
+         * @description Estado de una ausencia.
+         * @enum {string}
+         */
         AbsenceState: "AUSENTE" | "JUSTIFICADA";
+        /** @description Estadísticas agregadas de asistencia. */
         AttendanceStats: {
             sesiones_computables: number;
             asistencias: number;
@@ -1992,12 +2122,14 @@ export interface components {
             /** @description Solo por estudiante. */
             bajo_umbral?: boolean;
         };
+        /** @description Estadísticas de un estudiante. */
         StudentStats: components["schemas"]["AttendanceStats"] & {
             /** Format: uuid */
             persona_id: string;
             cedula: string;
             nombres: string;
         };
+        /** @description Página de estadísticas de una actividad. */
         ActivityStatsPage: {
             umbral_asistencia: number;
             resumen: components["schemas"]["AttendanceStats"];
@@ -2006,6 +2138,7 @@ export interface components {
             size: number;
             total: number;
         };
+        /** @description Estadísticas agregadas de un grupo (paralelo o carrera). */
         GroupStats: components["schemas"]["AttendanceStats"] & {
             /**
              * Format: uuid
@@ -2021,9 +2154,11 @@ export interface components {
             /** @description Nombre de la carrera. */
             nombre?: string;
         };
+        /** @description Lista de estadísticas por grupo. */
         StatsGroupList: {
             items: components["schemas"]["GroupStats"][];
         };
+        /** @description Ausencia de una persona en una sesión. */
         Absence: {
             /** Format: uuid */
             persona_id: string;
@@ -2031,12 +2166,14 @@ export interface components {
             nombres: string;
             estado: components["schemas"]["AbsenceState"];
         };
+        /** @description Página de ausencias. */
         AbsencePage: {
             items: components["schemas"]["Absence"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Asistencia propia del estudiante. */
         MyAttendance: {
             /** Format: uuid */
             sesion_id: string;
@@ -2050,18 +2187,21 @@ export interface components {
             /** @enum {string|null} */
             justificacion: "PENDIENTE" | "APROBADA" | "RECHAZADA" | null;
         };
+        /** @description Página de asistencias propias. */
         MyAttendancePage: {
             items: components["schemas"]["MyAttendance"][];
             page: number;
             size: number;
             total: number;
         };
+        /** @description Estadísticas propias por actividad. */
         MyActivityStats: components["schemas"]["AttendanceStats"] & {
             /** Format: uuid */
             actividad_id: string;
             actividad: string;
             umbral_asistencia: number;
         };
+        /** @description Lista de estadísticas propias. */
         MyStatsList: {
             items: components["schemas"]["MyActivityStats"][];
         };
@@ -2215,13 +2355,19 @@ export interface components {
         };
     };
     parameters: {
+        /** @description Identificador de la actividad (clase o evento). */
         activityId: string;
+        /** @description Identificador de la sesión. */
         sessionId: string;
+        /** @description Identificador del intento de asistencia. */
         attemptId: string;
         /** @description UUID por operación lógica. Misma identidad o capacidad invitada + operación + clave + carga canónica devuelve el resultado guardado tras revalidar autenticación y ámbito; carga distinta con la misma clave: 409. Nunca omite autorización ni crea una asistencia nueva después del cierre. */
         IdempotencyKey: string;
+        /** @description Página solicitada, comenzando en 0. */
         Page: number;
+        /** @description Cantidad de elementos por página (1 a 100). */
         Size: number;
+        /** @description Filtra por estado de la asistencia. */
         AttendanceState: "CONFIRMADA" | "PENDIENTE_REVISION" | "RECHAZADA";
     };
     requestBodies: never;
@@ -2237,6 +2383,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Credenciales locales de desarrollo (solo si `GEOASIST_LOCAL_LOGIN=true`). */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LoginRequest"];
@@ -2275,6 +2422,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Ticket CAS y servicio para canjear por una sesión. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CasLoginRequest"];
@@ -2380,6 +2528,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    /**
+                     * @example {
+                     *       "login_url": "https://sso.unl.edu.ec/cas/login",
+                     *       "logout_url": "https://sso.unl.edu.ec/cas/logout",
+                     *       "web_service": "https://asistencias.unl.edu.ec/auth/callback",
+                     *       "mobile_service_prefix": "geoasist-mobile://auth/callback"
+                     *     }
+                     */
                     "application/json": components["schemas"]["SsoConfiguration"];
                 };
             };
@@ -2473,6 +2629,27 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    /**
+                     * @example {
+                     *       "cuenta_id": "11111111-1111-4111-8111-111111111111",
+                     *       "persona_id": "22222222-2222-4222-8222-222222222222",
+                     *       "nombres": "Ana Pérez",
+                     *       "correo": "ana.perez@unl.edu.ec",
+                     *       "roles": [
+                     *         "DOCENTE"
+                     *       ],
+                     *       "paralelos": [
+                     *         {
+                     *           "paralelo_id": "33333333-3333-4333-8333-333333333333",
+                     *           "codigo": "A",
+                     *           "carrera_id": "44444444-4444-4444-8444-444444444444",
+                     *           "carrera_codigo": "COMP",
+                     *           "carrera_nombre": "Computación"
+                     *         }
+                     *       ],
+                     *       "debe_cambiar_password": false
+                     *     }
+                     */
                     "application/json": components["schemas"]["MeProfile"];
                 };
             };
@@ -2482,7 +2659,9 @@ export interface operations {
     listActivities: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
                 /** @description Restringir por tipo de actividad dentro del ámbito autorizado. */
                 modalidad?: "CLASE" | "EVENTO";
@@ -2528,8 +2707,29 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Datos de la clase o evento. Para CLASE, paralelo_ids es obligatorio; para EVENTO, acceso e inicio/fin definen el flujo de invitados. */
         requestBody: {
             content: {
+                /**
+                 * @example {
+                 *       "modalidad": "CLASE",
+                 *       "nombre": "Programación I",
+                 *       "espacio_id": "55555555-5555-4555-8555-555555555555",
+                 *       "metodo_verificacion": "QR_Y_GPS",
+                 *       "paralelo_ids": [
+                 *         "33333333-3333-4333-8333-333333333333"
+                 *       ],
+                 *       "horario": {
+                 *         "dias": [
+                 *           "LUNES",
+                 *           "MIERCOLES"
+                 *         ],
+                 *         "inicio": "08:00",
+                 *         "fin": "10:00"
+                 *       },
+                 *       "acceso": "CERRADO"
+                 *     }
+                 */
                 "application/json": components["schemas"]["CreateActivityRequest"];
             };
         };
@@ -2549,6 +2749,21 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    /**
+                     * @example {
+                     *       "id": "66666666-6666-4666-8666-666666666666",
+                     *       "nombre": "Programación I",
+                     *       "tipo": "CLASE",
+                     *       "estado": "ABIERTA",
+                     *       "espacio_id": "55555555-5555-4555-8555-555555555555",
+                     *       "metodo_verificacion": "QR_Y_GPS",
+                     *       "estudiantes_autorizados": 30,
+                     *       "paralelo_ids": [
+                     *         "33333333-3333-4333-8333-333333333333"
+                     *       ],
+                     *       "sesiones": []
+                     *     }
+                     */
                     "application/json": components["schemas"]["CreatedActivity"];
                 };
             };
@@ -2564,6 +2779,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -2593,10 +2809,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
         };
+        /** @description Cambios editables de una actividad. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateActivityRequest"];
@@ -2628,6 +2846,7 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -2657,6 +2876,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -2683,10 +2903,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
         };
+        /** @description Configuración de invitados de una actividad. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["GuestSettings"];
@@ -2720,11 +2942,14 @@ export interface operations {
     listGuests: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -2751,10 +2976,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
         };
+        /** @description Lista completa de invitados que reemplaza la anterior. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["GuestListReplacement"];
@@ -2794,6 +3021,7 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
@@ -2806,6 +3034,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    /**
+                     * @example {
+                     *       "id": "77777777-7777-4777-8777-777777777777",
+                     *       "activity_id": "66666666-6666-4666-8666-666666666666",
+                     *       "estado": "ACTIVA",
+                     *       "iniciada_en": "2026-11-07T13:00:00Z",
+                     *       "cerrada_en": null
+                     *     }
+                     */
                     "application/json": components["schemas"]["Session"];
                 };
             };
@@ -2826,6 +3063,7 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
@@ -2838,6 +3076,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    /**
+                     * @example {
+                     *       "id": "77777777-7777-4777-8777-777777777777",
+                     *       "activity_id": "66666666-6666-4666-8666-666666666666",
+                     *       "estado": "CERRADA",
+                     *       "iniciada_en": "2026-11-07T13:00:00Z",
+                     *       "cerrada_en": "2026-11-07T15:00:00Z"
+                     *     }
+                     */
                     "application/json": components["schemas"]["Session"];
                 };
             };
@@ -2855,6 +3102,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
@@ -2893,6 +3141,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
@@ -2919,10 +3168,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
         };
+        /** @description Al habilitar, radio_m y precision_max_m son opcionales y heredan los valores por defecto del espacio de la sesión; antiguedad_max_s por defecto es 60. Si está apagada no se pide permiso ni se conserva ubicación. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["GeolocationSettings"];
@@ -2957,6 +3208,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Intento de asistencia con QR o sesión y ubicación. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AttendanceAttemptRequest"];
@@ -3035,6 +3287,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Inicio del flujo de invitado con QR o sesión. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["GuestStartRequest"];
@@ -3076,6 +3329,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Datos del invitado para completar su registro. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["GuestSubmitRequest"];
@@ -3152,6 +3406,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la sesión del evento abierto. */
                 sessionId: string;
             };
             cookie?: never;
@@ -3173,12 +3428,16 @@ export interface operations {
     listAttendances: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
+                /** @description Filtra por estado de la asistencia. */
                 estado?: components["parameters"]["AttendanceState"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
@@ -3206,10 +3465,12 @@ export interface operations {
     exportAttendances: {
         parameters: {
             query?: {
+                /** @description Filtra por estado de la asistencia. */
                 estado?: components["parameters"]["AttendanceState"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
@@ -3248,12 +3509,20 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador del intento de asistencia. */
                 attemptId: components["parameters"]["attemptId"];
             };
             cookie?: never;
         };
+        /** @description Decisión y razón; la razón es obligatoria y queda auditada. */
         requestBody: {
             content: {
+                /**
+                 * @example {
+                 *       "decision": "APROBAR",
+                 *       "razon": "La ubicación reportada está dentro del radio del aula; error de precisión del GPS."
+                 *     }
+                 */
                 "application/json": components["schemas"]["ReviewRequest"];
             };
         };
@@ -3285,12 +3554,20 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
         };
+        /** @description Razón de la asistencia manual; queda en la auditoría. */
         requestBody: {
             content: {
+                /**
+                 * @example {
+                 *       "persona_id": "22222222-2222-4222-8222-222222222222",
+                 *       "razon": "El estudiante presentó el carné físico. Falla de la cámara del dispositivo."
+                 *     }
+                 */
                 "application/json": components["schemas"]["ManualAttendanceRequest"];
             };
         };
@@ -3322,11 +3599,14 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
+                /** @description Identificador de la persona cuya ausencia se justifica. */
                 personId: string;
             };
             cookie?: never;
         };
+        /** @description Razón para justificar una ausencia. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["JustifyAbsenceRequest"];
@@ -3360,10 +3640,12 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
         };
+        /** @description Motivo de la solicitud de justificación del estudiante. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["JustificationRequestBody"];
@@ -3392,12 +3674,16 @@ export interface operations {
     listJustificationRequests: {
         parameters: {
             query?: {
+                /** @description Filtra por estado de la solicitud. */
                 estado?: "PENDIENTE" | "APROBADA" | "RECHAZADA";
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -3431,10 +3717,12 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la solicitud de justificación. */
                 requestId: string;
             };
             cookie?: never;
         };
+        /** @description Decisión y razón sobre una solicitud de justificación. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["JustificationDecisionRequest"];
@@ -3463,11 +3751,14 @@ export interface operations {
     listActivityAudit: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -3495,8 +3786,11 @@ export interface operations {
     adminListPeople: {
         parameters: {
             query?: {
+                /** @description Texto parcial de cédula, nombres o correo. */
                 q?: string;
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
@@ -3529,6 +3823,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Datos para crear una persona. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AdminPersonCreate"];
@@ -3564,6 +3859,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la persona. */
                 personId: string;
             };
             cookie?: never;
@@ -3589,10 +3885,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la persona. */
                 personId: string;
             };
             cookie?: never;
         };
+        /** @description Cuerpo de la solicitud. */
         requestBody: {
             content: {
                 "application/json": {
@@ -3626,6 +3924,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Datos para crear una cuenta. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AdminAccountCreate"];
@@ -3662,10 +3961,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la cuenta. */
                 accountId: string;
             };
             cookie?: never;
         };
+        /** @description Cambios de rol o estado de una cuenta. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AdminAccountPatch"];
@@ -3722,6 +4023,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Cuerpo de la solicitud. */
         requestBody: {
             content: {
                 "application/json": {
@@ -3760,10 +4062,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la carrera. */
                 careerId: string;
             };
             cookie?: never;
         };
+        /** @description Cuerpo de la solicitud. */
         requestBody: {
             content: {
                 "application/json": {
@@ -3792,6 +4096,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la carrera. */
                 careerId: string;
             };
             cookie?: never;
@@ -3822,10 +4127,12 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la carrera. */
                 careerId: string;
             };
             cookie?: never;
         };
+        /** @description Cuerpo de la solicitud. */
         requestBody: {
             content: {
                 "application/json": {
@@ -3862,11 +4169,14 @@ export interface operations {
     adminListEnrollments: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador del paralelo. */
                 parallelId: string;
             };
             cookie?: never;
@@ -3893,10 +4203,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador del paralelo. */
                 parallelId: string;
             };
             cookie?: never;
         };
+        /** @description Cuerpo de la solicitud. */
         requestBody: {
             content: {
                 "application/json": {
@@ -3926,11 +4238,14 @@ export interface operations {
     adminListTeachers: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador del paralelo. */
                 parallelId: string;
             };
             cookie?: never;
@@ -3957,10 +4272,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador del paralelo. */
                 parallelId: string;
             };
             cookie?: never;
         };
+        /** @description Cuerpo de la solicitud. */
         requestBody: {
             content: {
                 "application/json": {
@@ -3992,10 +4309,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Tipo de importación; determina las columnas esperadas del CSV. */
                 kind: "students" | "teachers" | "enrollments";
             };
             cookie?: never;
         };
+        /** @description Archivo y campos del formulario. */
         requestBody: {
             content: {
                 "multipart/form-data": {
@@ -4055,7 +4374,9 @@ export interface operations {
     listMyActiveSessions: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: number;
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: number;
             };
             header?: never;
@@ -4070,6 +4391,31 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
+                    /**
+                     * @example {
+                     *       "items": [
+                     *         {
+                     *           "sesion_id": "77777777-7777-4777-8777-777777777777",
+                     *           "actividad": {
+                     *             "id": "66666666-6666-4666-8666-666666666666",
+                     *             "nombre": "Programación I",
+                     *             "modalidad": "CLASE"
+                     *           },
+                     *           "espacio": {
+                     *             "id": "55555555-5555-4555-8555-555555555555",
+                     *             "nombre": "Laboratorio de Computación 1"
+                     *           },
+                     *           "metodo_verificacion": "QR_Y_GPS",
+                     *           "requiere_ubicacion": true,
+                     *           "inicio": "2026-11-07T13:00:00Z",
+                     *           "fin": "2026-11-07T15:00:00Z"
+                     *         }
+                     *       ],
+                     *       "page": 0,
+                     *       "size": 25,
+                     *       "total": 1
+                     *     }
+                     */
                     "application/json": components["schemas"]["ActiveSessionPage"];
                 };
             };
@@ -4082,7 +4428,9 @@ export interface operations {
             query?: {
                 /** @description Texto parcial del código o del nombre. */
                 q?: string;
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
@@ -4113,8 +4461,20 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
+        /** @description Datos del espacio. Latitud y longitud deben enviarse juntas o ninguna. */
         requestBody: {
             content: {
+                /**
+                 * @example {
+                 *       "codigo": "LAB-01",
+                 *       "nombre": "Laboratorio de Computación 1",
+                 *       "tipo": "LABORATORIO",
+                 *       "latitud": -4.0331,
+                 *       "longitud": -79.2004,
+                 *       "radio_defecto_m": 25,
+                 *       "precision_defecto_m": 10
+                 *     }
+                 */
                 "application/json": components["schemas"]["CreateSpaceRequest"];
             };
         };
@@ -4140,10 +4500,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador del espacio. */
                 spaceId: string;
             };
             cookie?: never;
         };
+        /** @description Datos editables de un espacio; el código no cambia. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateSpaceRequest"];
@@ -4171,6 +4533,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador del espacio. */
                 spaceId: string;
             };
             cookie?: never;
@@ -4197,10 +4560,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador del espacio. */
                 spaceId: string;
             };
             cookie?: never;
         };
+        /** @description Datos para registrar una nueva versión de evidencia geográfica. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["GeoEvidenceCreate"];
@@ -4237,6 +4602,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -4265,6 +4631,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -4291,10 +4658,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
         };
+        /** @description Horario semanal de una clase. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["Schedule"];
@@ -4321,11 +4690,14 @@ export interface operations {
     listAuthorizedStudents: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -4356,10 +4728,12 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
         };
+        /** @description Datos para añadir un estudiante autorizado. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["AddStudentRequest"];
@@ -4388,7 +4762,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
+                /** @description Identificador de la persona a retirar de la lista autorizada. */
                 personId: string;
             };
             cookie?: never;
@@ -4415,6 +4791,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -4441,11 +4818,14 @@ export interface operations {
     listActivitySessions: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -4476,10 +4856,12 @@ export interface operations {
                 "Idempotency-Key": components["parameters"]["IdempotencyKey"];
             };
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
         };
+        /** @description Datos para crear una sesión. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["CreateSessionRequest"];
@@ -4508,10 +4890,12 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
         };
+        /** @description Cambios editables de una sesión. */
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateSessionRequest"];
@@ -4540,6 +4924,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
@@ -4566,11 +4951,14 @@ export interface operations {
     getActivityStats: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la actividad (clase o evento). */
                 activityId: components["parameters"]["activityId"];
             };
             cookie?: never;
@@ -4598,6 +4986,7 @@ export interface operations {
     getParallelStats: {
         parameters: {
             query?: {
+                /** @description Filtra por carrera; solo dentro del ámbito autorizado. */
                 careerId?: string;
                 /** @description Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión. */
                 desde?: string;
@@ -4663,11 +5052,14 @@ export interface operations {
     listSessionAbsences: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;
             path: {
+                /** @description Identificador de la sesión. */
                 sessionId: components["parameters"]["sessionId"];
             };
             cookie?: never;
@@ -4695,7 +5087,9 @@ export interface operations {
     listMyAttendances: {
         parameters: {
             query?: {
+                /** @description Página solicitada, comenzando en 0. */
                 page?: components["parameters"]["Page"];
+                /** @description Cantidad de elementos por página (1 a 100). */
                 size?: components["parameters"]["Size"];
             };
             header?: never;

@@ -1,0 +1,38 @@
+---
+title: "Swagger UI"
+---
+
+# Swagger UI
+
+Interfaz interactiva generada con [Swagger UI](https://swagger.io/tools/swagger-ui/) sobre el
+mismo contrato OpenAPI. Permite explorar cada operación, ver sus parámetros, cuerpos,
+respuestas y ejemplos, y probar las llamadas contra el backend configurado.
+
+```{=html}
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.34.1/swagger-ui.css">
+<div id="swagger-ui"></div>
+<script src="https://unpkg.com/swagger-ui-dist@5.34.1/swagger-ui-bundle.js"></script>
+<script>
+  window.addEventListener('load', function () {
+    if (!window.SwaggerUIBundle) return;
+    window.ui = window.SwaggerUIBundle({
+      url: 'openapi.yaml',
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      docExpansion: 'list',
+      filter: true,
+      tryItOutEnabled: false,
+      displayRequestDuration: true,
+      presets: [window.SwaggerUIBundle.presets.apis],
+      layout: 'BaseLayout'
+    });
+  });
+</script>
+```
+
+::: {.callout-note}
+Esta copia publicada es de **solo lectura**: `tryItOut` está desactivado para no enviar
+solicitudes a un backend de ejemplo. Para ejecutar pruebas reales usa Swagger UI en la API
+local (`http://localhost:8080/swagger-ui.html`) o la página `/documentacion/swagger` de la web,
+donde se configura la URL del backend.
+:::

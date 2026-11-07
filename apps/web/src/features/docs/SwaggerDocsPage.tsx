@@ -18,7 +18,19 @@ export function SwaggerDocsPage() {
   useEffect(() => {
     let alive = true;
     void import('swagger-ui-dist/swagger-ui-es-bundle.js').then(({ default: SwaggerUIBundle }) => {
-      if (alive && node.current) SwaggerUIBundle({ domNode: node.current, url: '/openapi.yaml', persistAuthorization: false, requestInterceptor: toApi });
+      if (alive && node.current) SwaggerUIBundle({
+        domNode: node.current,
+        url: '/openapi.yaml',
+        persistAuthorization: false,
+        requestInterceptor: toApi,
+        deepLinking: true,
+        docExpansion: 'list',
+        filter: true,
+        displayRequestDuration: true,
+        tryItOutEnabled: true,
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 1,
+      });
     });
     return () => { alive = false; if (node.current) node.current.innerHTML = ''; }; // eslint-disable-line react-hooks/exhaustive-deps -- el nodo es fijo
   }, []);

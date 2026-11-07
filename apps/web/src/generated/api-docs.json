@@ -226,7 +226,7 @@
       "method": "GET",
       "path": "/auth/sso-config",
       "summary": "Obtener las URLs públicas del SSO",
-      "desc": "",
+      "desc": "Devuelve las URLs de login y logout del servicio CAS y los prefijos de servicio web y móvil. Es pública para que la web y la app construyan la redirección sin credenciales.",
       "group": "auth",
       "roles": [
         "pub"
@@ -314,7 +314,7 @@
       "method": "GET",
       "path": "/me",
       "summary": "Perfil propio sin secretos",
-      "desc": "",
+      "desc": "Devuelve la identidad, los roles y el ámbito de la sesión autenticada. No expone tokens, contraseñas ni datos de contacto innecesarios.",
       "group": "auth",
       "roles": [
         "cta"
@@ -354,7 +354,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -362,7 +362,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         },
         {
@@ -476,7 +476,7 @@
             "name": "horario",
             "type": "Schedule",
             "required": false,
-            "desc": "",
+            "desc": "Horario semanal de una clase.",
             "rules": ""
           },
           {
@@ -608,7 +608,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -674,7 +674,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -782,7 +782,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -857,7 +857,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -908,7 +908,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -994,7 +994,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -1002,7 +1002,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -1010,7 +1010,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -1061,7 +1061,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -1153,7 +1153,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         },
         {
@@ -1227,7 +1227,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         },
         {
@@ -1301,7 +1301,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         }
       ],
@@ -1368,7 +1368,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         }
       ],
@@ -1419,7 +1419,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         }
       ],
@@ -1550,7 +1550,7 @@
             "name": "ubicacion",
             "type": "Location",
             "required": false,
-            "desc": "",
+            "desc": "Ubicación reportada por el dispositivo.",
             "rules": ""
           },
           {
@@ -1768,7 +1768,7 @@
             "name": "ubicacion",
             "type": "Location",
             "required": false,
-            "desc": "",
+            "desc": "Ubicación reportada por el dispositivo.",
             "rules": ""
           },
           {
@@ -1864,7 +1864,7 @@
       "method": "GET",
       "path": "/events/open/{sessionId}",
       "summary": "Consultar datos publicos minimos de un evento abierto activo",
-      "desc": "",
+      "desc": "Público. Devuelve solo los datos mínimos para que un invitado sin cuenta se autorregistre en un evento abierto activo (nombre, ámbito y estado); no expone listados ni datos personales.",
       "group": "guest-registrations",
       "roles": [
         "inv"
@@ -1876,7 +1876,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión del evento abierto.",
           "rules": ""
         }
       ],
@@ -1913,7 +1913,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         },
         {
@@ -1921,7 +1921,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -1929,7 +1929,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         },
         {
@@ -1937,7 +1937,7 @@
           "in": "query",
           "required": false,
           "type": "string",
-          "desc": "",
+          "desc": "Filtra por estado de la asistencia.",
           "rules": "CONFIRMADA | PENDIENTE_REVISION | RECHAZADA"
         }
       ],
@@ -2003,7 +2003,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         },
         {
@@ -2011,7 +2011,7 @@
           "in": "query",
           "required": false,
           "type": "string",
-          "desc": "",
+          "desc": "Filtra por estado de la asistencia.",
           "rules": "CONFIRMADA | PENDIENTE_REVISION | RECHAZADA"
         }
       ],
@@ -2077,7 +2077,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador del intento de asistencia.",
           "rules": ""
         },
         {
@@ -2175,7 +2175,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         },
         {
@@ -2273,7 +2273,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         },
         {
@@ -2281,7 +2281,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la persona cuya ausencia se justifica.",
           "rules": ""
         },
         {
@@ -2371,7 +2371,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         },
         {
@@ -2462,7 +2462,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -2470,7 +2470,7 @@
           "in": "query",
           "required": false,
           "type": "string",
-          "desc": "",
+          "desc": "Filtra por estado de la solicitud.",
           "rules": "PENDIENTE | APROBADA | RECHAZADA"
         },
         {
@@ -2478,7 +2478,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -2486,7 +2486,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -2557,7 +2557,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la solicitud de justificación.",
           "rules": ""
         },
         {
@@ -2656,7 +2656,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -2664,7 +2664,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -2672,7 +2672,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -2725,7 +2725,7 @@
       "method": "GET",
       "path": "/admin/people",
       "summary": "Listar personas (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Búsqueda paginada de personas por cédula, nombres o correo. Solo ADMINISTRADOR; los filtros nunca amplían el ámbito.",
       "group": "admin",
       "roles": [
         "adm"
@@ -2737,7 +2737,7 @@
           "in": "query",
           "required": false,
           "type": "string",
-          "desc": "",
+          "desc": "Texto parcial de cédula, nombres o correo.",
           "rules": ""
         },
         {
@@ -2745,7 +2745,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -2753,7 +2753,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -2786,7 +2786,7 @@
       "method": "POST",
       "path": "/admin/people",
       "summary": "Crear persona (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Registra una persona con rol académico (ESTUDIANTE, DOCENTE o ENCARGADO). Solo ADMINISTRADOR; admite Idempotency-Key para reintentos seguros.",
       "group": "admin",
       "roles": [
         "adm"
@@ -2860,7 +2860,7 @@
       "method": "GET",
       "path": "/admin/people/{personId}",
       "summary": "Ver persona (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Devuelve los datos académicos de la persona y su cuenta asociada, si existe. Solo ADMINISTRADOR.",
       "group": "admin",
       "roles": [
         "adm"
@@ -2872,7 +2872,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la persona.",
           "rules": ""
         }
       ],
@@ -2905,7 +2905,7 @@
       "method": "PATCH",
       "path": "/admin/people/{personId}",
       "summary": "Editar nombres de una persona (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Actualiza únicamente nombres y apellidos. Solo ADMINISTRADOR; no modifica cédula, correo ni roles.",
       "group": "admin",
       "roles": [
         "adm"
@@ -2917,7 +2917,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la persona.",
           "rules": ""
         }
       ],
@@ -3065,7 +3065,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la cuenta.",
           "rules": ""
         }
       ],
@@ -3127,7 +3127,7 @@
       "method": "GET",
       "path": "/admin/careers",
       "summary": "Listar carreras (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Lista todas las carreras registradas con su código y nombre. Solo ADMINISTRADOR.",
       "group": "admin",
       "roles": [
         "adm"
@@ -3158,7 +3158,7 @@
       "method": "POST",
       "path": "/admin/careers",
       "summary": "Crear carrera (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Crea una carrera con código único. Solo ADMINISTRADOR; un código duplicado responde 409.",
       "group": "admin",
       "roles": [
         "adm"
@@ -3232,7 +3232,7 @@
       "method": "PATCH",
       "path": "/admin/careers/{careerId}",
       "summary": "Editar nombre de carrera (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Cambia el nombre de una carrera existente. Solo ADMINISTRADOR; el código no se modifica.",
       "group": "admin",
       "roles": [
         "adm"
@@ -3244,7 +3244,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la carrera.",
           "rules": ""
         }
       ],
@@ -3294,7 +3294,7 @@
       "method": "GET",
       "path": "/admin/careers/{careerId}/parallels",
       "summary": "Paralelos de una carrera (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Lista los paralelos de la carrera con el número de matriculados y docentes. Solo ADMINISTRADOR.",
       "group": "admin",
       "roles": [
         "adm"
@@ -3306,7 +3306,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la carrera.",
           "rules": ""
         }
       ],
@@ -3339,7 +3339,7 @@
       "method": "POST",
       "path": "/admin/careers/{careerId}/parallels",
       "summary": "Crear paralelo (ADMINISTRADOR)",
-      "desc": "",
+      "desc": "Crea un paralelo dentro de la carrera indicada. Solo ADMINISTRADOR; el código es único dentro de la carrera.",
       "group": "admin",
       "roles": [
         "adm"
@@ -3351,7 +3351,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la carrera.",
           "rules": ""
         },
         {
@@ -3431,7 +3431,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador del paralelo.",
           "rules": ""
         },
         {
@@ -3439,7 +3439,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -3447,7 +3447,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -3497,7 +3497,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador del paralelo.",
           "rules": ""
         }
       ],
@@ -3559,7 +3559,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador del paralelo.",
           "rules": ""
         },
         {
@@ -3567,7 +3567,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -3575,7 +3575,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -3625,7 +3625,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador del paralelo.",
           "rules": ""
         }
       ],
@@ -3687,7 +3687,7 @@
           "in": "path",
           "required": true,
           "type": "string",
-          "desc": "",
+          "desc": "Tipo de importación; determina las columnas esperadas del CSV.",
           "rules": "students | teachers | enrollments"
         }
       ],
@@ -3737,7 +3737,7 @@
       "method": "GET",
       "path": "/me/parallels",
       "summary": "Paralelos asignados al docente o encargado",
-      "desc": "",
+      "desc": "Devuelve los paralelos vigentes asignados al docente o encargado autenticado, con el número de matriculados. No incluye paralelos de otras personas.",
       "group": "activities",
       "roles": [
         "doc",
@@ -3781,7 +3781,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -3789,7 +3789,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 25"
         }
       ],
@@ -3839,7 +3839,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -3847,7 +3847,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -3916,7 +3916,7 @@
             "name": "tipo",
             "type": "string",
             "required": false,
-            "desc": "",
+            "desc": "Tipo de espacio.",
             "rules": "AULA | LABORATORIO | AUDITORIO | EXTERIOR | OTRO"
           },
           {
@@ -4001,7 +4001,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador del espacio.",
           "rules": ""
         }
       ],
@@ -4020,7 +4020,7 @@
             "name": "tipo",
             "type": "string",
             "required": false,
-            "desc": "",
+            "desc": "Tipo de espacio.",
             "rules": "AULA | LABORATORIO | AUDITORIO | EXTERIOR | OTRO"
           },
           {
@@ -4105,7 +4105,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador del espacio.",
           "rules": ""
         }
       ],
@@ -4155,7 +4155,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador del espacio.",
           "rules": ""
         }
       ],
@@ -4249,7 +4249,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -4311,7 +4311,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -4361,7 +4361,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -4461,7 +4461,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -4469,7 +4469,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -4477,7 +4477,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -4532,7 +4532,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -4612,7 +4612,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -4620,7 +4620,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la persona a retirar de la lista autorizada.",
           "rules": ""
         }
       ],
@@ -4680,7 +4680,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         }
       ],
@@ -4741,7 +4741,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -4749,7 +4749,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -4757,7 +4757,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -4813,7 +4813,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -4908,7 +4908,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         }
       ],
@@ -5002,7 +5002,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         }
       ],
@@ -5064,7 +5064,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la actividad (clase o evento).",
           "rules": ""
         },
         {
@@ -5072,7 +5072,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -5080,7 +5080,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -5147,7 +5147,7 @@
           "in": "query",
           "required": false,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Filtra por carrera; solo dentro del ámbito autorizado.",
           "rules": ""
         },
         {
@@ -5305,7 +5305,7 @@
           "in": "path",
           "required": true,
           "type": "string (uuid)",
-          "desc": "",
+          "desc": "Identificador de la sesión.",
           "rules": ""
         },
         {
@@ -5313,7 +5313,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -5321,7 +5321,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -5386,7 +5386,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Página solicitada, comenzando en 0.",
           "rules": "mín. 0; por defecto 0"
         },
         {
@@ -5394,7 +5394,7 @@
           "in": "query",
           "required": false,
           "type": "integer",
-          "desc": "",
+          "desc": "Cantidad de elementos por página (1 a 100).",
           "rules": "mín. 1; máx. 100; por defecto 20"
         }
       ],
@@ -5422,7 +5422,7 @@
       "method": "GET",
       "path": "/me/stats",
       "summary": "Porcentajes propios por actividad de clase",
-      "desc": "",
+      "desc": "Devuelve los porcentajes de asistencia del estudiante autenticado por actividad de clase. No incluye datos de otras personas.",
       "group": "stats",
       "roles": [
         "est"

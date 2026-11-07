@@ -6,6 +6,12 @@ Documentación de arquitectura en cuatro niveles del [modelo C4](https://c4model
 los niveles 1 a 3 usan diagramas C4 de Mermaid y el nivel 4 usa diagramas de clases en PlantUML
 (fuentes en `puml/`).
 
+::: {.callout-tip}
+## Documentación del API
+La referencia completa del API (parámetros, cuerpos, respuestas, ejemplos y Swagger UI) se publica en
+<https://fede-dev11.github.io/Sistema_Asistencias_QR/api/>.
+:::
+
 | Nivel | Archivo | Pregunta que responde |
 |---|---|---|
 | 1. Contexto | [01-contexto.qmd](01-contexto.qmd) | ¿Quién usa el sistema y con qué sistemas externos se relaciona? |
