@@ -14,7 +14,7 @@ jobs:
           cache-dependency-path: tools/contracts/package-lock.json
       - run: npm ci
         working-directory: tools/contracts
-      - run: npm run validate && npm run check
+      - run: npm run validate && npm run check && npm run docs:coverage
         working-directory: tools/contracts
   api:
     runs-on: ubuntu-latest
