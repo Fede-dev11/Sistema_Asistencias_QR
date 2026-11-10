@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
@@ -10,6 +11,7 @@ import { Drawer } from '../ui/Drawer';
 import { EmptyState } from '../ui/EmptyState';
 import { Tabs } from '../ui/Tabs';
 import { ParallelMembers } from './ParallelMembers';
+import styles from './CareersPanel.module.css';
 
 type Career = components['schemas']['AdminCareer'];
 type Parallel = components['schemas']['AdminParallel'];
@@ -30,6 +32,7 @@ function CareersContent() {
   const [status, setStatus] = useState('');
   const [drawer, setDrawer] = useState<DrawerState | null>(null);
   const [reload, setReload] = useState(0);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     let alive = true;
@@ -63,28 +66,56 @@ function CareersContent() {
     } finally { setBusy(false); }
   }
 
-  return <section>
-    <div className="page-heading"><div><h1>Carreras y paralelos</h1><p>Selecciona una carrera para administrar sus paralelos.</p></div>
-      <Button onClick={() => { setError(null); setDrawer({ type: 'career' }); }}>Nueva carrera</Button></div>
+  const visibleCareers = careers.filter(career => `${career.codigo} ${career.nombre}`.toLocaleLowerCase('es').includes(query.trim().toLocaleLowerCase('es')));
+  function selectCareer(career: Career) {
+    if (career.id === selected?.id) return;
+    setParallels([]);
+    setLoading(true);
+    setSelected(career);
+  }
+
+  return <section className={styles.page}>
+    <div className={styles.heading}>
+      <p className={styles.breadcrumb}>Gestión académica <span aria-hidden="true">›</span> Administración <span aria-hidden="true">›</span> Estructura académica</p>
+      <h1>Administración del sistema</h1>
+      <p>Gestiona las carreras y paralelos de la institución.</p>
+    </div>
+    <nav className={styles.adminNav} aria-label="Secciones de administración">
+      <Link href="/admin/personas">Personas y cuentas</Link>
+      <Link href="/admin/carreras" aria-current="page">Carreras y paralelos</Link>
+      <Link href="/admin/espacios">Espacios</Link>
+      <Link href="/admin/importar">Importar listas</Link>
+    </nav>
     {status && <p role="status">{status}</p>}
     <ProblemMessage error={drawer ? null : error} />
-    {loading && <p role="status">Cargando…</p>}
-    {!loading && careers.length === 0 && <EmptyState title="No hay carreras" text="Crea la primera carrera para continuar." />}
-    {careers.length > 0 && <div className="table-wrap"><table>
-      <thead><tr><th>Código</th><th>Nombre</th></tr></thead>
-      <tbody>{careers.map(career => <tr key={career.id} tabIndex={0} aria-label={`Seleccionar ${career.nombre}`} aria-selected={selected?.id === career.id}
-        onClick={() => setSelected(career)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(career); } }}>
-        <td>{career.codigo}</td><td>{career.nombre}</td></tr>)}</tbody>
-    </table></div>}
-    {selected && <section aria-label={`Paralelos de ${selected.nombre}`}>
-      <div className="page-heading"><h2>Paralelos de {selected.nombre}</h2><Button variant="secondary" onClick={() => { setError(null); setDrawer({ type: 'parallel' }); }}>Nuevo paralelo</Button></div>
-      {parallels.length === 0 ? <EmptyState title="Sin paralelos" text="Crea un paralelo para esta carrera." /> : <div className="table-wrap"><table>
-        <thead><tr><th>Paralelo</th><th>Matriculados</th><th>Docentes</th></tr></thead>
-        <tbody>{parallels.map(parallel => <tr key={parallel.id} tabIndex={0} aria-label={`Gestionar paralelo ${parallel.codigo}`}
-          onClick={() => setDrawer({ type: 'members', parallel })} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDrawer({ type: 'members', parallel }); } }}>
-          <td>{parallel.codigo}</td><td>{parallel.matriculados}</td><td>{parallel.docentes}</td></tr>)}</tbody>
-      </table></div>}
-    </section>}
+    <div className={styles.grid}>
+      <section className={styles.panel} aria-labelledby="careers-title">
+        <div className={styles.panelHeading}><div><h2 id="careers-title">Oferta académica</h2><p>Selecciona una carrera para ver sus paralelos.</p></div>
+          <Button onClick={() => { setError(null); setDrawer({ type: 'career' }); }}>Nueva carrera</Button></div>
+        <label className={styles.search}>Filtrar carreras<input type="search" placeholder="Filtrar por código o nombre…" value={query} onChange={event => setQuery(event.target.value)} /></label>
+        {loading && careers.length === 0 && <p role="status">Cargando carreras…</p>}
+        {!loading && careers.length === 0 && <EmptyState title="No hay carreras" text="Crea la primera carrera para continuar." />}
+        {careers.length > 0 && visibleCareers.length === 0 && <p>No hay carreras que coincidan con la búsqueda.</p>}
+        {visibleCareers.length > 0 && <div className="table-wrap"><table className={styles.table}>
+          <thead><tr><th scope="col">Código</th><th scope="col">Nombre de carrera</th></tr></thead>
+          <tbody>{visibleCareers.map(career => <tr key={career.id} tabIndex={0} aria-label={`Seleccionar ${career.nombre}`} aria-selected={selected?.id === career.id}
+            onClick={() => selectCareer(career)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectCareer(career); } }}>
+            <td>{career.codigo}</td><td>{career.nombre}</td></tr>)}</tbody>
+        </table></div>}
+      </section>
+      <section className={styles.panel} aria-label={selected ? `Paralelos de ${selected.nombre}` : 'Paralelos'}>
+        <div className={styles.panelHeading}><div><h2>Paralelos{selected ? ` de ${selected.nombre}` : ''}</h2><p>Consulta los estudiantes y docentes de cada paralelo.</p></div>
+          {selected && <Button variant="secondary" onClick={() => { setError(null); setDrawer({ type: 'parallel' }); }}>Nuevo paralelo</Button>}</div>
+        {!selected && <EmptyState title="Selecciona una carrera" text="Elige una carrera para consultar sus paralelos." />}
+        {selected && loading && <p role="status">Cargando paralelos…</p>}
+        {selected && !loading && error === null && (parallels.length === 0 ? <EmptyState title="Sin paralelos" text="Crea un paralelo para esta carrera." /> : <div className="table-wrap"><table className={styles.table}>
+          <thead><tr><th scope="col">Paralelo</th><th scope="col">Matriculados</th><th scope="col">Docentes</th></tr></thead>
+          <tbody>{parallels.map(parallel => <tr key={parallel.id} tabIndex={0} aria-label={`Gestionar paralelo ${parallel.codigo}`}
+            onClick={() => setDrawer({ type: 'members', parallel })} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setDrawer({ type: 'members', parallel }); } }}>
+            <td>{parallel.codigo}</td><td>{parallel.matriculados}</td><td>{parallel.docentes}</td></tr>)}</tbody>
+        </table></div>)}
+      </section>
+    </div>
     {drawer?.type === 'members' && <Drawer title={`Paralelo ${drawer.parallel.codigo}`} onClose={() => setDrawer(null)}>
       <Tabs tabs={[
         { id: 'enrollments', label: 'Matriculados', content: <ParallelMembers parallelId={drawer.parallel.id} kind="enrollments" onChanged={() => setReload(n => n + 1)} /> },
