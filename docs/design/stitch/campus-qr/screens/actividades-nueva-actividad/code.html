@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-tertiary-container":"#82abff","on-primary-fixed-variant":"#264191","on-secondary":"#ffffff","on-secondary-fixed-variant":"#005320","on-secondary-fixed":"#002109","secondary-fixed":"#7ffc97","outline":"#757682","primary-fixed-dim":"#b6c4ff","on-error":"#ffffff","tertiary-container":"#003d88","surface-tint":"#4059aa","background":"#faf8ff","surface-container-low":"#f2f3ff","surface":"#faf8ff","on-tertiary":"#ffffff","tertiary":"#00285e","surface-container":"#eaedff","on-tertiary-fixed":"#001a42","on-surface-variant":"#444651","on-error-container":"#93000a","on-primary":"#ffffff","outline-variant":"#c5c5d3","on-primary-fixed":"#00164e","on-primary-container":"#90a8ff","secondary-container":"#7cf994","tertiary-fixed":"#d8e2ff","surface-dim":"#d2d9f4","on-background":"#131b2e","inverse-primary":"#b6c4ff","primary":"#00236f","error":"#ba1a1a","tertiary-fixed-dim":"#adc6ff","inverse-surface":"#283044","primary-container":"#1e3a8a","surface-container-lowest":"#ffffff","error-container":"#ffdad6","surface-variant":"#dae2fd","surface-bright":"#faf8ff","on-surface":"#131b2e","surface-container-highest":"#dae2fd","secondary-fixed-dim":"#62df7d","inverse-on-surface":"#eef0ff","primary-fixed":"#dce1ff","on-secondary-container":"#007230","surface-container-high":"#e2e7ff","secondary":"#006e2d","on-tertiary-fixed-variant":"#004395"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","space-sm":"0.5rem","space-xs":"0.25rem","space-xl":"2rem","margin":"1.25rem","space-lg":"1.5rem","gutter":"1rem"},"fontFamily":{"headline-xl":["Inter"],"label-lg":["Inter"],"title-md":["Inter"],"label-md":["Inter"],"body-sm":["Inter"],"headline-md":["Inter"],"headline-sm":["Inter"],"headline-lg":["Inter"],"label-sm":["Inter"],"body-md":["Inter"],"body-lg":["Inter"]},"fontSize":{"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"600"}],"title-md":["16px",{"lineHeight":"22px","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-margin flex items-center justify-between"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary leading-tight tracking-tight">UNL · GeoAsist</span><span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Universidad Nacional de Loja</span></div></div><nav class="hidden xl:flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-bold rounded-lg shadow-sm"><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="hoy" href="#">Hoy</a><a aria-current="page" class="px-space-md py-space-sm transition-colors bg-primary-container text-on-primary font-bold rounded-lg shadow-sm" data-path="actividades" href="#">Actividades</a><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="sesiones" href="#">Sesiones</a><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="estadisticas-y-reportes" href="#">Estadísticas y Reportes</a><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="administracion" href="#">Administración</a></nav></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex flex-col text-right leading-tight"><span class="font-label-lg text-label-lg text-on-surface font-semibold">Ing. Edison Coronel</span><div class="flex items-center justify-end gap-space-xs"><span class="bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-space-xs py-0.5 rounded-full font-semibold uppercase tracking-wider">Docente</span><span class="font-label-sm text-label-sm text-on-surface-variant">Admin DTI</span></div></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida/ALJJyrAkI55UOqMZqa90b3hpqHbZCJ6xe5xaj3BNMuBe1gh-seztiXCPizb20qBUwu3cBOkv0GrHu0uxuAyFKcIDWL_Qs6sl_QfUXYLwHoC5tltfrh5p4Nlb5R-WbrIIBHOnEywlcAIc4pWx2bDmnH8qorn5zp0C4wlZRn5nXRNzm3gnTevXxGDjqGJ2sSycinRXoLJeCAGR0TsAhs_4vj1iR-L4oAl74Ctp0Q_70s_BwfDHPmteg2tObcXxOEE"/><a class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container text-on-surface hover:bg-error-container hover:text-on-error-container transition-colors font-label-md text-label-md" data-path="login" href="#"><span class="material-symbols-outlined text-sm">logout</span><span class="hidden md:inline">Salir</span></a></div></div></header><main class="w-full pt-16 bg-background flex-1 px-margin"><div class="flex flex-col w-full py-space-md">
+<!-- Top Command & Action Bar -->
+<section class="flex flex-col md:flex-row md:items-center justify-between gap-space-md pb-space-lg">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<span>Gestión Curricular</span>
+<span>/</span>
+<span class="text-primary font-semibold">Campus Guillermo Falconí</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-primary tracking-tight mt-1">Actividades Académicas</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-0.5">Control geolocalizado, programación de sesiones y registro biométrico/QR en campus.</p>
+</div>
+<div class="flex items-center gap-space-sm self-start md:self-auto">
+<button class="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg shadow-sm transition-all duration-150" type="button">
+<span class="material-symbols-outlined text-base">file_download</span>
+<span>Exportar</span>
+</button>
+<button class="inline-flex items-center gap-space-xs px-space-lg py-space-sm rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer active:scale-95" id="open-assistant-btn" type="button">
+<span class="material-symbols-outlined text-base">add_circle</span>
+<span>+ Nueva actividad</span>
+</button>
+</div>
+</section>
+<!-- Metric Badges Row -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-md mb-space-lg">
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase font-semibold">Actividades Totales</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">24</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-xl">school</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase font-semibold">Sesiones Activas Hoy</span>
+<span class="font-headline-lg text-headline-lg text-secondary font-bold">12</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-xl">sensors</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase font-semibold">Espacios con Geocerca</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">98%</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-xl">share_location</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase font-semibold">Tasa Asistencia Promedio</span>
+<span class="font-headline-lg text-headline-lg text-on-surface font-bold">92.4%</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-variant flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-xl">verified_user</span>
+</div>
+</div>
+</div>
+<!-- Search & Smart Filter Bar -->
+<section class="bg-surface-container-lowest rounded-2xl p-space-md shadow-sm mb-space-lg flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-space-md top-1/2 -translate-y-1/2 text-outline text-lg">search</span>
+<input class="w-full pl-11 pr-space-md py-2.5 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md placeholder-outline focus:outline-none focus:bg-surface-container-lowest transition-all" id="activity-search-input" placeholder="Buscar por asignatura, código o docente responsable..." type="text"/>
+</div>
+<div class="flex flex-wrap items-center gap-space-sm">
+<!-- Selector Tipo -->
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-xl">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium pl-1">Tipo:</span>
+<button class="filter-type-pill px-space-sm py-1 rounded-lg font-label-sm text-label-sm bg-primary text-on-primary font-semibold shadow-xs transition-colors" data-filter-type="all" type="button">Todos</button>
+<button class="filter-type-pill px-space-sm py-1 rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors" data-filter-type="Clase" type="button">Clase</button>
+<button class="filter-type-pill px-space-sm py-1 rounded-lg font-label-sm text-label-sm text-on-surface-variant hover:text-on-surface transition-colors" data-filter-type="Evento" type="button">Evento</button>
+</div>
+<!-- Selector Estado -->
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-sm py-1 rounded-xl">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-medium pl-1">Estado:</span>
+<select class="bg-transparent font-label-sm text-label-sm text-on-surface font-semibold focus:outline-none py-1 pr-space-xs cursor-pointer" id="status-filter-select">
+<option value="all">Todos</option>
+<option value="Abierta">Abierta</option>
+<option value="Cerrada">Cerrada</option>
+<option value="Cancelada">Cancelada</option>
+</select>
+</div>
+<button class="px-space-sm py-2 text-on-surface-variant hover:text-primary font-label-sm text-label-sm flex items-center gap-space-xs transition-colors" id="reset-filters-btn" type="button">
+<span class="material-symbols-outlined text-sm">filter_alt_off</span>
+<span>Limpiar</span>
+</button>
+</div>
+</section>
+<!-- Activities Table Container -->
+<section class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden flex flex-col mb-space-xl">
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<th class="py-space-md px-space-lg font-semibold">Actividad & Código</th>
+<th class="py-space-md px-space-md font-semibold">Tipo</th>
+<th class="py-space-md px-space-md font-semibold">Estado</th>
+<th class="py-space-md px-space-md font-semibold">Espacio Asignado</th>
+<th class="py-space-md px-space-md font-semibold">Próxima Sesión</th>
+<th class="py-space-md px-space-lg text-right font-semibold">Acciones</th>
+</tr>
+</thead>
+<tbody class="font-body-md text-body-md" id="activities-table-body">
+<!-- Row 1 -->
+<tr class="activity-row hover:bg-surface-container-low/60 transition-colors" data-status="Abierta" data-type="Clase">
+<td class="py-space-md px-space-lg">
+<div class="flex items-start gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary mt-1.5 shrink-0"></div>
+<div class="flex flex-col">
+<a class="font-title-md text-title-md text-primary font-bold hover:underline" href="#">Sistemas Distribuidos y Computación en la Nube</a>
+<div class="flex items-center gap-space-xs mt-0.5">
+<span class="bg-surface-container px-space-xs py-0.5 rounded font-label-sm text-label-sm text-primary-container font-mono font-semibold">UNL-SIS-801</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• Paralelo "A" • 38 estudiantes</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs">laptop_chromebook</span> Clase
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-secondary-container/60 text-on-secondary-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Abierta
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Laboratorio DTI-3</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-secondary">radar</span> Geocerca 25m
+                </span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1 text-on-surface font-semibold font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm text-secondary">event_available</span>
+<span>Hoy, 10:00 - 12:00</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Aula DTI-302</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-space-xs">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md font-semibold transition-colors" type="button">Detalle</button>
+<button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="activity-row hover:bg-surface-container-low/60 transition-colors" data-status="Abierta" data-type="Evento">
+<td class="py-space-md px-space-lg">
+<div class="flex items-start gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary mt-1.5 shrink-0"></div>
+<div class="flex flex-col">
+<a class="font-title-md text-title-md text-primary font-bold hover:underline" href="#">Seminario Internacional de Ciberseguridad e IA 2025</a>
+<div class="flex items-center gap-space-xs mt-0.5">
+<span class="bg-surface-container px-space-xs py-0.5 rounded font-label-sm text-label-sm text-primary-container font-mono font-semibold">EVT-DTI-04</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• General Institucional • 120 inscritos</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-variant text-primary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs">campaign</span> Evento
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-secondary-container/60 text-on-secondary-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Abierta
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Aula Magna "Dr. Eloy Alfaro"</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-secondary">radar</span> Geocerca 45m
+                </span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1 text-on-surface font-semibold font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm text-primary">event_upcoming</span>
+<span>Mañana, 08:30 - 13:00</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Piso 1 - Auditorio Central</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-space-xs">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md font-semibold transition-colors" type="button">Detalle</button>
+<button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="activity-row hover:bg-surface-container-low/60 transition-colors" data-status="Cerrada" data-type="Clase">
+<td class="py-space-md px-space-lg">
+<div class="flex items-start gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-outline-variant mt-1.5 shrink-0"></div>
+<div class="flex flex-col">
+<a class="font-title-md text-title-md text-primary font-bold hover:underline" href="#">Arquitectura de Software y Patrones de Diseño</a>
+<div class="flex items-center gap-space-xs mt-0.5">
+<span class="bg-surface-container px-space-xs py-0.5 rounded font-label-sm text-label-sm text-primary-container font-mono font-semibold">UNL-SIS-702</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• Paralelo "B" • 42 estudiantes</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs">laptop_chromebook</span> Clase
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline"></span> Cerrada
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Edificio Administrativo Bloque 4</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-secondary">radar</span> Geocerca 30m
+                </span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm text-on-surface-variant italic">Sin sesiones programadas</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-space-xs">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md font-semibold transition-colors" type="button">Detalle</button>
+<button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="activity-row hover:bg-surface-container-low/60 transition-colors" data-status="Cancelada" data-type="Evento">
+<td class="py-space-md px-space-lg">
+<div class="flex items-start gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-error mt-1.5 shrink-0"></div>
+<div class="flex flex-col">
+<a class="font-title-md text-title-md text-primary font-bold hover:underline line-through opacity-80" href="#">Feria de Proyectos Integradores de Saberes (PIS)</a>
+<div class="flex items-center gap-space-xs mt-0.5">
+<span class="bg-error-container text-on-error-container px-space-xs py-0.5 rounded font-label-sm text-label-sm font-mono font-semibold">EVT-ING-09</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• Interfacultades</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-variant text-primary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs">campaign</span> Evento
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error"></span> Cancelada
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Plaza Universitaria Central</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-outline">radar</span> Geocerca 60m
+                </span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-label-sm text-label-sm text-on-error-container font-semibold">Suspendida por rectorado</span>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-space-xs">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md font-semibold transition-colors" type="button">Detalle</button>
+<button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="activity-row hover:bg-surface-container-low/60 transition-colors" data-status="Abierta" data-type="Clase">
+<td class="py-space-md px-space-lg">
+<div class="flex items-start gap-space-sm">
+<div class="w-2.5 h-2.5 rounded-full bg-secondary mt-1.5 shrink-0"></div>
+<div class="flex flex-col">
+<a class="font-title-md text-title-md text-primary font-bold hover:underline" href="#">Inteligencia Artificial y Aprendizaje Automático</a>
+<div class="flex items-center gap-space-xs mt-0.5">
+<span class="bg-surface-container px-space-xs py-0.5 rounded font-label-sm text-label-sm text-primary-container font-mono font-semibold">UNL-SIS-804</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">• Paralelo "A" • 35 estudiantes</span>
+</div>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1 px-space-sm py-0.5 rounded-full bg-surface-container text-primary font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-xs">laptop_chromebook</span> Clase
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="inline-flex items-center gap-1.5 px-space-sm py-0.5 rounded-full bg-secondary-container/60 text-on-secondary-container font-label-sm text-label-sm font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Abierta
+              </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Laboratorio Especializado GPU-1</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-xs text-secondary">radar</span> Geocerca 20m
+                </span>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex flex-col">
+<div class="flex items-center gap-1 text-on-surface font-semibold font-label-md text-label-md">
+<span class="material-symbols-outlined text-sm text-secondary">event_available</span>
+<span>Viernes, 14:00 - 17:00</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Edificio Tecnologías</span>
+</div>
+</td>
+<td class="py-space-md px-space-lg text-right">
+<div class="inline-flex items-center gap-space-xs">
+<button class="px-space-md py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md font-semibold transition-colors" type="button">Detalle</button>
+<button class="p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors" title="Opciones" type="button">
+<span class="material-symbols-outlined text-base">more_vert</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Empty State Container (Hidden by default, triggered when filters yield 0 results) -->
+<div class="hidden p-space-xl flex-col items-center justify-center text-center" id="table-empty-state">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-outline mb-space-md">
+<span class="material-symbols-outlined text-3xl">search_off</span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">No se encontraron actividades</h3>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md mt-1 mb-space-md">No existen registros que coincidan con los criterios de búsqueda o filtros seleccionados.</p>
+<button class="px-space-lg py-2.5 rounded-xl bg-primary text-on-primary font-label-lg text-label-lg shadow-sm hover:bg-primary-container transition-colors" id="reset-from-empty-btn" type="button">
+        Restablecer todos los filtros
+      </button>
+</div>
+<!-- Pagination & Footer Metadata -->
+<div class="bg-surface-container-low/80 px-space-lg py-space-md flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Mostrando <span class="font-semibold text-on-surface" id="visible-count">5</span> de <span class="font-semibold text-on-surface">5</span> actividades registradas</span>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm disabled:opacity-50" disabled="" type="button">Anterior</button>
+<span class="px-space-sm py-1 rounded bg-primary text-on-primary font-label-sm text-label-sm font-semibold">1</span>
+<button class="px-space-sm py-1 rounded bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm disabled:opacity-50" disabled="" type="button">Siguiente</button>
+</div>
+</div>
+</section>
+<!-- Campus Context Banner -->
+<section class="bg-surface-container rounded-2xl p-space-lg mb-space-xl flex flex-col md:flex-row items-center justify-between gap-space-lg">
+<div class="flex items-start gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary text-on-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl">pin_drop</span>
+</div>
+<div>
+<h4 class="font-headline-sm text-headline-sm text-primary font-bold">Validación Georreferenciada UNL</h4>
+<p class="font-body-md text-body-md text-on-surface-variant mt-1 max-w-2xl">
+          Todas las sesiones generadas requieren confirmación de proximidad mediante GPS satelital o conexión al nodo Wi-Fi institucional de la facultad correspondiente antes de conceder la marca biométrica/código QR dinámico.
+        </p>
+</div>
+</div>
+<div class="shrink-0 flex items-center gap-space-sm">
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-label-sm uppercase font-semibold text-secondary">Geocercas sincronizadas</span>
+<span class="font-label-md text-label-md text-on-surface font-mono">DTI-GPS v4.19 Activo</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-2xl">verified</span>
+</div>
+</section>
+<!-- ============================================================== -->
+<!-- MODAL ASISTENTE / WIZARD OVERLAY: NUEVA ACTIVIDAD (/actividades/nueva) -->
+<!-- ============================================================== -->
+<div class="fixed inset-0 z-50 bg-on-surface/40 backdrop-blur-sm hidden items-center justify-center p-space-md md:p-space-lg overflow-y-auto" id="wizard-modal-overlay">
+<!-- Modal Card Body -->
+<div class="relative w-full max-w-4xl bg-surface-container-lowest rounded-2xl shadow-xl flex flex-col overflow-hidden my-auto max-h-[942px]">
+<!-- Modal Header -->
+<div class="bg-surface-container-low px-space-xl py-space-lg flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<div class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">post_add</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">
+<span>Asistente de Creación</span>
+<span>•</span>
+<span class="text-primary font-semibold">UNL GeoAsist</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Nueva Actividad Institucional</h2>
+</div>
+</div>
+<button class="w-9 h-9 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface-variant flex items-center justify-center transition-colors" id="close-modal-btn" type="button">
+<span class="material-symbols-outlined text-lg">close</span>
+</button>
+</div>
+<!-- Visual Multi-Step Stepper -->
+<div class="px-space-xl py-space-md bg-surface-container-lowest shadow-sm">
+<div class="flex items-center justify-between max-w-2xl mx-auto relative">
+<!-- Connector Lines Behind Steps -->
+<div class="absolute left-10 right-10 top-1/2 -translate-y-1/2 h-1 bg-surface-container-high z-0"></div>
+<div class="absolute left-10 top-1/2 -translate-y-1/2 h-1 bg-primary transition-all duration-300 z-0 w-0" id="stepper-progress-bar"></div>
+<!-- Step 1 Trigger -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-9 h-9 rounded-full bg-primary text-on-primary flex items-center justify-center font-label-md text-label-md font-bold shadow-sm transition-colors" id="step-indicator-1">
+              1
+            </div>
+<span class="font-label-md text-label-md text-primary font-bold mt-1" id="step-label-1">Tipo y nombre</span>
+</div>
+<!-- Step 2 Trigger -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-9 h-9 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center font-label-md text-label-md font-bold shadow-sm transition-colors" id="step-indicator-2">
+              2
+            </div>
+<span class="font-label-md text-label-md text-on-surface-variant font-medium mt-1" id="step-label-2">Dónde y cuándo</span>
+</div>
+<!-- Step 3 Trigger -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-9 h-9 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center font-label-md text-label-md font-bold shadow-sm transition-colors" id="step-indicator-3">
+              3
+            </div>
+<span class="font-label-md text-label-md text-on-surface-variant font-medium mt-1" id="step-label-3">Quiénes</span>
+</div>
+</div>
+</div>
+<!-- Wizard Form Content Panels (Scrollable) -->
+<div class="p-space-xl overflow-y-auto flex-1 bg-surface-container-lowest">
+<!-- STEP 1: Tipo y Nombre -->
+<div class="wizard-step-panel flex flex-col gap-space-lg" id="wizard-step-1">
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface font-bold mb-space-xs">Tipo de Actividad</label>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">Seleccione la categoría adecuada para aplicar las reglas de georreferenciación correspondientes.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<label class="cursor-pointer relative flex items-start gap-space-md p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-all">
+<input checked="" class="mt-1 text-primary focus:ring-primary" name="activity_type_radio" type="radio" value="Clase"/>
+<div>
+<span class="block font-title-md text-title-md text-primary font-bold">Clase Curricular Regular</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 block">Vinculada a mallas de carrera, lista nominal de estudiantes del SGA y horarios recurrentes.</span>
+</div>
+</label>
+<label class="cursor-pointer relative flex items-start gap-space-md p-space-md rounded-xl bg-surface-container-low hover:bg-surface-container transition-all">
+<input class="mt-1 text-primary focus:ring-primary" name="activity_type_radio" type="radio" value="Evento"/>
+<div>
+<span class="block font-title-md text-title-md text-primary font-bold">Evento Institucional / Seminario</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-0.5 block">Conferencias magistrales, talleres, ferias o sesiones especiales con registro abierto.</span>
+</div>
+</label>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-lg text-label-lg text-on-surface font-bold" for="input-act-name">Nombre de la actividad *</label>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Obligatorio</span>
+</div>
+<input class="w-full px-space-md py-2.5 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all" id="input-act-name" placeholder="Ej. Computación Paralela y Sistemas Distribuidos" type="text" value="Computación Paralela y Sistemas Distribuidos"/>
+<span class="hidden font-label-sm text-label-sm text-error" id="name-validation-msg">Por favor ingrese un nombre descriptivo válido.</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-lg text-label-lg text-on-surface font-bold" for="input-act-code">Código Institucional / SGA</label>
+<input class="w-full px-space-md py-2.5 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md uppercase font-mono focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all" id="input-act-code" type="text" value="UNL-COMP-802"/>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-lg text-label-lg text-on-surface font-bold" for="input-act-period">Período Académico</label>
+<select class="w-full px-space-md py-2.5 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary focus:outline-none transition-all" id="input-act-period">
+<option selected="">Período Ordinario 2024-2025 (Nov - Mar)</option>
+<option>Período Extraordinario de Titulación 2025</option>
+</select>
+</div>
+</div>
+</div>
+<!-- STEP 2: Dónde y Cuándo -->
+<div class="wizard-step-panel hidden flex-col gap-space-lg" id="wizard-step-2">
+<!-- Physical Space Assignment & Inherited Geofence -->
+<div class="bg-surface-container-low p-space-md rounded-2xl flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-primary font-bold uppercase tracking-wider block">Espacio Físico Georreferenciado</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface font-bold">Laboratorio de Redes y Telecomunicaciones 2</h4>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Bloque 3, Planta Alta, Campus Guillermo Falconí Espinosa</p>
+</div>
+<button class="px-space-md py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md font-semibold transition-colors" type="button">
+                Cambiar espacio
+              </button>
+</div>
+<!-- Geofence Visualizer Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md flex flex-col sm:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl">my_location</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<span class="font-label-md text-label-md text-on-surface font-bold">Radio de Geocerca Heredado:</span>
+<span class="px-space-xs py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold">25 metros</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant block mt-0.5">Lat: -3.99318, Lng: -79.20455 (Tolerancia GPS óptima para interior de campus)</span>
+</div>
+</div>
+<span class="inline-flex items-center gap-1 font-label-sm text-label-sm text-secondary font-semibold">
+<span class="material-symbols-outlined text-base">check_circle</span> Geocerca validada
+              </span>
+</div>
+</div>
+<!-- Weekly Schedule Config -->
+<div class="flex flex-col gap-space-md">
+<h4 class="font-title-md text-title-md text-on-surface font-bold">Horario Semanal & Vigencia</h4>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Fecha de Inicio</label>
+<input class="w-full px-space-md py-2 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none" type="date" value="2025-03-03"/>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Fecha de Finalización</label>
+<input class="w-full px-space-md py-2 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none" type="date" value="2025-07-25"/>
+</div>
+</div>
+<!-- Days of Week Selector -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant font-semibold mb-space-xs">Días de sesión programada</label>
+<div class="flex flex-wrap gap-space-xs">
+<label class="cursor-pointer px-space-md py-2 rounded-xl bg-surface-container-low has-[:checked]:bg-primary has-[:checked]:text-on-primary font-label-md text-label-md font-semibold transition-colors">
+<input checked="" class="hidden" type="checkbox"/> Lun
+                </label>
+<label class="cursor-pointer px-space-md py-2 rounded-xl bg-surface-container-low has-[:checked]:bg-primary has-[:checked]:text-on-primary font-label-md text-label-md font-semibold transition-colors">
+<input class="hidden" type="checkbox"/> Mar
+                </label>
+<label class="cursor-pointer px-space-md py-2 rounded-xl bg-surface-container-low has-[:checked]:bg-primary has-[:checked]:text-on-primary font-label-md text-label-md font-semibold transition-colors">
+<input checked="" class="hidden" type="checkbox"/> Mié
+                </label>
+<label class="cursor-pointer px-space-md py-2 rounded-xl bg-surface-container-low has-[:checked]:bg-primary has-[:checked]:text-on-primary font-label-md text-label-md font-semibold transition-colors">
+<input class="hidden" type="checkbox"/> Jue
+                </label>
+<label class="cursor-pointer px-space-md py-2 rounded-xl bg-surface-container-low has-[:checked]:bg-primary has-[:checked]:text-on-primary font-label-md text-label-md font-semibold transition-colors">
+<input checked="" class="hidden" type="checkbox"/> Vie
+                </label>
+<label class="cursor-pointer px-space-md py-2 rounded-xl bg-surface-container-low has-[:checked]:bg-primary has-[:checked]:text-on-primary font-label-md text-label-md font-semibold transition-colors opacity-50">
+<input class="hidden" disabled="" type="checkbox"/> Sáb
+                </label>
+</div>
+</div>
+<!-- Time Slots -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Hora Inicio</label>
+<input class="w-full px-space-md py-2 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none" type="time" value="08:00"/>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Hora Fin</label>
+<input class="w-full px-space-md py-2 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none" type="time" value="10:00"/>
+</div>
+</div>
+</div>
+</div>
+<!-- STEP 3: Quiénes y Previsualización -->
+<div class="wizard-step-panel hidden flex-col gap-space-lg" id="wizard-step-3">
+<!-- Paralelos / Carrera Selection -->
+<div>
+<label class="block font-label-lg text-label-lg text-on-surface font-bold mb-space-xs">Paralelo y Carrera Asignada</label>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-space-md">Seleccione los grupos curriculares matriculados en la plataforma SGA.</p>
+<div class="space-y-space-sm">
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<input checked="" class="w-4 h-4 text-primary rounded focus:ring-primary" type="checkbox"/>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-bold block">Carrera de Computación — Paralelo "A"</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ciclo VIII • Modalidad Presencial Diurna</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-1 rounded-full bg-surface-container font-label-sm text-label-sm text-primary font-semibold">
+                    36 Matriculados
+                  </span>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex items-center justify-between">
+<div class="flex items-center gap-space-md">
+<input class="w-4 h-4 text-primary rounded focus:ring-primary" type="checkbox"/>
+<div>
+<span class="font-label-md text-label-md text-on-surface font-bold block">Carrera de Computación — Paralelo "B"</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Ciclo VIII • Modalidad Presencial Vespertina</span>
+</div>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="px-space-sm py-1 rounded-full bg-surface-container font-label-sm text-label-sm text-on-surface-variant font-semibold">
+                    32 Matriculados
+                  </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Docente Responsable -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-lg text-label-lg text-on-surface font-bold">Docente Responsable Principal</label>
+<div class="flex items-center gap-space-md p-space-sm bg-surface-container-low rounded-xl">
+<img alt="Docente" class="w-10 h-10 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/ALJJyrAkI55UOqMZqa90b3hpqHbZCJ6xe5xaj3BNMuBe1gh-seztiXCPizb20qBUwu3cBOkv0GrHu0uxuAyFKcIDWL_Qs6sl_QfUXYLwHoC5tltfrh5p4Nlb5R-WbrIIBHOnEywlcAIc4pWx2bDmnH8qorn5zp0C4wlZRn5nXRNzm3gnTevXxGDjqGJ2sSycinRXoLJeCAGR0TsAhs_4vj1iR-L4oAl74Ctp0Q_70s_BwfDHPmteg2tObcXxOEE"/>
+<div class="flex-1">
+<span class="font-label-md text-label-md text-on-surface font-bold block">Ing. Edison Coronel, Mgtr.</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">edison.coronel@unl.edu.ec • DTI Docente Titular</span>
+</div>
+<span class="px-space-sm py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-semibold">Asignado</span>
+</div>
+</div>
+<!-- Automated Session Preview Box -->
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs text-primary font-bold font-label-md text-label-md">
+<span class="material-symbols-outlined text-base">preview</span>
+<span>Proyección de Sesiones Generadas (64 sesiones estimadas)</span>
+</div>
+<span class="font-label-sm text-label-sm text-secondary font-semibold">Generación recurrente activa</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-space-sm mt-1">
+<div class="p-space-sm rounded-lg bg-surface-container-lowest">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Sesión 1 (Inaugural)</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Lun, 03 Mar • 08:00</span>
+<span class="font-body-sm text-body-sm text-outline block text-xs">Lab. Redes 2</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Sesión 2</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Mié, 05 Mar • 08:00</span>
+<span class="font-body-sm text-body-sm text-outline block text-xs">Lab. Redes 2</span>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-lowest">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Sesión 3</span>
+<span class="font-label-md text-label-md text-on-surface font-bold">Vie, 07 Mar • 08:00</span>
+<span class="font-body-sm text-body-sm text-outline block text-xs">Lab. Redes 2</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal Action Navigation Bar -->
+<div class="bg-surface-container-low px-space-xl py-space-md flex items-center justify-between">
+<button class="px-space-lg py-2.5 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface font-label-lg text-label-lg font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed" disabled="" id="wizard-prev-btn" type="button">
+          Anterior
+        </button>
+<div class="flex items-center gap-space-sm">
+<button class="px-space-md py-2.5 rounded-xl text-on-surface-variant hover:text-on-surface font-label-lg text-label-lg transition-colors" id="cancel-wizard-btn" type="button">
+            Cancelar
+          </button>
+<button class="px-space-xl py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg font-bold shadow-md transition-all" id="wizard-next-btn" type="button">
+            Siguiente
+          </button>
+<button class="hidden px-space-xl py-2.5 rounded-xl bg-secondary hover:bg-secondary/90 text-on-secondary font-label-lg text-label-lg font-bold shadow-md transition-all flex items-center gap-space-xs" id="wizard-submit-btn" type="button">
+<span class="material-symbols-outlined text-base">check_circle</span>
+<span>Crear clase</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Inline Client Interaction Script for Filters & Modal Wizard -->
+<script>
+    (function initActivityManagement() {
+      // Elements: Table Filter & Search
+      const searchInput = document.getElementById('activity-search-input');
+      const typePills = document.querySelectorAll('.filter-type-pill');
+      const statusSelect = document.getElementById('status-filter-select');
+      const resetFiltersBtn = document.getElementById('reset-filters-btn');
+      const resetFromEmptyBtn = document.getElementById('reset-from-empty-btn');
+      const rows = document.querySelectorAll('.activity-row');
+      const emptyState = document.getElementById('table-empty-state');
+      const visibleCountLabel = document.getElementById('visible-count');
+
+      let currentTypeFilter = 'all';
+
+      function applyFilters() {
+        const query = (searchInput.value || '').trim().toLowerCase();
+        const statusValue = statusSelect.value;
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+          const rowText = row.innerText.toLowerCase();
+          const rowType = row.getAttribute('data-type');
+          const rowStatus = row.getAttribute('data-status');
+
+          const matchesSearch = !query || rowText.includes(query);
+          const matchesType = (currentTypeFilter === 'all') || (rowType === currentTypeFilter);
+          const matchesStatus = (statusValue === 'all') || (rowStatus === statusValue);
+
+          if (matchesSearch && matchesType && matchesStatus) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        visibleCountLabel.innerText = visibleCount;
+        if (visibleCount === 0) {
+          emptyState.classList.remove('hidden');
+          emptyState.classList.add('flex');
+        } else {
+          emptyState.classList.add('hidden');
+          emptyState.classList.remove('flex');
+        }
+      }
+
+      // Filter Events
+      searchInput.addEventListener('input', applyFilters);
+      statusSelect.addEventListener('change', applyFilters);
+
+      typePills.forEach(pill => {
+        pill.addEventListener('click', () => {
+          typePills.forEach(p => {
+            p.classList.remove('bg-primary', 'text-on-primary');
+            p.classList.add('text-on-surface-variant');
+          });
+          pill.classList.add('bg-primary', 'text-on-primary');
+          pill.classList.remove('text-on-surface-variant');
+          currentTypeFilter = pill.getAttribute('data-filter-type');
+          applyFilters();
+        });
+      });
+
+      function resetFilters() {
+        searchInput.value = '';
+        statusSelect.value = 'all';
+        currentTypeFilter = 'all';
+        typePills.forEach((p, idx) => {
+          if (idx === 0) {
+            p.classList.add('bg-primary', 'text-on-primary');
+            p.classList.remove('text-on-surface-variant');
+          } else {
+            p.classList.remove('bg-primary', 'text-on-primary');
+            p.classList.add('text-on-surface-variant');
+          }
+        });
+        applyFilters();
+      }
+
+      resetFiltersBtn.addEventListener('click', resetFilters);
+      resetFromEmptyBtn.addEventListener('click', resetFilters);
+
+      // Elements: Assistant / Wizard Modal
+      const modal = document.getElementById('wizard-modal-overlay');
+      const openModalBtn = document.getElementById('open-assistant-btn');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+      const cancelWizardBtn = document.getElementById('cancel-wizard-btn');
+
+      const prevBtn = document.getElementById('wizard-prev-btn');
+      const nextBtn = document.getElementById('wizard-next-btn');
+      const submitBtn = document.getElementById('wizard-submit-btn');
+
+      const step1 = document.getElementById('wizard-step-1');
+      const step2 = document.getElementById('wizard-step-2');
+      const step3 = document.getElementById('wizard-step-3');
+
+      const ind1 = document.getElementById('step-indicator-1');
+      const ind2 = document.getElementById('step-indicator-2');
+      const ind3 = document.getElementById('step-indicator-3');
+
+      const lab1 = document.getElementById('step-label-1');
+      const lab2 = document.getElementById('step-label-2');
+      const lab3 = document.getElementById('step-label-3');
+
+      const progressBar = document.getElementById('stepper-progress-bar');
+      const inputName = document.getElementById('input-act-name');
+      const nameValidationMsg = document.getElementById('name-validation-msg');
+
+      let currentStep = 1;
+
+      function openModal() {
+        currentStep = 1;
+        renderStep();
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = '';
+      }
+
+      openModalBtn.addEventListener('click', openModal);
+      closeModalBtn.addEventListener('click', closeModal);
+      cancelWizardBtn.addEventListener('click', closeModal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      function renderStep() {
+        step1.classList.add('hidden');
+        step2.classList.add('hidden');
+        step3.classList.add('hidden');
+
+        // Reset step state styling
+        [ind1, ind2, ind3].forEach(ind => {
+          ind.classList.remove('bg-primary', 'text-on-primary', 'bg-secondary', 'text-on-secondary');
+          ind.classList.add('bg-surface-container', 'text-on-surface-variant');
+        });
+        [lab1, lab2, lab3].forEach(l => {
+          l.classList.remove('text-primary', 'font-bold');
+          l.classList.add('text-on-surface-variant');
+        });
+
+        if (currentStep === 1) {
+          step1.classList.remove('hidden');
+          ind1.classList.add('bg-primary', 'text-on-primary');
+          lab1.classList.add('text-primary', 'font-bold');
+          progressBar.style.width = '0%';
+          prevBtn.disabled = true;
+          nextBtn.classList.remove('hidden');
+          submitBtn.classList.add('hidden');
+        } else if (currentStep === 2) {
+          step2.classList.remove('hidden');
+          ind1.classList.add('bg-secondary', 'text-on-secondary');
+          ind2.classList.add('bg-primary', 'text-on-primary');
+          lab2.classList.add('text-primary', 'font-bold');
+          progressBar.style.width = '50%';
+          prevBtn.disabled = false;
+          nextBtn.classList.remove('hidden');
+          submitBtn.classList.add('hidden');
+        } else if (currentStep === 3) {
+          step3.classList.remove('hidden');
+          ind1.classList.add('bg-secondary', 'text-on-secondary');
+          ind2.classList.add('bg-secondary', 'text-on-secondary');
+          ind3.classList.add('bg-primary', 'text-on-primary');
+          lab3.classList.add('text-primary', 'font-bold');
+          progressBar.style.width = '100%';
+          prevBtn.disabled = false;
+          nextBtn.classList.add('hidden');
+          submitBtn.classList.remove('hidden');
+        }
+      }
+
+      nextBtn.addEventListener('click', () => {
+        if (currentStep === 1) {
+          if (!inputName.value.trim()) {
+            inputName.classList.add('border-error');
+            nameValidationMsg.classList.remove('hidden');
+            inputName.focus();
+            return;
+          } else {
+            nameValidationMsg.classList.add('hidden');
+          }
+        }
+
+        if (currentStep < 3) {
+          currentStep++;
+          renderStep();
+        }
+      });
+
+      prevBtn.addEventListener('click', () => {
+        if (currentStep > 1) {
+          currentStep--;
+          renderStep();
+        }
+      });
+
+      submitBtn.addEventListener('click', () => {
+        submitBtn.innerHTML = '<span class="material-symbols-outlined text-base animate-spin">refresh</span> <span>Guardando...</span>';
+        setTimeout(() => {
+          submitBtn.innerHTML = '<span class="material-symbols-outlined text-base">check</span> <span>¡Creada con éxito!</span>';
+          setTimeout(() => {
+            closeModal();
+            submitBtn.innerHTML = '<span class="material-symbols-outlined text-base">check_circle</span> <span>Crear clase</span>';
+          }, 600);
+        }, 800);
+      });
+    })();
+  </script>
+</div></main><footer class="w-full bg-surface-container-low py-space-lg"><div class="w-full px-margin flex flex-col md:flex-row items-center justify-between gap-space-sm text-center md:text-left"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-on-surface-variant text-base">verified</span><span class="font-body-sm text-body-sm text-on-surface-variant">Universidad Nacional de Loja — Dirección de Tecnologías de la Información</span></div><div class="font-label-sm text-label-sm text-on-surface-variant">Plataforma Institucional de Geolocalización y Control de Asistencia © 2024</div></div></footer></body></html>
