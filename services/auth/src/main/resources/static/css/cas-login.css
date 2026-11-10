@@ -1,17 +1,20 @@
-.cas-login { color-scheme:light; background:#faf8ff; color:#131b2e; font-family:Inter,system-ui,sans-serif; }
-.cas-login main { max-width:30rem; padding:1rem 0; background:transparent; box-shadow:none; }
+.cas-login { display:flex; align-items:flex-start; justify-content:center; color-scheme:light; background:#faf8ff; color:#131b2e; font-family:Inter,system-ui,sans-serif; }
+.cas-login main { width:calc(100% - .5rem); max-width:30rem; padding:1rem 0; background:transparent; box-shadow:none; }
 .cas-identity { display:flex; flex-direction:column; align-items:center; gap:.5rem; text-align:center; }
-.cas-crest { display:grid; place-items:center; width:8rem; height:8rem; border:1px solid #e2e7f4; border-radius:1.25rem; background:#fff; box-shadow:0 2px 10px #0f172a0d; }
+.cas-crest { position:relative; display:grid; place-items:center; width:8rem; height:8rem; border:1px solid #e2e7f4; border-radius:1.25rem; background:#fff; box-shadow:0 2px 10px #0f172a0d; }
 .cas-crest img { width:104px; height:104px; object-fit:contain; }
-.cas-institution { margin:.75rem 0 0; padding:.3rem .85rem; border-radius:999px; background:#e4eaff; color:#1e3a8a; font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.cas-crest::after { content:''; position:absolute; top:-.25rem; right:-.25rem; width:.875rem; height:.875rem; border:2px solid #fff; border-radius:50%; background:#006e2d; }
+.cas-institution { display:inline-flex; align-items:center; gap:.45rem; margin:.75rem 0 0; padding:.3rem .85rem; border-radius:999px; background:#e4eaff; color:#1e3a8a; font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.cas-institution::before { content:''; width:.375rem; height:.375rem; border-radius:50%; background:#006e2d; }
 .cas-brand { margin:.1rem 0 0; color:#0f1f49; font-size:2rem; line-height:1.15; font-weight:800; }
 .cas-subtitle { margin:0; color:#56617b; font-size:.95rem; }
+.cas-description { max-width:24rem; margin:0 auto; color:#444651; font-size:.875rem; line-height:1.5; }
 .cas-card { margin-top:1.5rem; padding:clamp(1.25rem,5vw,2rem); border:1px solid #e8ebf5; border-radius:1.25rem; background:#fff; box-shadow:0 2px 12px #0f172a0d; }
 .cas-card h1 { color:#0f1f49; font-size:1.65rem; margin:0 0 .5rem; }
 .cas-card .hint { color:#56617b; opacity:1; }
 .cas-card label { color:#192847; font-size:.875rem; }
 .cas-card input:not([type=hidden]) { min-height:48px; padding:.75rem; color:#131b2e; background:#f3f5ff; border:1px solid #d9e0f4; border-radius:.75rem; }
-.cas-card button { min-height:48px; color:#fff; background:#1e3a8a; border-radius:.8rem; }
+.cas-card button { min-height:60px; color:#fff; background:#1e3a8a; border-radius:.8rem; }
 .cas-card button:hover { background:#00236f; }
 .cas-card input:focus-visible, .cas-card button:focus-visible { outline:3px solid #1e3a8a; outline-offset:2px; }
 .cas-card .error { color:#a4161a; }
