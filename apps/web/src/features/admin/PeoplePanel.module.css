@@ -1,0 +1,176 @@
+.people {
+  --color-brand: #173a85;
+  --color-brand-hover: #102b67;
+  --color-ink: #17213d;
+  --color-muted: #52607a;
+  --color-line: #dce1f0;
+  --color-field: #8490ba;
+  --color-surface: #fff;
+  --color-paper: #f5f6ff;
+  --color-ok: #1e7448;
+  --color-ok-soft: #e9f4ec;
+  --color-info: #1c5ca3;
+  --color-info-soft: #e6eefa;
+  --color-warn: #8a5a00;
+  --color-warn-soft: #fbf1dc;
+  --color-danger: #a33726;
+  --color-danger-soft: #fff1eb;
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  color: var(--color-ink);
+}
+
+.people h1 {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.people :global(.page-heading) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-line);
+  border-radius: .75rem;
+  background: var(--color-surface);
+}
+
+.people :global(.page-heading) p {
+  margin: .4rem 0 0;
+  color: var(--color-muted);
+}
+
+.search {
+  width: min(100%, 34rem);
+  margin: 0;
+}
+
+.people table {
+  min-width: 46rem;
+  border: 1px solid var(--color-line);
+  border-radius: .75rem;
+  background: var(--color-surface);
+}
+
+.people thead {
+  background: #edf0ff;
+  color: var(--color-ink);
+}
+
+.people th {
+  font-weight: 700;
+}
+
+.people tbody tr:hover {
+  background: #f5f6ff;
+}
+
+.people nav[aria-label="Paginación de personas"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  margin: 0;
+}
+
+.people nav[aria-label="Paginación de personas"] p {
+  flex: 1 1 15rem;
+  margin: 0;
+}
+
+.people fieldset {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: .25rem .75rem;
+  margin: 1rem 0;
+  padding: .75rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: .5rem;
+}
+
+.people fieldset legend {
+  padding: 0 .35rem;
+  color: var(--color-brand);
+  font-weight: 700;
+}
+
+.people fieldset label {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .people :global(.page-heading) {
+    align-items: stretch;
+  }
+
+  .people :global(.page-heading) > button {
+    width: 100%;
+  }
+
+  .people table {
+    display: block;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .people thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .people tbody {
+    display: grid;
+    gap: .75rem;
+  }
+
+  .people tbody tr {
+    display: grid;
+    gap: .5rem;
+    padding: .75rem;
+    border: 1px solid var(--color-line);
+    border-radius: .65rem;
+    background: var(--color-surface);
+  }
+
+  .people tbody td {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 38%) minmax(0, 1fr);
+    gap: .5rem;
+    overflow-wrap: anywhere;
+    padding: .25rem;
+  }
+
+  .people tbody td::before {
+    content: attr(data-label);
+    color: var(--color-muted);
+    font-weight: 700;
+  }
+
+  .people tbody td:last-child {
+    display: flex;
+    justify-content: flex-end;
+    border-top: 1px solid var(--color-line);
+    padding-top: .5rem;
+  }
+
+  .people tbody td:last-child::before {
+    content: none;
+  }
+
+  .people nav[aria-label="Paginación de personas"] p {
+    flex-basis: 100%;
+  }
+
+  .people nav[aria-label="Paginación de personas"] button {
+    flex: 1 1 7rem;
+  }
+}
