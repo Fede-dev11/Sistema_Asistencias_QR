@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-tertiary-container":"#82abff","on-primary-fixed-variant":"#264191","on-secondary":"#ffffff","on-secondary-fixed-variant":"#005320","on-secondary-fixed":"#002109","secondary-fixed":"#7ffc97","outline":"#757682","primary-fixed-dim":"#b6c4ff","on-error":"#ffffff","tertiary-container":"#003d88","surface-tint":"#4059aa","background":"#faf8ff","surface-container-low":"#f2f3ff","surface":"#faf8ff","on-tertiary":"#ffffff","tertiary":"#00285e","surface-container":"#eaedff","on-tertiary-fixed":"#001a42","on-surface-variant":"#444651","on-error-container":"#93000a","on-primary":"#ffffff","outline-variant":"#c5c5d3","on-primary-fixed":"#00164e","on-primary-container":"#90a8ff","secondary-container":"#7cf994","tertiary-fixed":"#d8e2ff","surface-dim":"#d2d9f4","on-background":"#131b2e","inverse-primary":"#b6c4ff","primary":"#00236f","error":"#ba1a1a","tertiary-fixed-dim":"#adc6ff","inverse-surface":"#283044","primary-container":"#1e3a8a","surface-container-lowest":"#ffffff","error-container":"#ffdad6","surface-variant":"#dae2fd","surface-bright":"#faf8ff","on-surface":"#131b2e","surface-container-highest":"#dae2fd","secondary-fixed-dim":"#62df7d","inverse-on-surface":"#eef0ff","primary-fixed":"#dce1ff","on-secondary-container":"#007230","surface-container-high":"#e2e7ff","secondary":"#006e2d","on-tertiary-fixed-variant":"#004395"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-md":"1rem","space-sm":"0.5rem","space-xs":"0.25rem","space-xl":"2rem","margin":"1.25rem","space-lg":"1.5rem","gutter":"1rem"},"fontFamily":{"headline-xl":["Inter"],"label-lg":["Inter"],"title-md":["Inter"],"label-md":["Inter"],"body-sm":["Inter"],"headline-md":["Inter"],"headline-sm":["Inter"],"headline-lg":["Inter"],"label-sm":["Inter"],"body-md":["Inter"],"body-lg":["Inter"]},"fontSize":{"headline-xl":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-lg":["14px",{"lineHeight":"20px","fontWeight":"600"}],"title-md":["16px",{"lineHeight":"22px","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-sm":["18px",{"lineHeight":"24px","fontWeight":"600"}],"headline-lg":["24px",{"lineHeight":"32px","letterSpacing":"-0.015em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"500"}],"body-md":["14px",{"lineHeight":"20px","fontWeight":"400"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface antialiased flex flex-col min-h-screen"><header class="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-margin flex items-center justify-between"><div class="flex items-center gap-space-lg"><div class="flex items-center gap-space-sm"><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary leading-tight tracking-tight">UNL · GeoAsist</span><span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Universidad Nacional de Loja</span></div></div><nav class="hidden xl:flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-bold rounded-lg shadow-sm"><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="hoy" href="#">Hoy</a><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="actividades" href="#">Actividades</a><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="sesiones" href="#">Sesiones</a><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="estadisticas-y-reportes" href="#">Estadísticas y Reportes</a><a class="px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="administracion" href="#">Administración</a></nav></div><div class="flex items-center gap-space-md"><div class="hidden sm:flex flex-col text-right leading-tight"><span class="font-label-lg text-label-lg text-on-surface font-semibold">Ing. Edison Coronel</span><div class="flex items-center justify-end gap-space-xs"><span class="bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-space-xs py-0.5 rounded-full font-semibold uppercase tracking-wider">Docente</span><span class="font-label-sm text-label-sm text-on-surface-variant">Admin DTI</span></div></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover shadow-sm" src="https://lh3.googleusercontent.com/aida/ALJJyrAkI55UOqMZqa90b3hpqHbZCJ6xe5xaj3BNMuBe1gh-seztiXCPizb20qBUwu3cBOkv0GrHu0uxuAyFKcIDWL_Qs6sl_QfUXYLwHoC5tltfrh5p4Nlb5R-WbrIIBHOnEywlcAIc4pWx2bDmnH8qorn5zp0C4wlZRn5nXRNzm3gnTevXxGDjqGJ2sSycinRXoLJeCAGR0TsAhs_4vj1iR-L4oAl74Ctp0Q_70s_BwfDHPmteg2tObcXxOEE"/><a class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container text-on-surface hover:bg-error-container hover:text-on-error-container transition-colors font-label-md text-label-md" data-path="login" href="#"><span class="material-symbols-outlined text-sm">logout</span><span class="hidden md:inline">Salir</span></a></div></div></header><main class="w-full pt-16 bg-background flex-1 px-margin"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-lg w-full max-w-7xl mx-auto py-space-md">
+<!-- Top Administrative Header and Breadcrumb Meta -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs text-on-surface-variant font-label-sm text-label-sm uppercase tracking-wider">
+<span>DTI Plataforma</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span>Gestión Académica</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-bold">Configuración Estructural</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Administración del Sistema</h1>
+<span class="bg-surface-container-high text-primary font-label-sm text-label-sm px-space-xs py-0.5 rounded-full font-bold">v3.4.2-prod</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+          Supervisión global de nómina, geolocalización satelital y parametrización de mallas curriculares de la Universidad Nacional de Loja.
+        </p>
+</div>
+<!-- Quick Metrics Ribbon -->
+<div class="flex items-center gap-space-sm bg-surface-container-low p-space-xs rounded-xl shadow-sm">
+<div class="flex items-center gap-space-sm px-space-md py-space-xs">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">groups</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface leading-none">1,420</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Personas Activas</span>
+</div>
+</div>
+<div class="w-px h-8 bg-outline-variant/30"></div>
+<div class="flex items-center gap-space-sm px-space-md py-space-xs">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">school</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface leading-none">8</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Carreras Activas</span>
+</div>
+</div>
+<div class="w-px h-8 bg-outline-variant/30"></div>
+<div class="flex items-center gap-space-sm px-space-md py-space-xs">
+<div class="w-9 h-9 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">pin_drop</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface leading-none">42</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Geocercas UNL</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Administrative Subnavigation Tabs -->
+<div class="flex items-center overflow-x-auto gap-space-xs p-1 bg-surface-container-low rounded-xl">
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface transition-all whitespace-nowrap">
+<span class="material-symbols-outlined text-base">badge</span>
+        Personas y Cuentas
+      </button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg font-label-lg text-label-lg bg-primary-container text-on-primary shadow-sm font-bold whitespace-nowrap">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">account_tree</span>
+        Carreras y Paralelos
+      </button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface transition-all whitespace-nowrap">
+<span class="material-symbols-outlined text-base">map</span>
+        Espacios y Geocercas
+      </button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface hover:bg-surface transition-all whitespace-nowrap">
+<span class="material-symbols-outlined text-base">upload_file</span>
+        Importación masiva CSV
+      </button>
+</div>
+<!-- Main Dynamic Grid: Left Master Carreras, Right Detail Paralelos -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- Columna 1: Malla de Carreras (5 cols) -->
+<section class="lg:col-span-5 flex flex-col gap-space-md bg-surface-container-lowest p-space-md rounded-2xl shadow-sm">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-primary">Oferta Académica</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Facultad de la Energía y Sistemas</span>
+</div>
+<button class="flex items-center gap-space-xs bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md px-space-md py-space-sm rounded-xl transition-all shadow-sm">
+<span class="material-symbols-outlined text-sm">add</span>
+            Nueva Carrera
+          </button>
+</div>
+<!-- Filter bar -->
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-space-sm top-2.5 text-outline text-base">search</span>
+<input class="w-full bg-surface-container-low font-body-sm text-body-sm text-on-surface pl-9 pr-space-md py-2 rounded-xl focus:outline-none focus:bg-surface-container-lowest transition-colors" placeholder="Filtrar por código o nombre..." type="text" value="Computación"/>
+</div>
+<!-- Tabla de Carreras -->
+<div class="overflow-hidden rounded-xl bg-surface-container-low/40">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container font-label-md text-label-md text-on-surface-variant">
+<tr>
+<th class="py-space-sm px-space-md font-semibold">Código</th>
+<th class="py-space-sm px-space-md font-semibold">Nombre de Carrera</th>
+<th class="py-space-sm px-space-sm font-semibold">Nivel</th>
+<th class="py-space-sm px-space-sm text-right"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Fila Seleccionada: Activa -->
+<tr class="bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer relative">
+<td class="py-space-md px-space-md font-label-md text-label-md text-primary font-bold">
+<div class="flex items-center gap-space-xs">
+<span class="w-1.5 h-6 bg-primary rounded-full -ml-space-sm"></span>
+<span>ING-COMP</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-medium text-on-surface">
+                  Ingeniería en Computación
+                  <span class="block font-label-sm text-label-sm text-on-surface-variant">Régimen 2020 · 10 Ciclos</span>
+</td>
+<td class="py-space-md px-space-sm font-label-sm text-label-sm text-on-surface-variant">
+                  Grado
+                </td>
+<td class="py-space-md px-space-sm text-right pr-space-md">
+<span class="material-symbols-outlined text-primary text-base">chevron_right</span>
+</td>
+</tr>
+<!-- Fila regular 1 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors cursor-pointer">
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface-variant font-medium">
+                  ING-TEL
+                </td>
+<td class="py-space-md px-space-md font-medium text-on-surface">
+                  Telecomunicaciones
+                  <span class="block font-label-sm text-label-sm text-on-surface-variant">Régimen 2021 · 9 Ciclos</span>
+</td>
+<td class="py-space-md px-space-sm font-label-sm text-label-sm text-on-surface-variant">
+                  Grado
+                </td>
+<td class="py-space-md px-space-sm text-right pr-space-md">
+<span class="material-symbols-outlined text-outline text-base">chevron_right</span>
+</td>
+</tr>
+<!-- Fila regular 2 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors cursor-pointer">
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface-variant font-medium">
+                  ING-ELECT
+                </td>
+<td class="py-space-md px-space-md font-medium text-on-surface">
+                  Electromecánica
+                  <span class="block font-label-sm text-label-sm text-on-surface-variant">Régimen 2019 · 10 Ciclos</span>
+</td>
+<td class="py-space-md px-space-sm font-label-sm text-label-sm text-on-surface-variant">
+                  Grado
+                </td>
+<td class="py-space-md px-space-sm text-right pr-space-md">
+<span class="material-symbols-outlined text-outline text-base">chevron_right</span>
+</td>
+</tr>
+<!-- Fila regular 3 -->
+<tr class="hover:bg-surface-container-high/40 transition-colors cursor-pointer">
+<td class="py-space-md px-space-md font-label-md text-label-md text-on-surface-variant font-medium">
+                  MTR-IA
+                </td>
+<td class="py-space-md px-space-md font-medium text-on-surface">
+                  Maestría en Inteligencia Artificial
+                  <span class="block font-label-sm text-label-sm text-on-surface-variant">Posgrado · 3 Semestres</span>
+</td>
+<td class="py-space-md px-space-sm font-label-sm text-label-sm text-on-surface-variant">
+                  Posgrado
+                </td>
+<td class="py-space-md px-space-sm text-right pr-space-md">
+<span class="material-symbols-outlined text-outline text-base">chevron_right</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-label-sm text-label-sm px-space-xs pt-space-xs">
+<span>Mostrando 4 de 8 carreras</span>
+<div class="flex items-center gap-space-xs">
+<button class="p-1 rounded hover:bg-surface-container" disabled=""><span class="material-symbols-outlined text-sm">arrow_back</span></button>
+<button class="p-1 rounded hover:bg-surface-container"><span class="material-symbols-outlined text-sm">arrow_forward</span></button>
+</div>
+</div>
+</section>
+<!-- Columna 2: Paralelos de la Carrera Seleccionada (7 cols) -->
+<section class="lg:col-span-7 flex flex-col gap-space-md bg-surface-container-lowest p-space-md rounded-2xl shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-xs">
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs">
+<span class="bg-surface-container-high text-primary font-label-sm text-label-sm px-space-xs py-0.5 rounded-full font-bold">ING-COMP</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Paralelos Habilitados</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Periodo Académico Ordinario: 2024 - 2025</span>
+</div>
+<button class="flex items-center gap-space-xs bg-surface-container-high hover:bg-surface-container text-primary font-label-md text-label-md px-space-md py-space-sm rounded-xl transition-all self-start sm:self-auto">
+<span class="material-symbols-outlined text-sm">library_add</span>
+            Nuevo Paralelo
+          </button>
+</div>
+<!-- Class/Paralelos Dynamic Table -->
+<div class="overflow-x-auto rounded-xl bg-surface-container-low/30">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container font-label-md text-label-md text-on-surface-variant">
+<tr>
+<th class="py-space-sm px-space-md font-semibold">Paralelo</th>
+<th class="py-space-sm px-space-sm font-semibold">Ciclo</th>
+<th class="py-space-sm px-space-sm font-semibold text-center">Matriculados</th>
+<th class="py-space-sm px-space-md font-semibold">Docentes Asignados</th>
+<th class="py-space-sm px-space-sm font-semibold text-right">Gestión</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<!-- Paralelo Activo para inspección -->
+<tr class="bg-surface-container-high/40 transition-colors">
+<td class="py-space-md px-space-md font-label-lg text-label-lg text-primary font-bold">
+                  Paralelo A
+                </td>
+<td class="py-space-md px-space-sm">
+<span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-space-xs py-0.5 rounded-md font-medium">Ciclo V</span>
+</td>
+<td class="py-space-md px-space-sm text-center">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-on-surface font-semibold bg-surface-container px-2 py-0.5 rounded-full">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                    32 / 35
+                  </span>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<img alt="Coronel E." class="w-6 h-6 rounded-full object-cover shadow-xs" src="https://lh3.googleusercontent.com/aida/ALJJyrAkI55UOqMZqa90b3hpqHbZCJ6xe5xaj3BNMuBe1gh-seztiXCPizb20qBUwu3cBOkv0GrHu0uxuAyFKcIDWL_Qs6sl_QfUXYLwHoC5tltfrh5p4Nlb5R-WbrIIBHOnEywlcAIc4pWx2bDmnH8qorn5zp0C4wlZRn5nXRNzm3gnTevXxGDjqGJ2sSycinRXoLJeCAGR0TsAhs_4vj1iR-L4oAl74Ctp0Q_70s_BwfDHPmteg2tObcXxOEE"/>
+<span class="font-body-sm text-body-sm text-on-surface truncate max-w-[140px]">Ing. Edison Coronel</span>
+</div>
+</td>
+<td class="py-space-md px-space-sm text-right pr-space-md">
+<button class="flex items-center gap-space-xs ml-auto bg-primary hover:bg-primary-container text-on-primary font-label-sm text-label-sm px-space-sm py-1.5 rounded-lg transition-all shadow-xs" id="open-drawer-btn">
+<span class="material-symbols-outlined text-xs">group</span>
+<span>Integrantes</span>
+</button>
+</td>
+</tr>
+<!-- Paralelo B -->
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-md px-space-md font-label-lg text-label-lg text-on-surface font-bold">
+                  Paralelo B
+                </td>
+<td class="py-space-md px-space-sm">
+<span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-space-xs py-0.5 rounded-md font-medium">Ciclo V</span>
+</td>
+<td class="py-space-md px-space-sm text-center">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-on-surface font-semibold bg-surface-container px-2 py-0.5 rounded-full">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                    30 / 35
+                  </span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-sm text-body-sm text-on-surface-variant italic">Dra. Marcia Valdivieso</span>
+</td>
+<td class="py-space-md px-space-sm text-right pr-space-md">
+<button class="flex items-center gap-space-xs ml-auto bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm px-space-sm py-1.5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-xs">group</span>
+<span>Integrantes</span>
+</button>
+</td>
+</tr>
+<!-- Paralelo A Ciclo IV -->
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-md px-space-md font-label-lg text-label-lg text-on-surface font-bold">
+                  Paralelo A
+                </td>
+<td class="py-space-md px-space-sm">
+<span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-space-xs py-0.5 rounded-md font-medium">Ciclo IV</span>
+</td>
+<td class="py-space-md px-space-sm text-center">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-on-surface font-semibold bg-surface-container px-2 py-0.5 rounded-full">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                    28 / 35
+                  </span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-sm text-body-sm text-on-surface">Ing. Marcelo Burneo</span>
+</td>
+<td class="py-space-md px-space-sm text-right pr-space-md">
+<button class="flex items-center gap-space-xs ml-auto bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm px-space-sm py-1.5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-xs">group</span>
+<span>Integrantes</span>
+</button>
+</td>
+</tr>
+<!-- Paralelo A Ciclo VII -->
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-md px-space-md font-label-lg text-label-lg text-on-surface font-bold">
+                  Paralelo A
+                </td>
+<td class="py-space-md px-space-sm">
+<span class="bg-surface-container-high text-on-surface font-label-sm text-label-sm px-space-xs py-0.5 rounded-md font-medium">Ciclo VII</span>
+</td>
+<td class="py-space-md px-space-sm text-center">
+<span class="inline-flex items-center gap-1 font-label-md text-label-md text-on-surface font-semibold bg-surface-container px-2 py-0.5 rounded-full">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+                    24 / 30
+                  </span>
+</td>
+<td class="py-space-md px-space-md">
+<span class="font-body-sm text-body-sm text-on-surface">Ing. Edison Coronel</span>
+</td>
+<td class="py-space-md px-space-sm text-right pr-space-md">
+<button class="flex items-center gap-space-xs ml-auto bg-surface-container hover:bg-surface-container-high text-primary font-label-sm text-label-sm px-space-sm py-1.5 rounded-lg transition-all">
+<span class="material-symbols-outlined text-xs">group</span>
+<span>Integrantes</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Status Bar within Card -->
+<div class="flex flex-col sm:flex-row items-center justify-between p-space-sm bg-surface-container-low rounded-xl gap-space-xs font-body-sm text-body-sm text-on-surface-variant">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-sm text-primary">sync</span>
+<span>Sincronizado con base de datos central SIU Guaraní / SGA UNL</span>
+</div>
+<span class="font-label-sm text-label-sm font-semibold text-primary cursor-pointer hover:underline">Auditoría de Cambios →</span>
+</div>
+</section>
+</div>
+<!-- Panel Lateral Desplegado / Modal Sidebar (Integrantes del paralelo) -->
+<!-- Managed via state-ready HTML wrapper with overlay -->
+<div class="relative z-50" id="drawer-container">
+<!-- Backdrop overlay -->
+<div class="fixed inset-0 bg-inverse-surface/40 backdrop-blur-xs transition-opacity duration-300" id="drawer-backdrop"></div>
+<!-- Drawer Content: Fixed right sidebar -->
+<aside class="fixed top-0 right-0 h-full w-full max-w-2xl bg-surface-container-lowest shadow-2xl flex flex-col z-50 overflow-hidden transform transition-transform duration-300" id="drawer-content">
+<!-- Header del Drawer -->
+<div class="px-space-lg py-space-md bg-surface-container-low flex items-start justify-between">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="bg-primary text-on-primary font-label-sm text-label-sm px-space-xs py-0.5 rounded font-bold">ING-COMP</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Gestión de Integrantes</span>
+</div>
+<h2 class="font-headline-md text-headline-md text-primary font-bold">Computación Ciclo V · Paralelo A</h2>
+<div class="flex items-center gap-space-sm font-body-sm text-body-sm text-on-surface-variant">
+<span>Aula Magna CIS-104</span>
+<span>•</span>
+<span>Docente Titular: Ing. Edison Coronel</span>
+</div>
+</div>
+<button class="w-8 h-8 rounded-full bg-surface-container hover:bg-error-container hover:text-on-error-container text-on-surface flex items-center justify-center transition-colors" id="close-drawer-btn">
+<span class="material-symbols-outlined text-base">close</span>
+</button>
+</div>
+<!-- Pestañas [Matriculados] y [Docentes] -->
+<div class="flex items-center px-space-lg bg-surface-container-low">
+<button class="px-space-md py-space-sm font-label-lg text-label-lg font-bold text-primary border-b-2 border-primary flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-base" style="font-variation-settings: 'FILL' 1;">how_to_reg</span>
+            Matriculados (32)
+          </button>
+<button class="px-space-md py-space-sm font-label-lg text-label-lg font-semibold text-on-surface-variant hover:text-on-surface flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-base">school</span>
+            Docentes (1)
+          </button>
+</div>
+<!-- Scrollable Drawer Body -->
+<div class="flex-1 overflow-y-auto p-space-lg flex flex-col gap-space-lg">
+<!-- Sección Carga Masiva (Textarea & Controles) -->
+<div class="flex flex-col gap-space-sm bg-surface-container-low/60 p-space-md rounded-xl">
+<div class="flex items-center justify-between">
+<label class="font-label-lg text-label-lg text-on-surface flex items-center gap-space-xs" for="cedula-input">
+<span class="material-symbols-outlined text-primary text-base">content_paste_go</span>
+                Carga Masiva de Estudiantes
+              </label>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Formato: 10 dígitos ecuatorianos</span>
+</div>
+<textarea class="w-full bg-surface-container-lowest p-space-sm rounded-lg font-body-sm text-body-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none font-mono" id="cedula-input" placeholder="Una cédula por línea para matriculados
+1104829102
+1105938472
+1109999999" rows="3"></textarea>
+<div class="flex flex-wrap items-center justify-between gap-space-xs pt-space-xs">
+<div class="flex items-center gap-space-xs">
+<button class="bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md px-space-md py-space-sm rounded-xl transition-all shadow-xs flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-sm">person_add</span>
+                  Añadir a Nómina
+                </button>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md px-space-md py-space-sm rounded-xl transition-all">
+                  Reemplazar Nómina
+                </button>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Lote máx. 50 registros</span>
+</div>
+<!-- Resumen del Procesamiento (Contador y Tabla de Errores) -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<div class="flex items-center justify-between bg-surface-container-lowest p-space-sm rounded-lg">
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-secondary font-bold">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                    32 Aceptados
+                  </div>
+<span class="text-outline-variant">|</span>
+<div class="flex items-center gap-1 font-label-sm text-label-sm text-error font-bold">
+<span class="material-symbols-outlined text-sm">error</span>
+                    2 Rechazados
+                  </div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Último procesamiento: 10:14 AM</span>
+</div>
+<!-- Tabla de Errores -->
+<div class="bg-error-container/40 p-space-sm rounded-lg flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm font-bold text-on-error-container flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-xs">report_problem</span>
+                  Incidencias en la última carga
+                </span>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead>
+<tr class="font-label-sm text-label-sm text-on-surface-variant">
+<th class="py-1">Entrada</th>
+<th class="py-1">Motivo del rechazo</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-error-container font-mono text-label-sm">
+<tr>
+<td class="py-1 font-bold text-error">1109999999</td>
+<td class="py-1 font-sans text-on-surface-variant">Cédula no registrada en SIU Guaraní</td>
+</tr>
+<tr>
+<td class="py-1 font-bold text-error">11032411</td>
+<td class="py-1 font-sans text-on-surface-variant">Longitud inválida (requiere 10 dígitos)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<!-- Nómina de Estudiantes Matriculados Actuales -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<span class="font-label-lg text-label-lg text-primary font-bold">Estudiantes Matriculados</span>
+<div class="flex items-center gap-space-xs">
+<input class="bg-surface-container-low px-space-sm py-1 rounded-md text-label-sm font-body-sm text-on-surface focus:outline-none" placeholder="Buscar alumno..." type="text"/>
+<button class="p-1 rounded bg-surface-container text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-sm">filter_list</span></button>
+</div>
+</div>
+<!-- Tabla de Estudiantes -->
+<div class="overflow-x-auto rounded-xl bg-surface-container-low/30">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container font-label-md text-label-md text-on-surface-variant">
+<tr>
+<th class="py-space-sm px-space-sm font-semibold">Identificación</th>
+<th class="py-space-sm px-space-sm font-semibold">Nombres Completos</th>
+<th class="py-space-sm px-space-sm font-semibold text-center">Vigencia</th>
+<th class="py-space-sm px-space-sm text-right pr-space-md font-semibold">Acción</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container">
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-sm font-mono font-medium text-on-surface">1104829102</td>
+<td class="py-space-sm px-space-sm">
+<div class="font-medium text-on-surface">Alvarado Guamán Karla Sofía</div>
+<span class="text-label-sm text-on-surface-variant">karla.alvarado@unl.edu.ec</span>
+</td>
+<td class="py-space-sm px-space-sm text-center">
+<span class="bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Regular</span>
+</td>
+<td class="py-space-sm px-space-sm text-right pr-space-md">
+<button class="bg-error-container/60 hover:bg-error-container text-on-error-container font-label-sm text-label-sm px-space-xs py-1 rounded transition-colors inline-flex items-center gap-0.5">
+<span class="material-symbols-outlined text-xs">person_remove</span>
+                        Quitar
+                      </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-sm font-mono font-medium text-on-surface">1105938472</td>
+<td class="py-space-sm px-space-sm">
+<div class="font-medium text-on-surface">Castillo Benítez Bryan Daniel</div>
+<span class="text-label-sm text-on-surface-variant">bryan.castillo@unl.edu.ec</span>
+</td>
+<td class="py-space-sm px-space-sm text-center">
+<span class="bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Regular</span>
+</td>
+<td class="py-space-sm px-space-sm text-right pr-space-md">
+<button class="bg-error-container/60 hover:bg-error-container text-on-error-container font-label-sm text-label-sm px-space-xs py-1 rounded transition-colors inline-flex items-center gap-0.5">
+<span class="material-symbols-outlined text-xs">person_remove</span>
+                        Quitar
+                      </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-sm font-mono font-medium text-on-surface">1103984128</td>
+<td class="py-space-sm px-space-sm">
+<div class="font-medium text-on-surface">Espinoza Loaiza Mateo Andrés</div>
+<span class="text-label-sm text-on-surface-variant">mateo.espinoza@unl.edu.ec</span>
+</td>
+<td class="py-space-sm px-space-sm text-center">
+<span class="bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Regular</span>
+</td>
+<td class="py-space-sm px-space-sm text-right pr-space-md">
+<button class="bg-error-container/60 hover:bg-error-container text-on-error-container font-label-sm text-label-sm px-space-xs py-1 rounded transition-colors inline-flex items-center gap-0.5">
+<span class="material-symbols-outlined text-xs">person_remove</span>
+                        Quitar
+                      </button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/30 transition-colors">
+<td class="py-space-sm px-space-sm font-mono font-medium text-on-surface">1106294719</td>
+<td class="py-space-sm px-space-sm">
+<div class="font-medium text-on-surface">Jaramillo Quezada Doménica Nicole</div>
+<span class="text-label-sm text-on-surface-variant">domenica.jaramillo@unl.edu.ec</span>
+</td>
+<td class="py-space-sm px-space-sm text-center">
+<span class="bg-primary-fixed text-on-primary-fixed-variant font-label-sm text-label-sm px-2 py-0.5 rounded-full font-bold">Repetidor</span>
+</td>
+<td class="py-space-sm px-space-sm text-right pr-space-md">
+<button class="bg-error-container/60 hover:bg-error-container text-on-error-container font-label-sm text-label-sm px-space-xs py-1 rounded transition-colors inline-flex items-center gap-0.5">
+<span class="material-symbols-outlined text-xs">person_remove</span>
+                        Quitar
+                      </button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Drawer Pagination -->
+<div class="flex items-center justify-between pt-space-xs px-space-xs text-on-surface-variant font-label-sm text-label-sm">
+<span>Página 1 de 8 (32 registros)</span>
+<div class="flex items-center gap-space-xs">
+<button class="px-2 py-1 rounded bg-surface-container-low text-on-surface-variant" disabled="">Anterior</button>
+<button class="px-2 py-1 rounded bg-primary text-on-primary font-bold">1</button>
+<button class="px-2 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface">2</button>
+<button class="px-2 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface">3</button>
+<button class="px-2 py-1 rounded bg-surface-container-low hover:bg-surface-container text-on-surface">Siguiente</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Actions del Drawer -->
+<div class="p-space-md bg-surface-container-low flex items-center justify-between">
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md px-space-lg py-space-sm rounded-xl transition-all" id="cancel-drawer-btn">
+            Cerrar Panel
+          </button>
+<div class="flex items-center gap-space-sm">
+<button class="flex items-center gap-space-xs bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md px-space-md py-space-sm rounded-xl transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+              Descargar Nómina (XLSX)
+            </button>
+<button class="flex items-center gap-space-xs bg-primary hover:bg-primary-container text-on-primary font-label-md text-label-md px-space-lg py-space-sm rounded-xl transition-all shadow-sm">
+<span class="material-symbols-outlined text-sm">save</span>
+              Guardar Cambios
+            </button>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const drawerContainer = document.getElementById('drawer-container');
+    const drawerBackdrop = document.getElementById('drawer-backdrop');
+    const drawerContent = document.getElementById('drawer-content');
+    const openBtn = document.getElementById('open-drawer-btn');
+    const closeBtn = document.getElementById('close-drawer-btn');
+    const cancelBtn = document.getElementById('cancel-drawer-btn');
+
+    function closeDrawer() {
+      drawerContent.classList.add('translate-x-full');
+      drawerBackdrop.classList.add('opacity-0');
+      setTimeout(() => {
+        drawerContainer.classList.add('hidden');
+      }, 300);
+    }
+
+    function openDrawer() {
+      drawerContainer.classList.remove('hidden');
+      // Force repaint
+      void drawerContainer.offsetWidth;
+      drawerContent.classList.remove('translate-x-full');
+      drawerBackdrop.classList.remove('opacity-0');
+    }
+
+    if (openBtn) openBtn.addEventListener('click', openDrawer);
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeDrawer);
+    if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeDrawer);
+  })();
+</script></main><footer class="w-full bg-surface-container-low py-space-lg"><div class="w-full px-margin flex flex-col md:flex-row items-center justify-between gap-space-sm text-center md:text-left"><div class="flex items-center gap-space-xs"><span class="material-symbols-outlined text-on-surface-variant text-base">verified</span><span class="font-body-sm text-body-sm text-on-surface-variant">Universidad Nacional de Loja — Dirección de Tecnologías de la Información</span></div><div class="font-label-sm text-label-sm text-on-surface-variant">Plataforma Institucional de Geolocalización y Control de Asistencia © 2024</div></div></footer></body></html>

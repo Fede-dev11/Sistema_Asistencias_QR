@@ -1,0 +1,265 @@
+{
+  "source_archive": "stitch_remix_of_campus_qr_attendance_app.zip",
+  "source_sha256": "b1ff925d3dddfe7975ef1ed4fbe037618436e29a42fb946d2a1811c1a87ec549",
+  "imported_on": "2026-11-10",
+  "screen_count": 12,
+  "screens": [
+    {
+      "id": "inicio-del-estudiante",
+      "source_directory": "inicio_del_estudiante",
+      "title": "Inicio del estudiante",
+      "scope": "mobile",
+      "issues": [],
+      "files": [
+        {
+          "path": "screens/inicio-del-estudiante/code.html",
+          "sha256": "aba3aaed93646a3883b34b91b220b482630dff5c980596a412318773d9ebb5d3",
+          "bytes": 15098
+        },
+        {
+          "path": "screens/inicio-del-estudiante/screen.png",
+          "sha256": "6dd3be100bd6215175f0e4e217d2b6eda07079d806bf51f100cac861a2704566",
+          "bytes": 302924
+        }
+      ]
+    },
+    {
+      "id": "inicio-de-sesion",
+      "source_directory": "inicio_de_sesi_n",
+      "title": "Inicio de sesión",
+      "scope": "deferred",
+      "issues": [
+        19
+      ],
+      "files": [
+        {
+          "path": "screens/inicio-de-sesion/code.html",
+          "sha256": "d5bdd03242c9620aa45a9491312a4482f1d4406491603441a4615825bd559a1d",
+          "bytes": 12075
+        },
+        {
+          "path": "screens/inicio-de-sesion/screen.png",
+          "sha256": "8792c1e07bbdb4eccb300d548624ec9ed886810c1d071c4e6133006158b4b509",
+          "bytes": 177750
+        }
+      ]
+    },
+    {
+      "id": "hoy",
+      "source_directory": "unl_geoasist_hoy_sesiones_del_d_a",
+      "title": "Hoy y sesiones del día",
+      "scope": "web",
+      "issues": [
+        23
+      ],
+      "files": [
+        {
+          "path": "screens/hoy/code.html",
+          "sha256": "573c3b25d9c1ad2a23a2448ed931cee517c242b6ac546c00f13666ae665ac2db",
+          "bytes": 39712
+        },
+        {
+          "path": "screens/hoy/screen.png",
+          "sha256": "538c71a389b0d2a1c9c4d474f44e07da39656c32e7c90ee8a1946e2f6741ea3c",
+          "bytes": 625302
+        }
+      ]
+    },
+    {
+      "id": "confirmacion-asistencia",
+      "source_directory": "confirmaci_n_de_asistencia",
+      "title": "Confirmación de asistencia",
+      "scope": "mobile",
+      "issues": [],
+      "files": [
+        {
+          "path": "screens/confirmacion-asistencia/code.html",
+          "sha256": "f196928354cd8913409437a83edfe5c8d0c824dfb40849e3e2183666cfab7c60",
+          "bytes": 14285
+        },
+        {
+          "path": "screens/confirmacion-asistencia/screen.png",
+          "sha256": "0befff8c137073dff06fd1c37d6af92260d9d370fc031ef8fad5f200ea2629fd",
+          "bytes": 247810
+        }
+      ]
+    },
+    {
+      "id": "detalle-actividad",
+      "source_directory": "unl_geoasist_detalle_de_actividad",
+      "title": "Detalle de actividad",
+      "scope": "web",
+      "issues": [
+        20,
+        26
+      ],
+      "files": [
+        {
+          "path": "screens/detalle-actividad/code.html",
+          "sha256": "c02c0558e151e9e3abb8c35b02f2a36dd28adfc088ee1e5128edb3ebb605d9b4",
+          "bytes": 35123
+        },
+        {
+          "path": "screens/detalle-actividad/screen.png",
+          "sha256": "da24aa232f05f19384683f493a3eac7f52a65af3796ffafea82ea8ffcf9930e5",
+          "bytes": 668587
+        }
+      ]
+    },
+    {
+      "id": "escaner-qr",
+      "source_directory": "esc_ner_qr",
+      "title": "Escáner QR",
+      "scope": "mobile",
+      "issues": [],
+      "files": [
+        {
+          "path": "screens/escaner-qr/code.html",
+          "sha256": "7d7a59b6e246625b5cf543bae5d6042b41ba9cba6f334a887c83316847ca2ef8",
+          "bytes": 9989
+        },
+        {
+          "path": "screens/escaner-qr/screen.png",
+          "sha256": "a7e7b95b5faed9e91555411793cf50cf0e4ed3866eaa370f5cea85b374f0f91c",
+          "bytes": 155785
+        }
+      ]
+    },
+    {
+      "id": "administracion-paralelos",
+      "source_directory": "unl_geoasist_administraci_n_y_gesti_n_de_paralelos",
+      "title": "Administración y paralelos",
+      "scope": "web",
+      "issues": [
+        21,
+        24,
+        27
+      ],
+      "files": [
+        {
+          "path": "screens/administracion-paralelos/code.html",
+          "sha256": "dd23df5184bbe25e7b30f04df20d44a72242675c48d0fce1c7c6950e0fd80056",
+          "bytes": 39557
+        },
+        {
+          "path": "screens/administracion-paralelos/screen.png",
+          "sha256": "eb965920c92b874642e81d374293abd8760c555e4c19e71ef817d88830e297e1",
+          "bytes": 332137
+        }
+      ]
+    },
+    {
+      "id": "historial-asistencia",
+      "source_directory": "historial_de_asistencia",
+      "title": "Historial de asistencia",
+      "scope": "mobile",
+      "issues": [],
+      "files": [
+        {
+          "path": "screens/historial-asistencia/code.html",
+          "sha256": "7ad20541f295fe28c4d9a0188be02447321c7e290062041fbd6a25a38c577692",
+          "bytes": 29469
+        },
+        {
+          "path": "screens/historial-asistencia/screen.png",
+          "sha256": "dfce16f4980089cc917b3a300332d410784a0d67c131338be1bb5041915099f5",
+          "bytes": 203622
+        }
+      ]
+    },
+    {
+      "id": "actividades-nueva-actividad",
+      "source_directory": "unl_geoasist_actividades_y_nueva_actividad",
+      "title": "Actividades y nueva actividad",
+      "scope": "web",
+      "issues": [
+        20
+      ],
+      "files": [
+        {
+          "path": "screens/actividades-nueva-actividad/code.html",
+          "sha256": "bd411087894874cc6fc13146b3ee55e7d224adf5e6939b6e7ec424c205a828af",
+          "bytes": 57776
+        },
+        {
+          "path": "screens/actividades-nueva-actividad/screen.png",
+          "sha256": "bb61e9d3a9242f6a9f2eef14f592936fb1cb6979966a70836d426cc29a970924",
+          "bytes": 436685
+        }
+      ]
+    },
+    {
+      "id": "proyeccion-qr",
+      "source_directory": "unl_geoasist_proyecci_n_qr_en_aula",
+      "title": "Proyección QR",
+      "scope": "web",
+      "issues": [
+        23
+      ],
+      "files": [
+        {
+          "path": "screens/proyeccion-qr/code.html",
+          "sha256": "36bc98ca9b486e76b0fd174e8ef90f489d33dd226cfd1dba58cacf951650e99c",
+          "bytes": 33483
+        },
+        {
+          "path": "screens/proyeccion-qr/screen.png",
+          "sha256": "73c4da20fe56bd3161fd7bcf0d4c0398bb8a1e5858703da7c2f6f5fdd95890b9",
+          "bytes": 514606
+        }
+      ]
+    },
+    {
+      "id": "detalle-sesion-geocerca",
+      "source_directory": "unl_geoasist_detalle_de_sesi_n_y_geocerca",
+      "title": "Detalle de sesión y geocerca",
+      "scope": "web",
+      "issues": [
+        23,
+        26
+      ],
+      "files": [
+        {
+          "path": "screens/detalle-sesion-geocerca/code.html",
+          "sha256": "79bc249afbdd3558dfbdea2f2d4fe73d6683b0cdcf21ed48bbeddda46be94437",
+          "bytes": 53160
+        },
+        {
+          "path": "screens/detalle-sesion-geocerca/screen.png",
+          "sha256": "2584d32ca5597be8e5a094b1b4308e58f51996bd6c9748620cdf5a43be7028f5",
+          "bytes": 484508
+        }
+      ]
+    },
+    {
+      "id": "reportes-estadisticas",
+      "source_directory": "unl_geoasist_reportes_y_estad_sticas",
+      "title": "Reportes y estadísticas",
+      "scope": "web",
+      "issues": [
+        22,
+        25
+      ],
+      "files": [
+        {
+          "path": "screens/reportes-estadisticas/code.html",
+          "sha256": "48c0f1640907ce4044042677b17e6381d4521b7cf3f9227a002fde49c405f4d6",
+          "bytes": 43686
+        },
+        {
+          "path": "screens/reportes-estadisticas/screen.png",
+          "sha256": "7a7cb2bb2b91233c47e692338a56df50ffe24c76a3eb4cf14715cae4a85637f4",
+          "bytes": 347264
+        }
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "path": "assets/escudo-unl.png",
+      "source": "image.png/screen.png",
+      "sha256": "c38ed3a29a195f4273ffe0a76b3985d8cff90db0760cdd310aab2d0188e8f31f"
+    }
+  ],
+  "design_guide_sha256": "11f58dfb568dd0e9ea99461c53cf7d1af1d2f4563589a22503c3df9b524c4608"
+}
