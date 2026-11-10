@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><title>UNL · GeoAsist - Universidad Nacional de Loja</title><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      "colors": {
+        "on-tertiary": "#ffffff",
+        "surface-variant": "#dae2fd",
+        "on-primary": "#ffffff",
+        "primary-fixed": "#dce1ff",
+        "on-secondary-fixed-variant": "#005320",
+        "surface-container-highest": "#dae2fd",
+        "on-tertiary-fixed-variant": "#004395",
+        "on-secondary-fixed": "#002109",
+        "background": "#faf8ff",
+        "outline": "#757682",
+        "secondary-fixed-dim": "#62df7d",
+        "tertiary-fixed": "#d8e2ff",
+        "error-container": "#ffdad6",
+        "on-error": "#ffffff",
+        "primary-container": "#1e3a8a",
+        "surface": "#faf8ff",
+        "primary": "#00236f",
+        "tertiary-fixed-dim": "#adc6ff",
+        "on-secondary-container": "#007230",
+        "on-surface-variant": "#444651",
+        "on-primary-container": "#90a8ff",
+        "on-surface": "#131b2e",
+        "error": "#ba1a1a",
+        "surface-tint": "#4059aa",
+        "tertiary-container": "#003d88",
+        "secondary-fixed": "#7ffc97",
+        "surface-bright": "#faf8ff",
+        "secondary-container": "#7cf994",
+        "on-secondary": "#ffffff",
+        "surface-container-high": "#e2e7ff",
+        "surface-container-low": "#f2f3ff",
+        "surface-container-lowest": "#ffffff",
+        "on-tertiary-fixed": "#001a42",
+        "inverse-surface": "#283044",
+        "on-primary-fixed-variant": "#264191",
+        "primary-fixed-dim": "#b6c4ff",
+        "secondary": "#006e2d",
+        "outline-variant": "#c5c5d3",
+        "inverse-primary": "#b6c4ff",
+        "on-background": "#131b2e",
+        "surface-dim": "#d2d9f4",
+        "tertiary": "#00285e",
+        "inverse-on-surface": "#eef0ff",
+        "surface-container": "#eaedff",
+        "on-primary-fixed": "#00164e",
+        "on-error-container": "#93000a",
+        "on-tertiary-container": "#82abff"
+      },
+      "borderRadius": {
+        "DEFAULT": "0.25rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "full": "9999px"
+      },
+      "spacing": {
+        "space-sm": "0.5rem",
+        "space-lg": "1.5rem",
+        "margin": "1.25rem",
+        "space-md": "1rem",
+        "gutter": "1rem",
+        "space-xl": "2rem",
+        "space-xs": "0.25rem"
+      },
+      "fontFamily": {
+        "title-md": ["Inter"],
+        "label-sm": ["Inter"],
+        "headline-xl": ["Inter"],
+        "label-lg": ["Inter"],
+        "body-lg": ["Inter"],
+        "headline-lg": ["Inter"],
+        "label-md": ["Inter"],
+        "headline-sm": ["Inter"],
+        "body-md": ["Inter"],
+        "body-sm": ["Inter"],
+        "headline-md": ["Inter"]
+      },
+      "fontSize": {
+        "title-md": ["16px", {"lineHeight": "22px", "fontWeight": "600"}],
+        "label-sm": ["11px", {"lineHeight": "14px", "letterSpacing": "0.03em", "fontWeight": "500"}],
+        "headline-xl": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+        "label-lg": ["14px", {"lineHeight": "20px", "fontWeight": "600"}],
+        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.015em", "fontWeight": "700"}],
+        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+        "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600"}]
+      }
+    }
+  }
+}</script></head><body class="bg-surface font-body-md text-body-md text-on-surface min-h-screen flex flex-col antialiased"><header class="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-20 w-full px-margin lg:px-space-xl flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-max"><img alt="Logo UNL" class="w-10 h-10 rounded-full object-cover shadow-[0_2px_8px_-2px_rgba(15,23,42,0.05)]" src="https://lh3.googleusercontent.com/aida/ALJJyrAkI55UOqMZqa90b3hpqHbZCJ6xe5xaj3BNMuBe1gh-seztiXCPizb20qBUwu3cBOkv0GrHu0uxuAyFKcIDWL_Qs6sl_QfUXYLwHoC5tltfrh5p4Nlb5R-WbrIIBHOnEywlcAIc4pWx2bDmnH8qorn5zp0C4wlZRn5nXRNzm3gnTevXxGDjqGJ2sSycinRXoLJeCAGR0TsAhs_4vj1iR-L4oAl74Ctp0Q_70s_BwfDHPmteg2tObcXxOEE"/><div><span class="font-headline-sm text-headline-sm text-primary tracking-tight block">UNL · GeoAsist</span><span class="font-label-sm text-label-sm text-on-surface-variant block">Sistema de Asistencia Georreferenciada</span></div></div><nav class="hidden xl:flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary font-semibold rounded-lg shadow-sm"><a class="px-space-md py-space-sm font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors rounded-lg" data-path="hoy" href="#">Hoy</a><a class="px-space-md py-space-sm font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors rounded-lg" data-path="actividades" href="#">Actividades</a><a class="px-space-md py-space-sm font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors rounded-lg" data-path="reportes-y-estadisticas" href="#">Reportes y Estadísticas</a><a class="px-space-md py-space-sm font-label-lg text-label-lg text-on-surface-variant hover:text-on-surface transition-colors rounded-lg" data-path="administracion" href="#">Administración</a></nav><div class="flex items-center gap-space-md"><div class="hidden md:flex items-center gap-space-sm pl-space-md"><div class="text-right"><span class="block font-title-md text-title-md text-on-surface leading-tight">Ing. Edison Coronel</span><span class="inline-flex items-center px-space-xs py-0.5 rounded-full font-label-sm text-label-sm bg-surface-container-high text-primary font-medium">Docente Titular</span></div><img alt="Profile" class="w-8 h-8 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida/ALJJyrAkI55UOqMZqa90b3hpqHbZCJ6xe5xaj3BNMuBe1gh-seztiXCPizb20qBUwu3cBOkv0GrHu0uxuAyFKcIDWL_Qs6sl_QfUXYLwHoC5tltfrh5p4Nlb5R-WbrIIBHOnEywlcAIc4pWx2bDmnH8qorn5zp0C4wlZRn5nXRNzm3gnTevXxGDjqGJ2sSycinRXoLJeCAGR0TsAhs_4vj1iR-L4oAl74Ctp0Q_70s_BwfDHPmteg2tObcXxOEE"/></div><a class="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg font-label-lg text-label-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container-highest hover:text-on-surface transition-colors" data-path="login" href="#"><span class="material-symbols-outlined text-[18px]">logout</span><span>Salir</span></a></div></div></header><main class="w-full pt-20 bg-surface flex-1"><div class="flex flex-col w-full">
+<div class="px-margin lg:px-space-xl py-space-xl space-y-space-xl">
+<!-- Top Context & Header -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md">
+<div>
+<div class="inline-flex items-center gap-space-xs px-space-sm py-0.5 rounded-full bg-surface-container-high text-primary font-label-sm text-label-sm mb-space-xs">
+<span class="material-symbols-outlined text-[14px]">query_stats</span>
+<span>Módulo Oficial de Acreditación Académica</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Reportes y Estadísticas de Asistencia</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mt-0.5">
+          Consulta de cumplimiento, alertas de inasistencias y exportación oficial UNL.
+        </p>
+</div>
+<div class="flex items-center gap-space-sm flex-wrap">
+<button class="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-lowest text-primary shadow-sm hover:bg-surface-container-high transition-all font-label-lg text-label-lg" id="btnExportPDF">
+<span class="material-symbols-outlined text-[20px]">picture_as_pdf</span>
+<span>Descargar Reporte PDF</span>
+</button>
+<button class="inline-flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container text-on-primary shadow-sm hover:opacity-95 transition-all font-label-lg text-label-lg" id="btnExportExcel">
+<span class="material-symbols-outlined text-[20px]">table_view</span>
+<span>Exportar Excel Institucional</span>
+</button>
+</div>
+</div>
+<!-- Filter Control Panel -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm">
+<div class="flex items-center justify-between pb-space-sm mb-space-md">
+<div class="flex items-center gap-space-xs text-primary">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+<span class="font-label-lg text-label-lg text-on-surface">Filtros de Parámetros Académicos</span>
+</div>
+<button class="text-primary hover:underline font-label-sm text-label-sm inline-flex items-center gap-space-xs" type="button">
+<span class="material-symbols-outlined text-[16px]">restart_alt</span>
+<span>Restablecer Filtros</span>
+</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-space-md">
+<!-- Carrera -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-space-xs">Carrera</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded-lg px-space-sm py-space-sm appearance-none outline-none focus:bg-surface-container-high transition-colors pr-8">
+<option selected="">Ingeniería en Sistemas</option>
+<option>Computación</option>
+<option>Telecomunicaciones</option>
+<option>Electrónica y Automatización</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2.5 pointer-events-none text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Periodo -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-space-xs">Periodo Académico</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded-lg px-space-sm py-space-sm appearance-none outline-none focus:bg-surface-container-high transition-colors pr-8">
+<option selected="">Octubre 2025 - Marzo 2026</option>
+<option>Abril 2025 - Agosto 2025</option>
+<option>Octubre 2024 - Marzo 2025</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2.5 pointer-events-none text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Materia / Actividad -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-space-xs">Materia / Actividad</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded-lg px-space-sm py-space-sm appearance-none outline-none focus:bg-surface-container-high transition-colors pr-8">
+<option>Todas mis asignaturas</option>
+<option selected="">Desarrollo de Plataformas Web</option>
+<option>Bases de Datos Distribuidas</option>
+<option>Sistemas Inteligentes</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2.5 pointer-events-none text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Paralelo -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-space-xs">Paralelo</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded-lg px-space-sm py-space-sm appearance-none outline-none focus:bg-surface-container-high transition-colors pr-8">
+<option selected="">Paralelo A</option>
+<option>Paralelo B</option>
+<option>Todos los Paralelos</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2.5 pointer-events-none text-on-surface-variant text-[18px]">expand_more</span>
+</div>
+</div>
+<!-- Rango de Fechas -->
+<div>
+<label class="block font-label-sm text-label-sm text-on-surface-variant mb-space-xs">Rango Temporal</label>
+<div class="relative">
+<select class="w-full bg-surface-container-low text-on-surface font-body-sm text-body-sm rounded-lg px-space-sm py-space-sm appearance-none outline-none focus:bg-surface-container-high transition-colors pr-8">
+<option selected="">Últimos 30 días</option>
+<option>Primer Parcial</option>
+<option>Segundo Parcial</option>
+<option>Todo el Ciclo</option>
+<option>Personalizado...</option>
+</select>
+<span class="material-symbols-outlined absolute right-2 top-2.5 pointer-events-none text-on-surface-variant text-[18px]">calendar_today</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md flex justify-end">
+<button class="inline-flex items-center gap-space-xs px-space-lg py-space-sm rounded-lg bg-primary text-on-primary hover:bg-tertiary-container shadow-sm transition-all font-label-lg text-label-lg" id="btnSearch">
+<span class="material-symbols-outlined text-[18px]">search</span>
+<span>Generar Consulta</span>
+</button>
+</div>
+</div>
+<!-- KPIs Row -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md">
+<!-- General Attendance KPI -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider">Asistencia General</span>
+<span class="font-headline-xl text-headline-xl text-primary font-bold mt-1 block">91.8%</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">donut_large</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-center gap-1.5 font-label-sm text-label-sm">
+<span class="inline-flex items-center text-secondary font-semibold">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+<span>+2.3%</span>
+</span>
+<span class="text-on-surface-variant">vs. semestre anterior</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-space-sm overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 91.8%"></div>
+</div>
+</div>
+<!-- Students at Risk KPI -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider">Estudiantes en Riesgo</span>
+<span class="font-headline-xl text-headline-xl text-error font-bold mt-1 block">3 Alumnos</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-error-container text-on-error-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">warning</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-center justify-between font-label-sm text-label-sm">
+<span class="text-error font-semibold">< 75% reglamentario</span>
+<span class="text-on-surface-variant">Umbral crítico UNL</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-space-sm overflow-hidden">
+<div class="bg-error h-full rounded-full" style="width: 12%"></div>
+</div>
+</div>
+<!-- Justified Absences KPI -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider">Justificaciones</span>
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold mt-1 block">14</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-secondary-container text-on-secondary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">verified</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span class="text-secondary font-semibold">100% validadas</span>
+<span>con respaldo médico/decanato</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-space-sm overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 100%"></div>
+</div>
+</div>
+<!-- Completed Sessions KPI -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm relative overflow-hidden flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-label-sm text-label-sm text-on-surface-variant block uppercase tracking-wider">Sesiones Efectuadas</span>
+<span class="font-headline-xl text-headline-xl text-on-surface font-bold mt-1 block">48</span>
+</div>
+<div class="w-10 h-10 rounded-lg bg-surface-container-high text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[22px]">history_edu</span>
+</div>
+</div>
+<div class="mt-space-sm flex items-center gap-space-xs font-label-sm text-label-sm text-on-surface-variant">
+<span>De 64 programadas (75% avance)</span>
+</div>
+<div class="w-full bg-surface-container rounded-full h-1.5 mt-space-sm overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 75%"></div>
+</div>
+</div>
+</div>
+<!-- Charts Bento Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg">
+<!-- Weekly Attendance Trend Chart (8 cols) -->
+<div class="lg:col-span-8 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between pb-space-md gap-space-xs">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Evolución Semanal de Asistencia</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Comparativo de asistencia presencial vs. porcentaje de ausentismo semanal</p>
+</div>
+<div class="flex items-center gap-space-md text-label-sm font-label-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded bg-primary inline-block"></span>
+<span class="text-on-surface-variant">Asistencias (%)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded bg-error inline-block"></span>
+<span class="text-on-surface-variant">Inasistencias (%)</span>
+</div>
+</div>
+</div>
+<!-- Inline SVG Visualization -->
+<div class="w-full pt-space-sm">
+<svg aria-label="Gráfica de Asistencia" class="w-full h-56 overflow-visible" viewbox="0 0 740 220">
+<!-- Grid Lines -->
+<line class="text-surface-container" stroke="currentColor" stroke-dasharray="4" x1="40" x2="720" y1="20" y2="20"></line>
+<line class="text-surface-container" stroke="currentColor" stroke-dasharray="4" x1="40" x2="720" y1="70" y2="70"></line>
+<line class="text-surface-container" stroke="currentColor" stroke-dasharray="4" x1="40" x2="720" y1="120" y2="120"></line>
+<line class="text-surface-container" stroke="currentColor" x1="40" x2="720" y1="170" y2="170"></line>
+<!-- Y-Axis labels -->
+<text class="fill-current text-on-surface-variant text-[11px] font-label-sm" x="10" y="24">100%</text>
+<text class="fill-current text-on-surface-variant text-[11px] font-label-sm" x="15" y="74">75%</text>
+<text class="fill-current text-on-surface-variant text-[11px] font-label-sm" x="15" y="124">50%</text>
+<text class="fill-current text-on-surface-variant text-[11px] font-label-sm" x="22" y="174">0%</text>
+<!-- Bars per week (8 weeks sample) -->
+<!-- Sem 1 -->
+<rect class="fill-current text-primary opacity-90 hover:opacity-100 transition-opacity" height="138" rx="4" width="24" x="75" y="32"></rect>
+<rect class="fill-current text-error opacity-80" height="18" rx="3" width="12" x="103" y="152"></rect>
+<text class="fill-current text-on-surface-variant text-[12px] font-label-sm" text-anchor="middle" x="89" y="192">Sem 1</text>
+<!-- Sem 2 -->
+<rect class="fill-current text-primary opacity-90 hover:opacity-100 transition-opacity" height="142" rx="4" width="24" x="155" y="28"></rect>
+<rect class="fill-current text-error opacity-80" height="14" rx="3" width="12" x="183" y="156"></rect>
+<text class="fill-current text-on-surface-variant text-[12px] font-label-sm" text-anchor="middle" x="169" y="192">Sem 2</text>
+<!-- Sem 3 -->
+<rect class="fill-current text-primary opacity-90 hover:opacity-100 transition-opacity" height="134" rx="4" width="24" x="235" y="36"></rect>
+<rect class="fill-current text-error opacity-80" height="22" rx="3" width="12" x="263" y="148"></rect>
+<text class="fill-current text-on-surface-variant text-[12px] font-label-sm" text-anchor="middle" x="249" y="192">Sem 3</text>
+<!-- Sem 4 -->
+<rect class="fill-current text-primary opacity-90 hover:opacity-100 transition-opacity" height="146" rx="4" width="24" x="315" y="24"></rect>
+<rect class="fill-current text-error opacity-80" height="10" rx="3" width="12" x="343" y="160"></rect>
+<text class="fill-current text-on-surface-variant text-[12px] font-label-sm" text-anchor="middle" x="329" y="192">Sem 4</text>
+<!-- Sem 5 (Low dip) -->
+<rect class="fill-current text-primary opacity-90 hover:opacity-100 transition-opacity" height="112" rx="4" width="24" x="395" y="58"></rect>
+<rect class="fill-current text-error opacity-80" height="44" rx="3" width="12" x="423" y="126"></rect>
+<text class="fill-current text-on-surface-variant text-[12px] font-label-sm" text-anchor="middle" x="409" y="192">Sem 5</text>
+<!-- Sem 6 -->
+<rect class="fill-current text-primary opacity-90 hover:opacity-100 transition-opacity" height="140" rx="4" width="24" x="475" y="30"></rect>
+<rect class="fill-current text-error opacity-80" height="16" rx="3" width="12" x="503" y="154"></rect>
+<text class="fill-current text-on-surface-variant text-[12px] font-label-sm" text-anchor="middle" x="489" y="192">Sem 6</text>
+<!-- Sem 7 -->
+<rect class="fill-current text-primary opacity-90 hover:opacity-100 transition-opacity" height="144" rx="4" width="24" x="555" y="26"></rect>
+<rect class="fill-current text-error opacity-80" height="12" rx="3" width="12" x="583" y="158"></rect>
+<text class="fill-current text-on-surface-variant text-[12px] font-label-sm" text-anchor="middle" x="569" y="192">Sem 7</text>
+<!-- Sem 8 (Current) -->
+<rect class="fill-current text-primary opacity-90 hover:opacity-100 transition-opacity" height="136" rx="4" width="24" x="635" y="34"></rect>
+<rect class="fill-current text-error opacity-80" height="20" rx="3" width="12" x="663" y="150"></rect>
+<text class="fill-current text-primary font-bold text-[12px] font-label-sm" text-anchor="middle" x="649" y="192">Sem 8 (Act)</text>
+</svg>
+</div>
+<div class="bg-surface-container-low rounded-lg p-space-sm flex items-center justify-between mt-space-sm">
+<span class="font-body-sm text-body-sm text-on-surface-variant">Promedio ponderado del parcial: <strong class="text-on-surface font-semibold">92.4%</strong></span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Cumple con la meta institucional UNL (>85%)</span>
+</div>
+</div>
+<!-- Attendance Composition & Threshold Ring (4 cols) -->
+<div class="lg:col-span-4 bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col justify-between">
+<div>
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Distribución de Registros</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Clasificación total de marcas de aula</p>
+<!-- Circular Donut Chart -->
+<div class="relative flex items-center justify-center my-space-md">
+<svg class="w-40 h-40 transform -rotate-90" viewbox="0 0 120 120">
+<circle class="text-surface-container" cx="60" cy="60" fill="transparent" r="50" stroke="currentColor" stroke-width="12"></circle>
+<!-- Asistencias 82% -->
+<circle class="text-primary" cx="60" cy="60" fill="transparent" r="50" stroke="currentColor" stroke-dasharray="314.15" stroke-dashoffset="56.5" stroke-linecap="round" stroke-width="12"></circle>
+<!-- Justificadas 10% -->
+<circle class="text-secondary" cx="60" cy="60" fill="transparent" r="50" stroke="currentColor" stroke-dasharray="314.15" stroke-dashoffset="282.7" stroke-linecap="round" stroke-width="12"></circle>
+<!-- Injustificadas 8% -->
+<circle class="text-error" cx="60" cy="60" fill="transparent" r="50" stroke="currentColor" stroke-dasharray="314.15" stroke-dashoffset="289" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<div class="absolute flex flex-col items-center justify-center">
+<span class="font-headline-lg text-headline-lg font-bold text-on-surface">1,420</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Registros QR</span>
+</div>
+</div>
+<!-- Breakdown list -->
+<div class="space-y-space-xs font-body-sm text-body-sm">
+<div class="flex items-center justify-between p-space-xs rounded bg-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+<span>Puntuales en Geocerca</span>
+</div>
+<span class="font-semibold text-on-surface">1,164 (82%)</span>
+</div>
+<div class="flex items-center justify-between p-space-xs rounded bg-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span>Faltas Justificadas</span>
+</div>
+<span class="font-semibold text-on-surface">142 (10%)</span>
+</div>
+<div class="flex items-center justify-between p-space-xs rounded bg-surface-container-low">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+<span>Inasistencias Sin Justificar</span>
+</div>
+<span class="font-semibold text-error">114 (8%)</span>
+</div>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm border-t border-surface-container text-center">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Validado con geoposición GPS de campus La Argelia</span>
+</div>
+</div>
+</div>
+<!-- Student Attendance Detail Table with Early Warning System -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<!-- Table Header & Controls -->
+<div class="p-space-lg flex flex-col sm:flex-row sm:items-center justify-between gap-space-md bg-surface-container-lowest">
+<div>
+<div class="flex items-center gap-space-xs">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Nómina y Semáforo de Cumplimiento</h2>
+<span class="px-space-xs py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-label-sm font-semibold">3 en Riesgo</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Paralelo A • Desarrollo de Plataformas Web • 32 Matriculados</p>
+</div>
+<div class="flex items-center gap-space-sm">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-2.5 top-2 text-on-surface-variant text-[18px]">search</span>
+<input class="bg-surface-container-low text-on-surface placeholder:text-on-surface-variant font-body-sm text-body-sm rounded-lg pl-8 pr-space-md py-1.5 outline-none focus:bg-surface-container-high transition-colors w-64" id="tableSearch" placeholder="Buscar por apellido o cédula..." type="text"/>
+</div>
+<button class="p-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" title="Filtrar por condición">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Responsive Table Container -->
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left font-body-sm text-body-sm">
+<thead class="bg-surface-container text-on-surface-variant font-label-md text-label-md uppercase tracking-wider">
+<tr>
+<th class="py-space-sm px-space-md" scope="col">Estudiante</th>
+<th class="py-space-sm px-space-md" scope="col">Cédula</th>
+<th class="py-space-sm px-space-md text-center" scope="col">Asistencias</th>
+<th class="py-space-sm px-space-md text-center" scope="col">Atrasos</th>
+<th class="py-space-sm px-space-md text-center" scope="col">Justificadas</th>
+<th class="py-space-sm px-space-md text-center" scope="col">Injustificadas</th>
+<th class="py-space-sm px-space-md text-center" scope="col">% Asistencia</th>
+<th class="py-space-sm px-space-md text-center" scope="col">Estado Oficial</th>
+<th class="py-space-sm px-space-md text-right" scope="col">Acción</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container text-on-surface">
+<!-- Row 1 - CRITICAL RISK -->
+<tr class="hover:bg-error-container/20 transition-colors bg-error-container/10">
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-error-container text-on-error-container flex items-center justify-center font-bold text-label-sm">
+                    AC
+                  </div>
+<div>
+<span class="font-title-md text-title-md text-on-surface block leading-tight">Armijos Cueva, Carlos Mateo</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">carlos.armijos@unl.edu.ec</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono text-label-sm text-on-surface-variant">1104829102</td>
+<td class="py-space-md px-space-md text-center font-semibold">32</td>
+<td class="py-space-md px-space-md text-center">3</td>
+<td class="py-space-md px-space-md text-center">1</td>
+<td class="py-space-md px-space-md text-center font-semibold text-error">12</td>
+<td class="py-space-md px-space-md text-center">
+<div class="inline-flex items-center gap-1 font-bold text-error">
+<span>66.7%</span>
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-error-container text-on-error-container font-semibold">
+                  En Riesgo de Pérdida
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<button class="inline-flex items-center gap-1 px-space-xs py-1 rounded bg-surface-container-high hover:bg-error hover:text-on-error text-on-surface font-label-sm text-label-sm transition-colors" title="Generar Notificación de Alerta al Tutor">
+<span class="material-symbols-outlined text-[16px]">mail</span>
+<span>Notificar</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 - CRITICAL RISK -->
+<tr class="hover:bg-error-container/20 transition-colors bg-error-container/10">
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-error-container text-on-error-container flex items-center justify-center font-bold text-label-sm">
+                    BM
+                  </div>
+<div>
+<span class="font-title-md text-title-md text-on-surface block leading-tight">Benítez Morales, Diana Sofía</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">diana.benitez@unl.edu.ec</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono text-label-sm text-on-surface-variant">1105938472</td>
+<td class="py-space-md px-space-md text-center font-semibold">34</td>
+<td class="py-space-md px-space-md text-center">2</td>
+<td class="py-space-md px-space-md text-center">2</td>
+<td class="py-space-md px-space-md text-center font-semibold text-error">10</td>
+<td class="py-space-md px-space-md text-center">
+<div class="inline-flex items-center gap-1 font-bold text-error">
+<span>70.8%</span>
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-error-container text-on-error-container font-semibold">
+                  En Riesgo de Pérdida
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<button class="inline-flex items-center gap-1 px-space-xs py-1 rounded bg-surface-container-high hover:bg-error hover:text-on-error text-on-surface font-label-sm text-label-sm transition-colors" title="Generar Notificación">
+<span class="material-symbols-outlined text-[16px]">mail</span>
+<span>Notificar</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 - CRITICAL RISK (Borderline) -->
+<tr class="hover:bg-error-container/20 transition-colors bg-error-container/10">
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-error-container text-on-error-container flex items-center justify-center font-bold text-label-sm">
+                    CV
+                  </div>
+<div>
+<span class="font-title-md text-title-md text-on-surface block leading-tight">Castillo Valarezo, Jorge Luis</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">jorge.castillo@unl.edu.ec</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono text-label-sm text-on-surface-variant">1103948571</td>
+<td class="py-space-md px-space-md text-center font-semibold">35</td>
+<td class="py-space-md px-space-md text-center">4</td>
+<td class="py-space-md px-space-md text-center">4</td>
+<td class="py-space-md px-space-md text-center font-semibold text-error">9</td>
+<td class="py-space-md px-space-md text-center">
+<div class="inline-flex items-center gap-1 font-bold text-error">
+<span>72.9%</span>
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-error-container text-on-error-container font-semibold">
+                  En Riesgo de Pérdida
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<button class="inline-flex items-center gap-1 px-space-xs py-1 rounded bg-surface-container-high hover:bg-error hover:text-on-error text-on-surface font-label-sm text-label-sm transition-colors" title="Generar Notificación">
+<span class="material-symbols-outlined text-[16px]">mail</span>
+<span>Notificar</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 - NORMAL -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-bold text-label-sm">
+                    ER
+                  </div>
+<div>
+<span class="font-title-md text-title-md text-on-surface block leading-tight">Espinoza Ramos, Gabriela Paz</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">gabriela.espinoza@unl.edu.ec</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono text-label-sm text-on-surface-variant">1106294821</td>
+<td class="py-space-md px-space-md text-center font-semibold">46</td>
+<td class="py-space-md px-space-md text-center">1</td>
+<td class="py-space-md px-space-md text-center">1</td>
+<td class="py-space-md px-space-md text-center font-semibold">0</td>
+<td class="py-space-md px-space-md text-center">
+<div class="inline-flex items-center gap-1 font-bold text-secondary">
+<span>97.9%</span>
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-secondary-container text-on-secondary-container font-medium">
+                  Aprobado por Asistencia
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<button class="p-1 rounded text-on-surface-variant hover:text-primary transition-colors" title="Ver Hoja Individual">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 - NORMAL -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-bold text-label-sm">
+                    GL
+                  </div>
+<div>
+<span class="font-title-md text-title-md text-on-surface block leading-tight">Guanuche Loaiza, Kevin David</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">kevin.guanuche@unl.edu.ec</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono text-label-sm text-on-surface-variant">1104928174</td>
+<td class="py-space-md px-space-md text-center font-semibold">44</td>
+<td class="py-space-md px-space-md text-center">0</td>
+<td class="py-space-md px-space-md text-center">2</td>
+<td class="py-space-md px-space-md text-center font-semibold">2</td>
+<td class="py-space-md px-space-md text-center">
+<div class="inline-flex items-center gap-1 font-bold text-secondary">
+<span>91.7%</span>
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-secondary-container text-on-secondary-container font-medium">
+                  Aprobado por Asistencia
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<button class="p-1 rounded text-on-surface-variant hover:text-primary transition-colors" title="Ver Hoja Individual">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+<!-- Row 6 - NORMAL -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-8 h-8 rounded-full bg-surface-container-high text-primary flex items-center justify-center font-bold text-label-sm">
+                    MR
+                  </div>
+<div>
+<span class="font-title-md text-title-md text-on-surface block leading-tight">Mendoza Rios, Andrea Viviana</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">andrea.mendoza@unl.edu.ec</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md font-mono text-label-sm text-on-surface-variant">1105193820</td>
+<td class="py-space-md px-space-md text-center font-semibold">42</td>
+<td class="py-space-md px-space-md text-center">2</td>
+<td class="py-space-md px-space-md text-center">3</td>
+<td class="py-space-md px-space-md text-center font-semibold">1</td>
+<td class="py-space-md px-space-md text-center">
+<div class="inline-flex items-center gap-1 font-bold text-secondary">
+<span>89.5%</span>
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+</td>
+<td class="py-space-md px-space-md text-center">
+<span class="inline-flex items-center px-space-sm py-0.5 rounded-full font-label-sm text-label-sm bg-secondary-container text-on-secondary-container font-medium">
+                  Aprobado por Asistencia
+                </span>
+</td>
+<td class="py-space-md px-space-md text-right">
+<button class="p-1 rounded text-on-surface-variant hover:text-primary transition-colors" title="Ver Hoja Individual">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="p-space-md bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-space-sm border-t border-surface-container">
+<span class="font-label-sm text-label-sm text-on-surface-variant">
+          Mostrando 6 de 32 estudiantes registrados en este curso
+        </span>
+<div class="flex items-center gap-1">
+<button class="p-1.5 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<button class="px-3 py-1 rounded-lg bg-primary-container text-on-primary font-label-sm text-label-sm font-semibold">1</button>
+<button class="px-3 py-1 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-sm text-label-sm transition-colors">2</button>
+<button class="px-3 py-1 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container font-label-sm text-label-sm transition-colors">3</button>
+<button class="p-1.5 rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Official Regulations Notice Banner -->
+<div class="bg-primary/5 rounded-xl p-space-md flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[28px] mt-0.5">verified_user</span>
+<div>
+<h3 class="font-title-md text-title-md text-primary">Reglamento de Régimen Académico UNL (Art. 82)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant max-w-3xl">
+            El estudiante que no alcance como mínimo el setenta y cinco por ciento (75%) de asistencia presencial a las clases registradas mediante el sistema GeoAsist perderá automáticamente el derecho a rendir la evaluación final de la respectiva asignatura.
+          </p>
+</div>
+</div>
+<button class="shrink-0 px-space-md py-space-xs rounded-lg bg-surface-container-high text-primary font-label-sm text-label-sm hover:bg-primary-container hover:text-on-primary transition-all">
+        Ver Normativa Vigente
+      </button>
+</div>
+</div>
+</div>
+<script>
+  // Simple toast confirmation on exports
+  document.getElementById('btnExportPDF')?.addEventListener('click', () => {
+    alert('Generando acta oficial de asistencia en formato PDF con firma digital institucional UNL...');
+  });
+  document.getElementById('btnExportExcel')?.addEventListener('click', () => {
+    alert('Exportando matriz de asistencia detallada con geocercas en formato Microsoft Excel (.xlsx)...');
+  });
+  document.getElementById('btnSearch')?.addEventListener('click', () => {
+    const btn = document.getElementById('btnSearch');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span> Procesando...';
+    setTimeout(() => {
+      btn.innerHTML = orig;
+    }, 600);
+  });
+</script></main><footer class="w-full bg-surface-container-lowest py-space-lg shadow-[0_-1px_6px_rgba(0,0,0,0.02)]"><div class="w-full px-margin lg:px-space-xl flex flex-col md:flex-row items-center justify-between gap-space-sm text-on-surface-variant font-body-sm text-body-sm"><div><span>© Universidad Nacional de Loja — Dirección de Tecnologías de la Información</span></div><div class="flex items-center gap-space-lg"><span class="font-label-md text-label-md text-primary font-semibold">Campus Guillermo Falconí Espinosa</span><span class="text-outline-variant">•</span><span>Loja - Ecuador</span></div></div></footer></body></html>

@@ -1,0 +1,173 @@
+{
+  "repository": "Fede-dev11/Sistema_Asistencias_QR",
+  "status": "published",
+  "issues": [
+    {
+      "key": "WEB-01",
+      "title": "[Vistas web][C-ael][Fase 1/3] Base visual compartida, portada y acceso",
+      "assignees": [
+        "C-ael"
+      ],
+      "depends_on": [],
+      "commit_order": 1,
+      "body_file": "web-01-c-ael-fase-1.md",
+      "github_number": 19,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/19"
+    },
+    {
+      "key": "WEB-02",
+      "title": "[Vistas web][AnaPanamito][Fase 1/3] Actividades, asistente y detalle inicial",
+      "assignees": [
+        "AnaPanamito"
+      ],
+      "depends_on": [
+        "WEB-01"
+      ],
+      "commit_order": 2,
+      "body_file": "web-02-anapanamito-fase-1.md",
+      "github_number": 20,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/20",
+      "design_references": [
+        "actividades-nueva-actividad",
+        "detalle-actividad"
+      ],
+      "design_update": "stitch-reference:v1"
+    },
+    {
+      "key": "WEB-03",
+      "title": "[Vistas web][Dan-San837][Fase 1/3] Inicio administrativo y personas/cuentas",
+      "assignees": [
+        "Dan-San837"
+      ],
+      "depends_on": [
+        "WEB-01",
+        "WEB-02"
+      ],
+      "commit_order": 3,
+      "body_file": "web-03-dan-san837-fase-1.md",
+      "github_number": 21,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/21",
+      "design_references": [
+        "administracion-paralelos"
+      ],
+      "design_update": "stitch-reference:v1"
+    },
+    {
+      "key": "WEB-04",
+      "title": "[Vistas web][C-ael][Fase 2/3] Resumen de directores y estadísticas",
+      "assignees": [
+        "C-ael"
+      ],
+      "depends_on": [
+        "WEB-03"
+      ],
+      "commit_order": 4,
+      "body_file": "web-04-c-ael-fase-2.md",
+      "github_number": 22,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/22",
+      "design_references": [
+        "reportes-estadisticas"
+      ],
+      "design_update": "stitch-reference:v1"
+    },
+    {
+      "key": "WEB-05",
+      "title": "[Vistas web][AnaPanamito][Fase 2/3] Hoy, sesiones y proyección del QR",
+      "assignees": [
+        "AnaPanamito"
+      ],
+      "depends_on": [
+        "WEB-02",
+        "WEB-04"
+      ],
+      "commit_order": 5,
+      "body_file": "web-05-anapanamito-fase-2.md",
+      "github_number": 23,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/23",
+      "design_references": [
+        "hoy",
+        "detalle-sesion-geocerca",
+        "proyeccion-qr"
+      ],
+      "design_update": "stitch-reference:v1"
+    },
+    {
+      "key": "WEB-06",
+      "title": "[Vistas web][Dan-San837][Fase 2/3] Carreras, paralelos y sus integrantes",
+      "assignees": [
+        "Dan-San837"
+      ],
+      "depends_on": [
+        "WEB-03",
+        "WEB-05"
+      ],
+      "commit_order": 6,
+      "body_file": "web-06-dan-san837-fase-2.md",
+      "github_number": 24,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/24",
+      "design_references": [
+        "administracion-paralelos"
+      ],
+      "design_update": "stitch-reference:v1"
+    },
+    {
+      "key": "WEB-07",
+      "title": "[Vistas web][C-ael][Fase 3/3] Reportes y cierre del flujo de acceso/consulta",
+      "assignees": [
+        "C-ael"
+      ],
+      "depends_on": [
+        "WEB-04",
+        "WEB-06"
+      ],
+      "commit_order": 7,
+      "body_file": "web-07-c-ael-fase-3.md",
+      "github_number": 25,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/25",
+      "design_references": [
+        "reportes-estadisticas"
+      ],
+      "design_update": "stitch-reference:v1"
+    },
+    {
+      "key": "WEB-08",
+      "title": "[Vistas web][AnaPanamito][Fase 3/3] Invitados, justificaciones, auditoría y correcciones",
+      "assignees": [
+        "AnaPanamito"
+      ],
+      "depends_on": [
+        "WEB-05",
+        "WEB-07"
+      ],
+      "commit_order": 8,
+      "body_file": "web-08-anapanamito-fase-3.md",
+      "github_number": 26,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/26",
+      "design_references": [
+        "detalle-actividad",
+        "detalle-sesion-geocerca"
+      ],
+      "design_update": "stitch-reference:v1"
+    },
+    {
+      "key": "WEB-09",
+      "title": "[Vistas web][Dan-San837][Fase 3/3] Espacios, evidencia GPS e importación CSV",
+      "assignees": [
+        "Dan-San837"
+      ],
+      "depends_on": [
+        "WEB-06",
+        "WEB-08"
+      ],
+      "commit_order": 9,
+      "body_file": "web-09-dan-san837-fase-3.md",
+      "github_number": 27,
+      "github_url": "https://github.com/Fede-dev11/Sistema_Asistencias_QR/issues/27",
+      "design_references": [
+        "administracion-paralelos",
+        "detalle-sesion-geocerca"
+      ],
+      "design_update": "stitch-reference:v1"
+    }
+  ]
+}
