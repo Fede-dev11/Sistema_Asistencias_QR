@@ -1,4 +1,12 @@
-import Link from 'next/link';
+'use client';
+
+import { useSession } from '../features/auth/SessionProvider';
+import { homeFor } from '../features/auth/sso';
+import { ButtonLink } from '../features/ui/Button';
+
 export default function Home() {
- return <section><p className="eyebrow">UNIVERSIDAD NACIONAL DE LOJA</p><h1>Tu asistencia,<br/>en el momento.</h1><p>Accede con tu cuenta para gestionar clases o registrar tu asistencia. Los invitados autorizados usan su cédula en el formulario del evento.</p><nav><Link href="/login">Ingresar con credenciales</Link><Link href="/asistencia">Registrar asistencia</Link><Link href="/sesiones">Mis actividades</Link><Link href="/reportes">Consultar asistencias</Link></nav></section>;
+ const { session } = useSession();
+ const home = session ? homeFor(session.roles) : null;
+ if (session && home && home !== '/login') return <section><p role="status">Entrando…</p></section>;
+ return <section><p className="eyebrow">UNIVERSIDAD NACIONAL DE LOJA</p><h1>Tu asistencia,<br/>en el momento.</h1><p>Registra tu asistencia desde la app GeoAsist. La web es para docentes, responsables y administración.</p><ButtonLink href="/login" variant="primary">Ingresar</ButtonLink></section>;
 }
