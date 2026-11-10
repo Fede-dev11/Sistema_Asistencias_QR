@@ -26,7 +26,7 @@ describe('acceso sin persistir credenciales', () => {
  });
  it('con SSO disponible ofrece solo el botón universitario y navega con service codificado', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(sso));
-  const loc = { href: '' }; vi.stubGlobal('location', loc);
+  const loc = { href: 'http://localhost/' }; vi.stubGlobal('location', loc);
   render(<SessionProvider><LoginForm /></SessionProvider>);
   fireEvent.click(await screen.findByRole('button', { name:'Ingresar con cuenta universitaria' }));
   expect(loc.href).toBe('https://sso.example.test/cas/login?service=' + encodeURIComponent('https://web.example.test/auth/callback'));

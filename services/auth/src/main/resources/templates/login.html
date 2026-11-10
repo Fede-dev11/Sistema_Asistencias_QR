@@ -5,20 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Ingresar - Cuenta universitaria</title>
   <link rel="stylesheet" th:href="@{/css/sso.css}">
+  <link rel="stylesheet" th:href="@{/css/cas-login.css}">
 </head>
-<body>
+<body class="cas-login">
 <main>
-  <h1>Cuenta universitaria</h1>
-  <p class="hint">Servicio de autenticación simulado (datos ficticios).</p>
-  <p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
-  <form method="post" th:action="@{/cas/login}">
-    <input type="hidden" name="service" th:value="${service}">
-    <label for="correo">Correo</label>
-    <input id="correo" name="correo" type="email" autocomplete="username" required autofocus maxlength="254">
-    <label for="password">Contraseña</label>
-    <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128">
-    <button type="submit">Ingresar</button>
-  </form>
+  <div class="cas-identity">
+    <div class="cas-crest"><img th:src="@{/img/escudo-unl.png}" alt="Escudo de la Universidad Nacional de Loja" width="104" height="104"></div>
+    <p class="cas-institution">Universidad Nacional de Loja</p>
+    <p class="cas-brand">UNL · GeoAsist</p>
+    <p class="cas-subtitle">Sistema de asistencia académica</p>
+  </div>
+  <section class="cas-card" aria-labelledby="cas-title">
+    <h1 id="cas-title">Cuenta universitaria</h1>
+    <p class="hint">Servicio de autenticación simulado (datos ficticios).</p>
+    <p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+    <form method="post" th:action="@{/cas/login}">
+      <input type="hidden" name="service" th:value="${service}">
+      <label for="correo">Correo</label>
+      <input id="correo" name="correo" type="email" autocomplete="username" required autofocus maxlength="254">
+      <label for="password">Contraseña</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128">
+      <button type="submit">Ingresar</button>
+    </form>
+  </section>
+  <p class="cas-footer">Universidad Nacional de Loja · GeoAsist</p>
 </main>
 </body>
 </html>

@@ -1,0 +1,16 @@
+.access { width:min(100%, 30rem); margin:clamp(1.5rem, 5vh, 4rem) auto; text-align:center; }
+.identity { display:flex; flex-direction:column; align-items:center; gap:.5rem; }
+.crest { display:grid; place-items:center; width:8rem; height:8rem; background:#fff; border:1px solid #e2e7f4; border-radius:1.25rem; box-shadow:0 2px 10px #0f172a0d; }
+.crest img { width:104px; height:104px; object-fit:contain; }
+.institution { margin-top:.75rem; border-radius:999px; padding:.3rem .85rem; background:#e4eaff; color:#1e3a8a; font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; }
+.brand { margin:.1rem 0 0; font-size:clamp(1.7rem, 5vw, 2.2rem); font-weight:800; line-height:1.15; color:#0f1f49; }
+.subtitle { margin:0; color:#56617b; font-size:.95rem; }
+.card { margin-top:1.5rem; padding:clamp(1.25rem, 5vw, 2rem); border:1px solid #e8ebf5; border-radius:1.25rem; background:#fff; box-shadow:0 2px 12px #0f172a0d; text-align:left; }
+.card h1 { margin:0 0 .7rem; font-size:clamp(1.5rem, 5vw, 2rem); letter-spacing:-.02em; color:#0f1f49; }
+.card p { color:#56617b; }
+.card form { padding:0; margin:0; border:0; background:transparent; }
+.card label { display:block; margin:1rem 0 .35rem; color:#192847; font-size:.875rem; }
+.card input { display:block; min-height:48px; margin-top:.4rem; padding:.75rem; background:#f3f5ff; border:1px solid #d9e0f4; border-radius:.75rem; }
+.card button, .card a[class*='ui-btn'] { width:100%; min-height:48px; margin:1.25rem 0 0; border-radius:.8rem; }
+.footer { margin:1.5rem auto 0; color:#69758e; font-size:.8rem; }
+@media (max-width:480px) { .access { margin:1.25rem auto; } .crest { width:6.5rem; height:6.5rem; } .crest img { width:84px; height:84px; } }

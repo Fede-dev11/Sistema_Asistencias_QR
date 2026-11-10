@@ -1,11 +1,4 @@
 .home {
-  --color-brand: #173a85;
-  --color-brand-hover: #102b67;
-  --color-ink: #17213d;
-  --color-muted: #52607a;
-  --color-line: #dce1f0;
-  --color-surface: #fff;
-  --color-paper: #f5f6ff;
   display: grid;
   gap: 1.25rem;
   color: var(--color-ink);
@@ -106,7 +99,7 @@
 .shortcut:hover {
   transform: translateY(-2px);
   border-color: var(--color-brand);
-  box-shadow: 0 3px 12px rgb(23 58 133 / 10%);
+  box-shadow: 0 3px 12px rgb(30 58 138 / 10%);
 }
 
 .shortcut:focus-visible {
