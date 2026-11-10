@@ -16,8 +16,16 @@ import { AuthorizedStudents } from './AuthorizedStudents';
 import { ClassSessions } from './ClassSessions';
 import { GuestListView } from './GuestListView';
 import { SchedulePanel } from './SchedulePanel';
+import styles from './activities.module.css';
 
 type Activity = components['schemas']['Activity'];
+
+const METHOD_LABELS: Record<string, string> = {
+  QR_Y_GPS: 'QR y GPS',
+  SOLO_QR: 'Solo QR',
+  SOLO_GPS: 'Solo GPS',
+  NINGUNO: 'Ninguno',
+};
 
 export function ActivityDetail({ id }: { id: string }) {
   const router = useRouter();
@@ -33,6 +41,8 @@ export function ActivityDetail({ id }: { id: string }) {
   }
 
   const isClass = activity?.tipo === 'CLASE';
+  const parallelCount = activity?.paralelo_ids?.length ?? 0;
+  const method = activity?.metodo_verificacion ? METHOD_LABELS[activity.metodo_verificacion] ?? activity.metodo_verificacion : null;
   const tabs = [
     { id: 'sesiones', label: 'Sesiones', content: <ClassSessions activityId={id} /> },
     isClass ? { id: 'participantes', label: 'Participantes', content: <AuthorizedStudents activityId={id} /> }
@@ -41,16 +51,38 @@ export function ActivityDetail({ id }: { id: string }) {
     { id: 'justificaciones', label: 'Justificaciones', content: <JustificationInbox activityId={id} /> },
     { id: 'auditoria', label: 'Auditoría', content: <ActivityAuditPanel activityId={id} /> },
   ];
-  return <section>
+
+  return <section className={styles.detail}>
     <Breadcrumbs items={[{ label: 'Actividades', href: '/actividades' }, { label: activity?.nombre ?? 'Actividad' }]} />
-    <div className="page-head">
-      <h1>{activity ? activity.nombre : 'Actividad'}</h1>
-      {activity && <StatusTag status={activity.estado} />}
-      {activity?.estado === 'ABIERTA' && <Button variant="secondary" aria-expanded={menu} onClick={() => setMenu(!menu)}>Más acciones</Button>}
-    </div>
-    {menu && !confirming && <Button variant="danger" onClick={() => setConfirming(true)}>Cancelar actividad</Button>}
+
+    <header className={styles.hero}>
+      <div className={styles.heroMain}>
+        <div className={styles.chips}>
+          {activity && <StatusTag status={activity.estado} />}
+          {activity && <span className={styles.chip}>{isClass ? 'Clase' : 'Evento'}</span>}
+          {method && <span className={styles.chip}>Método: {method}</span>}
+          {activity?.acceso && <span className={styles.chip}>Acceso {activity.acceso === 'ABIERTO' ? 'abierto' : 'cerrado'}</span>}
+        </div>
+        <h1 className={styles.heroTitle}>{activity ? activity.nombre : 'Actividad'}</h1>
+        <p className={styles.heroMeta}>
+          {activity
+            ? isClass
+              ? `Clase curricular${parallelCount > 0 ? ` · ${parallelCount} paralelo${parallelCount === 1 ? '' : 's'} asignado${parallelCount === 1 ? '' : 's'}` : ''}`
+              : 'Evento institucional · Acceso controlado por la configuración del evento'
+            : 'Cargando la información de la actividad…'}
+        </p>
+      </div>
+      <div className={styles.heroActions}>
+        {activity?.estado === 'ABIERTA' && <Button variant="secondary" aria-expanded={menu} onClick={() => setMenu(!menu)}>Más acciones</Button>}
+      </div>
+    </header>
+
+    {menu && !confirming && <div className={styles.menuPanel}>
+      <Button variant="danger" onClick={() => setConfirming(true)}>Cancelar actividad</Button>
+    </div>}
     {confirming && <ConfirmInline danger message="¿Cancelar esta actividad? No se podrá deshacer." confirmLabel="Cancelar actividad" onConfirm={() => void cancel()} onCancel={() => setConfirming(false)} />}
+
     <ProblemMessage error={error} />
-    {activity && <Tabs param="tab" tabs={tabs} />}
+    {activity && <div className={styles.tabsCard}><Tabs param="tab" tabs={tabs} /></div>}
   </section>;
 }

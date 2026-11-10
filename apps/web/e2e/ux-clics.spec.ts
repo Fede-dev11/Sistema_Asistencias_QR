@@ -54,10 +54,12 @@ test('SC-001 desde Hoy, un clic inicia la sesión y abre la proyección con el Q
 
 test('SC-002 recargar una página interna conserva la sesión sin clics', async () => {
   const page = docente;
+  // El rediseño WEB-02 conserva el H1 de la referencia Stitch ("Actividades Académicas").
+  const heading = page.getByRole('heading', { level: 1, name: 'Actividades académicas', exact: true });
   await page.goto('/actividades');
-  await expect(page.getByRole('heading', { name: 'Actividades', exact: true })).toBeVisible();
+  await expect(heading).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Actividades', exact: true })).toBeVisible();
+  await expect(heading).toBeVisible();
   await expect(page.getByRole('button', { name: 'Salir' })).toBeVisible();
   await expect(page).toHaveURL(/\/actividades$/);
   console.log('SC-002 clics=0 (meta 0), misma página tras recargar');

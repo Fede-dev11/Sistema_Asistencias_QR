@@ -7,6 +7,7 @@ import { ApiError, request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { MAX_SESSIONS, previewDates } from './schedulePreview';
 import { Button } from '../ui/Button';
+import styles from './activities.module.css';
 
 type Schedule = components['schemas']['Schedule'];
 const DAYS = [[1, 'Lunes'], [2, 'Martes'], [3, 'Miércoles'], [4, 'Jueves'], [5, 'Viernes'], [6, 'Sábado'], [7, 'Domingo']] as const;
@@ -53,23 +54,47 @@ export function SchedulePanel({ activityId }: { activityId: string }) {
     } catch (e) { setError(e); }
   }
 
-  return <section className="panel" aria-label="Horario">
-    <h2>Horario</h2>
-    {!loaded && <p role="status">Cargando…</p>}
-    {none && <p>Esta clase no tiene horario</p>}
-    <form onSubmit={review}>
-      <fieldset><legend>Días</legend>
-        {DAYS.map(([n, label]) => <label key={n}><input type="checkbox" checked={days.includes(n)} onChange={() => setDays(d => d.includes(n) ? d.filter(x => x !== n) : [...d, n])} /> {label}</label>)}
+  return <section className={styles.panelCard} aria-label="Horario">
+    <div className={styles.panelHead}>
+      <div>
+        <h2 className={styles.panelTitle}>Horario</h2>
+        <p className={styles.panelHint}>Define los días, las horas y el rango de vigencia. Al reemplazar se regeneran las sesiones programadas.</p>
+      </div>
+    </div>
+
+    {!loaded && <p role="status" className={styles.loadingText}>Cargando horario…</p>}
+    {none && <p className={styles.emptyText}>Esta clase no tiene horario</p>}
+
+    <form className={styles.styledForm} onSubmit={review}>
+      <fieldset className={styles.fieldset}>
+        <legend className={styles.legend}>Días</legend>
+        <div className={styles.dayGroup}>
+          {DAYS.map(([n, label]) => <label key={n} className={styles.dayCheck}>
+            <input type="checkbox" checked={days.includes(n)} onChange={() => setDays(d => d.includes(n) ? d.filter(x => x !== n) : [...d, n])} /> {label}
+          </label>)}
+        </div>
       </fieldset>
-      <label>Hora de inicio<input type="time" value={start} onChange={e => setStart(e.target.value)} /></label>
-      <label>Hora de fin<input type="time" value={end} onChange={e => setEnd(e.target.value)} /></label>
-      <label>Desde<input type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
-      <label>Hasta<input type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
-      <p role="status">Vista previa: {dates.length > MAX_SESSIONS ? `más de ${MAX_SESSIONS}` : dates.length} sesiones.</p>
-      <Button variant="primary" type="submit" disabled={!loaded}>Reemplazar horario</Button>
+      <div className={styles.fieldGrid}>
+        <div className={styles.field}>
+          <label className={styles.label}>Hora de inicio<input className={styles.input} type="time" value={start} onChange={e => setStart(e.target.value)} /></label>
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Hora de fin<input className={styles.input} type="time" value={end} onChange={e => setEnd(e.target.value)} /></label>
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Desde<input className={styles.input} type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
+        </div>
+        <div className={styles.field}>
+          <label className={styles.label}>Hasta<input className={styles.input} type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
+        </div>
+      </div>
+      <p role="status" className={styles.previewLine}><strong>Vista previa: {dates.length > MAX_SESSIONS ? `más de ${MAX_SESSIONS}` : dates.length} sesiones.</strong> {days.length > 0 && from && to && to >= from ? `Del ${from} al ${to}.` : 'Marca al menos un día y el rango de fechas.'}</p>
+      <div className={styles.panelActions}>
+        <Button variant="primary" type="submit" disabled={!loaded}>Reemplazar horario</Button>
+      </div>
     </form>
     {confirming && <ConfirmInline message={`Se eliminarán las sesiones programadas del horario actual y se generarán ${dates.length}.`} confirmLabel="Confirmar reemplazo" danger onConfirm={() => void replace()} onCancel={() => setConfirming(false)} />}
-    {message && <p role="status">{message}</p>}
+    {message && <p role="status" className={styles.inlineMessage}>{message}</p>}
     <ProblemMessage error={error} />
   </section>;
 }

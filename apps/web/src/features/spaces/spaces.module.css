@@ -1,0 +1,78 @@
+/* Estilos locales del selector de espacios usado por el asistente de actividades. */
+
+.picker {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.9rem;
+  background: #f8fafc;
+  font-family: Inter, "Segoe UI", system-ui, sans-serif;
+  color: #0f172a;
+}
+.search {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.search input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.7rem;
+  background: #fff;
+  color: #0f172a;
+  font: inherit;
+  font-size: 0.9rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.search input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14);
+  outline: none;
+}
+.list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+.itemButton {
+  flex: 1 1 12rem;
+  justify-content: flex-start;
+  text-align: left;
+}
+.helper {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.78rem;
+}
+.error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.8rem;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
