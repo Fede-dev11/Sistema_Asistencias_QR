@@ -6,6 +6,7 @@ import { request } from '../../lib/api/client';
 import { GeoEvidencePanel } from './GeoEvidencePanel';
 import { SpaceForm, type Space } from './SpaceForm';
 import { Button } from '../ui/Button';
+import styles from './spaces.module.css';
 
 type Page = components['schemas']['SpacePage'];
 
@@ -30,19 +31,24 @@ export function SpacePicker({ onSelect }: { onSelect: (space: Space) => void }) 
     return <SpaceForm onSaved={space => { setCreating(false); onSelect(space); }} />;
 
   return (
-    <div className="panel">
-      <label>Buscar espacio<input aria-label="Buscar espacio" value={text} onChange={e => setText(e.target.value)} /></label>
-      <ul>
+    <div className={styles.picker}>
+      <label className={styles.search}>Buscar espacio
+        <input aria-label="Buscar espacio" placeholder="Código o nombre del espacio" value={text} onChange={e => setText(e.target.value)} />
+      </label>
+      {items.length === 0 && !error && <p className={styles.helper}>No se encontraron espacios. Puedes crear uno nuevo.</p>}
+      <ul className={styles.list}>
         {items.map(space => (
-          <li key={space.id}>
-            <Button variant="secondary" type="button" onClick={() => onSelect(space)}>{space.codigo} — {space.nombre}</Button>
+          <li key={space.id} className={styles.item}>
+            <Button variant="secondary" className={styles.itemButton} type="button" onClick={() => onSelect(space)}>{space.codigo} — {space.nombre}</Button>
             <Button variant="text" type="button" aria-label={`Ver evidencias de ${space.codigo}`} aria-pressed={viewing === space.id} onClick={() => setViewing(viewing === space.id ? null : space.id)}>Evidencias</Button>
             {viewing === space.id && <GeoEvidencePanel spaceId={space.id} />}
           </li>
         ))}
       </ul>
-      {error && <p role="alert">{error}</p>}
-      <Button variant="secondary" type="button" onClick={() => setCreating(true)}>Crear nuevo espacio</Button>
+      {error && <p role="alert" className={styles.error}>{error}</p>}
+      <div className={styles.actions}>
+        <Button variant="secondary" type="button" onClick={() => setCreating(true)}>Crear nuevo espacio</Button>
+      </div>
     </div>
   );
 }
