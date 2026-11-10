@@ -142,6 +142,19 @@ describe('paneles de administración', () => {
     expect(request).toHaveBeenCalledWith('/admin/people/p2', expect.objectContaining({ method: 'PATCH' }));
   });
 
+  it('filtra carreras por código o nombre sin perder la selección', async () => {
+    vi.mocked(request).mockImplementation(async (path: string) => {
+      if (path === '/admin/careers') return { items: [{ id: 'c1', codigo: 'SIS', nombre: 'Sistemas' }, { id: 'c2', codigo: 'TEL', nombre: 'Telecomunicaciones' }] };
+      return { items: [] };
+    });
+    render(<CareersPanel />);
+    fireEvent.click(await screen.findByRole('row', { name: 'Seleccionar Sistemas' }));
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Filtrar carreras' }), { target: { value: 'tel' } });
+    expect(screen.getByRole('row', { name: 'Seleccionar Telecomunicaciones' })).toBeTruthy();
+    expect(screen.queryByRole('row', { name: 'Seleccionar Sistemas' })).toBeNull();
+    expect(screen.getByRole('region', { name: 'Paralelos de Sistemas' })).toBeTruthy();
+  });
+
   it('abre un paralelo con pestañas separadas', async () => {
     vi.mocked(request).mockImplementation(async (path: string) => {
       if (path === '/admin/careers') return { items: [{ id: 'c1', codigo: 'SIS', nombre: 'Sistemas' }] };
