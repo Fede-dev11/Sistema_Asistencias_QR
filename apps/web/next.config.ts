@@ -37,6 +37,11 @@ const nextConfig: NextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(self), geolocation=(self)' },
         ],
       },
+      {
+        // Sitio Quarto publicado (npm run docs:arquitectura): solo se puede incrustar en esta misma web.
+        source: '/arquitectura/:path*',
+        headers: [{ key: 'Content-Security-Policy', value: contentSecurityPolicy.replace("frame-ancestors 'none'", "frame-ancestors 'self'").replace("font-src 'self'", "font-src 'self' data:") }],
+      },
     ];
   },
 };

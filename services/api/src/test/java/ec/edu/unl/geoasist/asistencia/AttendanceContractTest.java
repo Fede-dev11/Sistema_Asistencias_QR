@@ -19,7 +19,8 @@ class AttendanceContractTest extends PostgresFixture {
     String owner = token(ScenarioFixtures.TEACHER), student = token(ScenarioFixtures.STUDENT);
     start(ids[1], owner);
     String qr = qr(ids[1], owner), key = UUID.randomUUID().toString();
-    String body = json.writeValueAsString(Map.of("qr_token", qr));
+    UUID deviceId = UUID.randomUUID();
+    String body = json.writeValueAsString(Map.of("qr_token", qr, "dispositivo_id", deviceId));
     var request =
         post("/api/v1/attendance/attempts")
             .header("Authorization", "Bearer " + student)
@@ -53,6 +54,8 @@ class AttendanceContractTest extends PostgresFixture {
                         Map.of(
                             "qr_token",
                             qr,
+                            "dispositivo_id",
+                            deviceId,
                             "ubicacion",
                             Map.of(
                                 "latitud",
@@ -117,6 +120,8 @@ class AttendanceContractTest extends PostgresFixture {
                             secret,
                             "cedula",
                             cedula,
+                            "dispositivo_id",
+                            UUID.randomUUID(),
                             "nombres",
                             "Nombre del solicitante"))))
         .andExpect(status().isBadRequest());

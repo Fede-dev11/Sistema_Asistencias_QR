@@ -4,6 +4,7 @@ public class ApiFailure extends RuntimeException {
   private final int status;
   private final String code;
   private final String detail;
+  private final java.util.Map<String, Object> extras = new java.util.LinkedHashMap<>();
 
   public ApiFailure(int status, String code, String message) {
     this(status, code, message, null);
@@ -14,6 +15,15 @@ public class ApiFailure extends RuntimeException {
     this.status = status;
     this.code = code;
     this.detail = detail;
+  }
+
+  public ApiFailure with(String key, Object value) {
+    extras.put(key, value);
+    return this;
+  }
+
+  public java.util.Map<String, Object> extras() {
+    return extras;
   }
 
   public int status() {

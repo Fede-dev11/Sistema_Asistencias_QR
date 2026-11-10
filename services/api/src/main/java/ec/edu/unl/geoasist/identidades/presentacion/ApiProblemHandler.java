@@ -27,8 +27,15 @@ public class ApiProblemHandler {
         .body(body(e));
   }
 
+  @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+  public ResponseEntity<Map<String, Object>> tooLarge(Exception e) {
+    return failure(new ApiFailure(413, "ARCHIVO_DEMASIADO_GRANDE", "El archivo supera 2 MB."));
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, Object>> fields(MethodArgumentNotValidException e) {
+    if (e.getBindingResult().getFieldErrors().stream()
+        .anyMatch(x -> "dispositivo_id".equals(x.getField()))) return deviceRequired();
     String detail =
         e.getBindingResult().getFieldErrors().stream()
             .map(x -> x.getField() + ": " + x.getDefaultMessage())
@@ -45,6 +52,16 @@ public class ApiProblemHandler {
     HandlerMethodValidationException.class
   })
   public ResponseEntity<Map<String, Object>> invalid(Exception e) {
+    if (e instanceof HttpMessageNotReadableException
+        && e.getCause() instanceof tools.jackson.core.JacksonException m
+        && m.getPath().stream().anyMatch(r -> "dispositivo_id".equals(r.getPropertyName())))
+      return deviceRequired();
     return failure(ApiFailure.invalid());
+  }
+
+  private ResponseEntity<Map<String, Object>> deviceRequired() {
+    return failure(
+        new ApiFailure(
+            400, "DISPOSITIVO_REQUERIDO", "Registra tu asistencia desde la app GeoAsist."));
   }
 }

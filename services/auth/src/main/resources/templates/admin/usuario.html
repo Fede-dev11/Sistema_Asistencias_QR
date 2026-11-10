@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragmentos :: cabecera('Usuario')}"></head>
+<body>
+<main class="ancho">
+  <header th:replace="~{admin/fragmentos :: barra}"></header>
+  <h1 id="contenido" th:text="${u != null} ? 'Editar usuario' : 'Nuevo usuario'">Usuario</h1>
+  <p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+  <p role="status" class="ok" th:if="${aviso}" th:text="${aviso}"></p>
+  <section th:if="${temporal}" aria-labelledby="temp">
+    <h2 id="temp">Contraseña temporal</h2>
+    <p>Cópiala ahora: no se volverá a mostrar. El usuario deberá cambiarla al ingresar.</p>
+    <p class="secreto" th:text="${temporal}"></p>
+  </section>
+  <form method="post" th:action="${u != null} ? @{/admin/usuarios/{id}(id=${u.id})} : @{/admin/usuarios}">
+    <label for="correo">Correo</label>
+    <input id="correo" name="correo" type="email" required maxlength="254" th:value="${correoValor != null} ? ${correoValor} : ${u?.correo}">
+    <label for="cedula">Cédula</label>
+    <input id="cedula" name="cedula" inputmode="numeric" pattern="[0-9]{10}" required maxlength="10" th:value="${cedulaValor != null} ? ${cedulaValor} : ${u?.cedula}">
+    <label for="nombres">Nombres</label>
+    <input id="nombres" name="nombres" required maxlength="200" th:value="${nombresValor != null} ? ${nombresValor} : ${u?.nombres}">
+    <fieldset>
+      <legend>Roles</legend>
+      <label th:each="r : ${roles}"><input type="checkbox" name="roles" th:value="${r}" th:checked="${rolesElegidos.contains(r)}"><span th:text="${r}"></span></label>
+    </fieldset>
+    <label for="carreras">Carreras (códigos separados por coma)</label>
+    <input id="carreras" name="carreras" maxlength="400" th:value="${carreras}">
+    <button type="submit">Guardar</button>
+  </form>
+  <section th:if="${u != null}" aria-labelledby="acciones">
+    <h2 id="acciones">Acciones</h2>
+    <p th:text="'Estado actual: ' + (${u.activo} ? 'activo' : 'inactivo')"></p>
+    <form method="post" th:action="@{/admin/usuarios/{id}/estado(id=${u.id})}" class="inline">
+      <input type="hidden" name="activo" th:value="${!u.activo}">
+      <button type="submit" th:text="${u.activo} ? 'Desactivar' : 'Activar'">Desactivar</button>
+    </form>
+    <form method="post" th:action="@{/admin/usuarios/{id}/restablecer(id=${u.id})}" class="inline">
+      <button type="submit">Restablecer contraseña</button>
+    </form>
+  </section>
+</main>
+</body>
+</html>

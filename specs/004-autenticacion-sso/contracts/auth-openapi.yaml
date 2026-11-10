@@ -1,0 +1,174 @@
+openapi: 3.1.0
+info:
+  title: Servicio de autenticación universitaria simulado (subconjunto CAS 3.0)
+  version: 0.1.0
+  description: >-
+    Servicio ficticio de desarrollo. Contrato propio, separado del de GeoAsist porque es otro sistema.
+    El protocolo CAS 3.0 es una hipótesis pendiente de confirmación por la UNL (ADR 0006).
+servers:
+  - url: http://localhost:8081
+paths:
+  /cas/login:
+    get:
+      summary: Página de login o, con sesión SSO vigente, redirección con ticket
+      parameters:
+        - $ref: '#/components/parameters/service'
+      responses:
+        '200': {description: Página HTML de login}
+        '302': {$ref: '#/components/responses/TicketRedirect'}
+        '400': {description: Página HTML de error; el service no está registrado y no hay redirección}
+    post:
+      summary: Valida credenciales, crea la sesión SSO (cookie CASTGC) y redirige con ticket
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [correo, password]
+              properties:
+                correo: {type: string, maxLength: 254}
+                password: {type: string, maxLength: 128}
+                service: {type: string, maxLength: 2048}
+                _csrf: {type: string}
+      responses:
+        '200': {description: 'HTML con el error genérico "Correo o contraseña incorrectos" o cuenta desactivada'}
+        '302':
+          description: A service?ticket=ST-... o, si debe cambiar la contraseña, a /cas/password
+          headers:
+            Location: {schema: {type: string}}
+            Set-Cookie: {description: 'CASTGC; HttpOnly; SameSite=Lax; Path=/cas; Secure fuera de dev', schema: {type: string}}
+        '400': {description: Página HTML de error; el service no está registrado}
+        '403': {description: Falta o es inválido el token CSRF}
+        '429':
+          description: Demasiados intentos (5/min por correo, 50/min por IP)
+          headers:
+            Retry-After: {schema: {type: integer}}
+  /cas/password:
+    get:
+      summary: Formulario de cambio de contraseña (requiere sesión SSO)
+      parameters:
+        - $ref: '#/components/parameters/service'
+      responses:
+        '200': {description: Página HTML}
+        '302': {description: A /cas/login si no hay sesión vigente}
+        '400': {description: service no registrado}
+    post:
+      summary: Cambia la contraseña propia (12 a 128 caracteres) y cierra las demás sesiones
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [actual, nueva, confirmar]
+              properties:
+                actual: {type: string}
+                nueva: {type: string, minLength: 12, maxLength: 128}
+                confirmar: {type: string}
+                service: {type: string}
+                _csrf: {type: string}
+      responses:
+        '200': {description: HTML con el error de validación}
+        '302': {$ref: '#/components/responses/TicketRedirect'}
+        '400': {description: service no registrado}
+        '403': {description: Falta o es inválido el token CSRF}
+        '429': {description: Demasiados intentos}
+  /cas/logout:
+    get:
+      summary: Cierra la sesión SSO; redirige solo a servicios registrados
+      parameters:
+        - $ref: '#/components/parameters/service'
+      responses:
+        '200': {description: Página HTML (sin service o no registrado)}
+        '302': {description: Al service registrado; borra la cookie CASTGC}
+  /cas/p3/serviceValidate:
+    get:
+      summary: Valida y consume un ticket de servicio (un solo uso, 10 s)
+      parameters:
+        - name: service
+          in: query
+          schema: {type: string}
+        - name: ticket
+          in: query
+          schema: {type: string}
+        - name: format
+          in: query
+          description: JSON para respuesta JSON; XML por defecto
+          schema: {type: string, enum: [JSON, XML]}
+      responses:
+        '200':
+          description: Éxito o fallo CAS (siempre 200)
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ServiceResponse'}
+            application/xml:
+              schema: {type: string}
+  /api/v1/users/status:
+    get:
+      summary: Estado de una cuenta, con la clave de un servicio registrado
+      security:
+        - serviceKey: []
+      parameters:
+        - name: correo
+          in: query
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Estado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [activo]
+                properties:
+                  activo: {type: boolean}
+        '401': {description: Sin clave de servicio válida}
+        '404': {description: El correo no existe}
+components:
+  securitySchemes:
+    serviceKey:
+      type: apiKey
+      in: header
+      name: X-Service-Key
+  parameters:
+    service:
+      name: service
+      in: query
+      description: URL de retorno; debe coincidir con un servicio registrado
+      schema: {type: string, maxLength: 2048}
+  responses:
+    TicketRedirect:
+      description: Redirección a service?ticket=ST-...
+      headers:
+        Location: {schema: {type: string}}
+  schemas:
+    ServiceResponse:
+      type: object
+      required: [serviceResponse]
+      properties:
+        serviceResponse:
+          type: object
+          properties:
+            authenticationSuccess:
+              type: object
+              required: [user, attributes]
+              properties:
+                user: {type: string}
+                attributes:
+                  type: object
+                  required: [correo, cedula, nombres, roles, carreras, activo]
+                  properties:
+                    correo: {type: array, items: {type: string}}
+                    cedula: {type: array, items: {type: string}}
+                    nombres: {type: array, items: {type: string}}
+                    roles: {type: array, items: {type: string}}
+                    carreras: {type: array, items: {type: string}}
+                    activo: {type: array, items: {type: string, enum: ['true', 'false']}}
+            authenticationFailure:
+              type: object
+              required: [code, description]
+              properties:
+                code: {type: string, enum: [INVALID_REQUEST, INVALID_TICKET, INVALID_SERVICE]}
+                description: {type: string}

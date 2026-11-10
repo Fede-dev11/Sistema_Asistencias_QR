@@ -1,0 +1,97 @@
+@startuml datos-geoasist-soporte
+' Fuente: V003, V012, V013, V008. Area: idempotencia, auditoria y conservacion (tablas transversales).
+skinparam shadowing false
+skinparam linetype ortho
+hide circle
+title Base geoasist - auditoria, idempotencia y conservacion
+
+entity actividades {
+  * id : uuid <<PK>>
+}
+entity cuentas {
+  * id : uuid <<PK>>
+}
+entity espacios {
+  * id : uuid <<PK>>
+}
+entity inicios_invitado {
+  * id : uuid <<PK>>
+}
+
+entity idempotencias {
+  * operacion, actor, clave : <<PK>>
+  --
+  * huella
+  actividad_id : uuid <<FK>>
+  actor_cuenta_id : uuid <<FK>>
+  inicio_id : uuid <<FK>>
+  * estado_http, resultado : jsonb
+  * creada_en, vence_en
+  (exactamente uno de actor_cuenta_id / inicio_id)
+}
+entity auditoria_actividad {
+  * id : uuid <<PK>>
+  --
+  * actividad_id : uuid <<FK>>
+  actor_id : uuid <<FK>>
+  * accion, instante, correlacion
+  razon, anterior : jsonb, nuevo : jsonb
+}
+entity auditoria_academica {
+  * id : uuid <<PK>>
+  --
+  * actor_id : uuid <<FK>>
+  * accion, entidad
+  entidad_id, instante, correlacion
+  anterior : jsonb, nuevo : jsonb
+}
+entity auditoria_espacios {
+  * id : uuid <<PK>>
+  --
+  * espacio_id : uuid <<FK>>
+  * actor_id : uuid <<FK>>
+  * accion, instante, correlacion
+}
+entity contadores_limite {
+  * ambito, ventana : <<PK>>
+  --
+  * conteo, vence_en
+}
+entity tratamientos_conservacion {
+  * id : uuid <<PK>>
+  --
+  actividad_id : uuid <<FK, UQ>> (SET NULL)
+  * fase : PENDIENTE | PROCESANDO | COPIAS_PENDIENTES | COMPLETADO
+  vence_en, procesado_en
+}
+entity estadisticas_anonimas {
+  * anio, modalidad, version : <<PK>>
+  --
+  * participantes : >= 10
+}
+entity catalogo_copias {
+  * id : uuid <<PK>>
+  --
+  * soporte : BACKUP | WAL | EXPORT
+  * referencia <<UQ>>
+  * estado : RECUPERABLE | RETIRADA
+  saneada_hasta, verificada_en, evidencia
+}
+entity politica_copias {
+  * id : integer <<PK, = 1>>
+  --
+  inventario_verificado_en
+  respaldo_saneado_en
+  evidencia_retiro
+}
+
+actividades ||--o{ idempotencias
+cuentas |o--o{ idempotencias
+inicios_invitado |o--o{ idempotencias
+actividades ||--o{ auditoria_actividad
+cuentas |o--o{ auditoria_actividad
+cuentas ||--o{ auditoria_academica
+espacios ||--o{ auditoria_espacios
+cuentas ||--o{ auditoria_espacios
+actividades |o--o| tratamientos_conservacion
+@enduml

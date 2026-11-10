@@ -1,20 +1,30 @@
-import { useCallback, useEffect, useRef, type ReactNode } from 'react';
+'use client';
+import { useEffect, useId, useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { Button } from './Button';
 
-export function Drawer({ title, open = false, onClose, children }: { title: string; open?: boolean; onClose?: () => void; children: ReactNode }) {
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const prev = useRef<HTMLElement | null>(null);
-  const handleClose = useCallback(() => { onClose?.(); }, [onClose]);
+const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+/** Panel lateral modal (render condicional del padre: `{open && <Drawer/>}`). title: nombre accesible; onClose: Escape o botón Cerrar. Foco atrapado y devuelto al elemento que lo abrió. */
+export function Drawer({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  const titleId = useId();
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (!open) return;
-    prev.current = document.activeElement as HTMLElement;
-    backdropRef.current?.focus();
-    return () => { prev.current?.focus(); };
-  }, [open]);
-  if (!open) return null;
+    const opener = document.activeElement as HTMLElement | null;
+    ref.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+    return () => opener?.focus();
+  }, []);
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') { e.stopPropagation(); onClose(); return; }
+    if (e.key !== 'Tab') return;
+    const f = [...ref.current!.querySelectorAll<HTMLElement>(FOCUSABLE)];
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
   return (
-    <div ref={backdropRef} className="ui-drawer-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === backdropRef.current) handleClose(); }} onKeyDown={(e) => { if (e.key === 'Escape') handleClose(); }}>
-      <div className="ui-drawer">
-        <div className="ui-drawer-head"><h2>{title}</h2><button type="button" onClick={handleClose} className="ui-btn ui-btn-text">Cerrar</button></div>
+    <div className="ui-drawer-backdrop">
+      <div ref={ref} role="dialog" aria-modal="true" aria-labelledby={titleId} className="ui-drawer" onKeyDown={onKey}>
+        <div className="ui-drawer-head"><h2 id={titleId}>{title}</h2><Button variant="text" onClick={onClose}>Cerrar</Button></div>
         {children}
       </div>
     </div>

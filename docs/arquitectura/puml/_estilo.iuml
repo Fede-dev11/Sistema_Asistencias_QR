@@ -1,0 +1,8 @@
+' Estilo común de los diagramas de clases (se incluye con !include).
+left to right direction
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam defaultFontSize 12
+hide empty members
+hide circle

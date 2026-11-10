@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragmentos :: cabecera('Usuarios')}"></head>
+<body>
+<main class="ancho">
+  <header th:replace="~{admin/fragmentos :: barra}"></header>
+  <h1 id="contenido">Usuarios</h1>
+  <p role="status" class="ok" th:if="${aviso}" th:text="${aviso}"></p>
+  <form method="get" th:action="@{/admin/usuarios}" role="search">
+    <label for="q">Buscar por correo o cédula</label>
+    <input id="q" name="q" type="search" th:value="${q}" maxlength="254">
+    <button type="submit">Buscar</button>
+  </form>
+  <p><a th:href="@{/admin/usuarios/nuevo}">Crear usuario</a></p>
+  <p th:text="${total} + ' usuario(s)'"></p>
+  <div class="tabla">
+    <table>
+      <caption class="salto">Lista de usuarios</caption>
+      <thead><tr><th scope="col">Correo</th><th scope="col">Cédula</th><th scope="col">Nombres</th><th scope="col">Roles</th><th scope="col">Estado</th></tr></thead>
+      <tbody>
+        <tr th:each="u : ${usuarios}">
+          <td><a th:href="@{/admin/usuarios/{id}(id=${u.id})}" th:text="${u.correo}"></a></td>
+          <td th:text="${u.cedula}"></td>
+          <td th:text="${u.nombres}"></td>
+          <td th:text="${#strings.listJoin(u.roles, ', ')}"></td>
+          <td th:text="${u.activo} ? 'Activo' : 'Inactivo'"></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <nav aria-label="Paginación" class="barra">
+    <a th:if="${pagina > 0}" th:href="@{/admin/usuarios(q=${q},pagina=${pagina - 1})}">Anterior</a>
+    <span th:text="'Página ' + ${pagina + 1} + ' de ' + ${paginas}"></span>
+    <a th:if="${pagina + 1 < paginas}" th:href="@{/admin/usuarios(q=${q},pagina=${pagina + 1})}">Siguiente</a>
+  </nav>
+</main>
+</body>
+</html>

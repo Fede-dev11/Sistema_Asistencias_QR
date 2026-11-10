@@ -1,0 +1,231 @@
+---
+title: "Nivel 3 · Componentes"
+---
+
+Estructura interna de los contenedores con lógica propia: API, servicio de autenticación, web y móvil.
+Los nombres corresponden a paquetes y carpetas reales del repositorio.
+
+::: {.callout-note}
+Los diagramas son **código** (Mermaid C4, celdas ```` ```{mermaid} ````). Para actualizarlos, edite el bloque de
+este archivo `.qmd` y ejecute `quarto render` en `docs/arquitectura`. Se muestran solo las relaciones principales.
+:::
+
+## API (`services/api`, paquete `ec.edu.unl.geoasist`)
+
+Cada módulo se organiza en capas `presentacion`, `aplicacion`, `dominio` y `persistencia`. El test
+`ArchitectureDependencyTest` exige: sin ciclos entre módulos; `academico` y `espacios` no dependen de `asistencia`;
+`estadisticas` no usa la capa `presentacion` de otros módulos; `dominio` sin JPA ni Spring Web; y solo
+`identidades` usa `CasIdentityProvider` o `RestClient`.
+
+### Módulos de negocio
+
+```{mermaid}
+C4Component
+  title API - módulos de negocio
+  Container_Boundary(api, "API Spring Boot") {
+    Component(identidades, "identidades", "Módulo", "Autenticación, cuentas, IdentityProvider")
+    Component(academico, "academico", "Módulo", "Carreras, paralelos, personas, importación CSV")
+    Component(espacios, "espacios", "Módulo", "Espacios y evidencia geográfica")
+    Component(actividades, "actividades", "Módulo", "Clases y eventos, horarios, invitados")
+    Component(sesiones, "sesiones", "Módulo", "Ciclo de sesiones y geolocalización")
+    Component(qr, "qr", "Módulo", "Emisión de QR rotativo")
+    Component(asistencia, "asistencia", "Módulo", "Registro, correcciones, justificaciones, invitados")
+    Component(compartido, "compartido", "Módulo", "Problem Details, idempotencia, auditoría, tiempo")
+  }
+  ContainerDb(db, "geoasist", "PostgreSQL")
+  Container_Ext(auth, "Servicio de autenticación", "CAS 3.0")
+  Rel(identidades, auth, "serviceValidate")
+  Rel(actividades, espacios, "Usa")
+  Rel(sesiones, actividades, "Usa")
+  Rel(qr, actividades, "Usa")
+  Rel(qr, sesiones, "Usa")
+  Rel(asistencia, sesiones, "Usa")
+  Rel(asistencia, actividades, "Usa")
+  Rel(asistencia, qr, "Valida QR")
+  Rel(asistencia, db, "JDBC")
+```
+
+### Consulta, conservación y tareas programadas
+
+```{mermaid}
+C4Component
+  title API - consulta, conservación y programadores
+  Container_Boundary(api, "API Spring Boot") {
+    Component(estadisticas, "estadisticas", "Módulo", "Estadísticas e historial; solo lectura")
+    Component(reportes, "reportes", "Módulo", "Consulta, exportación CSV y auditoría")
+    Component(conservacion, "conservacion", "Módulo", "Anonimización y estadísticas anónimas")
+    Component(asistencia, "asistencia", "Módulo", "TransientSecretCleanup")
+    Component(qr, "qr", "Módulo", "QrRotationScheduler")
+    Component(sesiones, "sesiones", "Módulo", "SessionCycleScheduler")
+    Component(retention, "RetentionScheduler", "Tarea programada", "Dispara la anonimización")
+  }
+  ContainerDb(db, "geoasist", "PostgreSQL")
+  Rel(qr, db, "Rota el secreto del QR")
+  Rel(sesiones, db, "Abre y cierra sesiones")
+  Rel(asistencia, db, "Limpia secretos transitorios")
+  Rel(retention, conservacion, "Ejecuta")
+  Rel(conservacion, db, "Anonimiza datos vencidos")
+  Rel(estadisticas, db, "Lee")
+  Rel(reportes, db, "Lee")
+```
+
+| Componente | Responsabilidad |
+|---|---|
+| identidades | `AuthenticationService`, `AccountProvisioning`, `AccountAssociationService`; puerto `IdentityProvider` con `CasIdentityProvider` y `DevelopmentIdentityProvider`; `ApiSecurityConfig`. |
+| academico | `ManageCareersAndParallels`, `ManagePeopleAndAccounts`, `CsvImport`; controladores de administración y catálogo de docentes. |
+| espacios | `ManageSpaces`, `GeoEvidence`, `SpaceCode`. |
+| actividades | `CreateActivity`, `EditActivity`, `CloseActivity`, `ReplaceSchedule`, `ConfigureGuests`, `FindVisibleActivities`, autorización por alcance. |
+| sesiones | `SessionLifecycle`, `SessionCycle`, `ManageScheduledSessions`, `ConfigureSessionGeolocation`; `SessionCycleScheduler` abre y cierra sesiones. |
+| qr | `IssueSessionQr`; `QrRotationScheduler` rota el QR. |
+| asistencia | `AttendanceRecording`, `RecordAuthenticatedAttendance`, `SubmitGuestAttendance`, `ManualAttendance`, `Justifications`; `GeographicPolicy` con `PostgisProximityAdapter` o `NoGeographyAdapter`; `TransientSecretCleanup` purga secretos temporales. |
+| estadisticas / reportes | Lectura de datos, exportación CSV, consulta de auditoría. |
+| conservacion | `AnonymizeExpiredActivity`, `BuildAnonymousStatistics`, `RetentionMonitoring`; `RetentionScheduler` (ADR 0003). |
+| compartido | `ProblemDetails`, `IdempotencyService`, `AcademicAudit`, `ServerTime`, `RequestCorrelation`, `Cedula`, `RetentionPolicy`. |
+
+Las flechas del diagrama resumen las dependencias principales; el detalle exacto lo valida el test arquitectónico.
+Todos los módulos usan `compartido`, y casi todos usan `identidades` (sesión y roles); ambas flechas se omiten para no saturar. `academico` solo depende de `identidades`.
+
+## Servicio de autenticación (`services/auth`, paquete `ec.edu.unl.sso`)
+
+```{mermaid}
+C4Component
+  title Servicio de autenticación - componentes
+  Container_Boundary(auth, "Servicio de autenticación") {
+    Component(cas, "cas", "Paquete", "LoginController, LogoutController, ValidateController, Tickets, SsoSessions, LoginLog")
+    Component(usuarios, "usuarios", "Paquete", "ManageUsers, CsvUserImport, UserRepository, AdminController, StatusController")
+    Component(servicios, "servicios", "Paquete", "ManageServices, ServiceMatcher, ServiceRegistry")
+    Component(compartido, "compartido", "Paquete", "SecurityConfig, RateLimiter, Secrets, AdminAudit, Cedula, DevelopmentSeed")
+    Component(retention, "RetentionJob", "Tarea programada", "Depura registros antiguos")
+  }
+  ContainerDb(authdb, "geoasist_auth", "PostgreSQL")
+  Container_Ext(api, "API", "Spring Boot")
+  Rel(cas, usuarios, "Autentica usuarios")
+  Rel(cas, servicios, "Valida el servicio destino")
+  Rel(cas, compartido, "Límite de intentos")
+  Rel(usuarios, authdb, "JDBC")
+  Rel(servicios, authdb, "JDBC")
+  Rel(cas, authdb, "Tickets y sesiones")
+  Rel(retention, authdb, "Depura")
+  Rel(api, cas, "serviceValidate")
+```
+
+## Aplicación web (`apps/web`)
+
+Tras 006 (vistas para probar todas las funcionalidades) y 007 (optimización de la experiencia) la web se organiza en
+tres capas: **páginas** (`src/app`, solo componen), **features** (una carpeta por funcionalidad) y el **cliente API**
+único. Las rutas por rol llevan al inicio de cada persona (`homeFor` en `features/auth/sso.ts`).
+
+```{mermaid}
+C4Component
+  title Web - páginas, features y cliente API
+  Container_Boundary(web, "Aplicación web Next.js") {
+    Component(pages, "src/app (páginas)", "Rutas Next.js", "/hoy, /inicio, /actividades, /actividades/nueva, /actividades/[id], /sesiones, /sesiones/[id], /sesiones/[id]/proyectar, /estadisticas, /reportes, /admin/*, /pruebas/*, /documentacion, /login, /auth/callback")
+    Component(auth, "features/auth", "React", "SessionProvider, LoginForm, CasCallback, RoleNav, sso.ts")
+    Component(home, "features/home", "React", "TeacherToday, DirectorSummary, AdminHome")
+    Component(act, "features/activities", "React", "ActivityList, ActivityWizard, ActivityDetail, SchedulePanel, GuestSettingsPanel, AuthorizedStudents, ClassSessions")
+    Component(ses, "features/sessions", "React", "SessionList, SessionSummary, ProjectionView, LiveAttendances, GeolocationSettingsPanel")
+    Component(oper, "features operativas", "React", "corrections, reviews, stats, reports, spaces")
+    Component(adm, "features/admin", "React", "CareersPanel, PeoplePanel, ParallelMembers, ImportPanel (en cajones laterales)")
+    Component(test, "features/testing", "React", "ParticipantSimulator, GuestSimulator; visibles con NEXT_PUBLIC_HERRAMIENTAS_PRUEBA")
+    Component(docs, "features/docs", "React", "ApiDocsPage; Swagger UI en /documentacion/swagger (planificado)")
+    Component(ui, "features/ui y common", "React", "Drawer, Tabs, Stepper, Breadcrumbs, Button, StatusTag, RoleGuard, Paginated, ProblemMessage")
+    Component(client, "lib/api/client.ts", "TypeScript", "Cliente HTTP único; token en memoria")
+    Component(gen, "generated", "TypeScript", "api.ts y api-docs.json generados del contrato; copia estática de openapi.yaml (planificado)")
+  }
+  Container_Ext(api, "API", "REST /api/v1")
+  Container_Ext(sso, "Servicio de autenticación", "CAS")
+  System_Ext(osm, "OpenStreetMap", "Teselas")
+  Rel(pages, auth, "Sesión y menú")
+  Rel(pages, home, "Compone")
+  Rel(pages, act, "Compone")
+  Rel(pages, ses, "Compone")
+  Rel(pages, oper, "Compone")
+  Rel(pages, adm, "Compone")
+  Rel(pages, test, "Compone")
+  Rel(pages, docs, "Compone")
+  Rel(act, ui, "Usa")
+  Rel(ses, ui, "Usa")
+  Rel(adm, ui, "Usa")
+  Rel(home, client, "Llama")
+  Rel(act, client, "Llama")
+  Rel(ses, client, "Llama")
+  Rel(oper, client, "Llama")
+  Rel(adm, client, "Llama")
+  Rel(test, client, "Llama")
+  Rel(auth, client, "Llama")
+  Rel(client, gen, "Tipos")
+  Rel(docs, gen, "Lee metadatos")
+  Rel(client, api, "HTTPS/JSON")
+  Rel(auth, sso, "Redirige")
+  Rel(oper, osm, "Teselas: spaces")
+```
+
+### Re-autenticación silenciosa (SSO)
+
+El token de acceso vive solo en memoria (nunca se guarda en el navegador). Para que recargar la página o abrir un
+enlace no obligue a ingresar de nuevo, `SessionProvider` guarda en `sessionStorage` solo un **indicador**
+(`geoasist-sso`, ver `features/auth/sso.ts`). Sin sesión en memoria pero con indicador, pide un ticket nuevo al SSO,
+que reconoce su propia cookie, sin mostrar formulario; `CasCallback` lo entrega a la API y vuelve a la ruta pedida
+(`?destino=`, validada por `safeDestino`: solo rutas internas).
+
+```{mermaid}
+sequenceDiagram
+  participant N as Navegador
+  participant W as Web (SessionProvider)
+  participant S as SSO (/cas/login)
+  participant A as API (/api/v1)
+  N->>W: Recarga o abre /sesiones/123
+  W->>W: Sin token en memoria; indicador geoasist-sso presente
+  W-->>N: Restableciendo tu sesión
+  N->>S: Redirige a /cas/login con service y destino
+  S-->>N: Cookie SSO vigente: redirige con ticket
+  N->>W: /auth/callback con ticket y destino
+  W->>A: Canjea el ticket (la API hace serviceValidate al SSO)
+  A-->>W: Token de sesión y perfil
+  W-->>N: Navega a /sesiones/123
+```
+
+Si la cookie del SSO venció, el SSO muestra su formulario; si el almacenamiento está bloqueado, simplemente no hay
+re-autenticación silenciosa.
+
+### Documentación de la API y Swagger UI
+
+| Elemento | Dónde | Estado |
+|---|---|---|
+| `ApiDocsPage` | Web `/documentacion`: operaciones del contrato (`api-docs.json`); el detalle se dibuja al abrir cada una | Implementado |
+| Swagger UI de la API | `GET /swagger-ui.html`, servido por `services/api` | Planificado |
+| Swagger UI en la web | `/documentacion/swagger`, lee una copia estática de `openapi.yaml` | Planificado |
+
+## Aplicación móvil (`apps/mobile`)
+
+```{mermaid}
+C4Component
+  title Móvil - componentes
+  Container_Boundary(mobile, "Aplicación móvil Expo") {
+    Component(mauth, "features/auth", "React Native", "LoginScreen, casLogin, session")
+    Component(msess, "features/sessions", "React Native", "ActiveSessionsScreen")
+    Component(matt, "features/attendance", "React Native", "AttendanceScreen, location, guestResume")
+    Component(mdev, "features/device", "TypeScript", "installationId")
+    Component(msvc, "services/api.ts", "TypeScript", "Cliente HTTP")
+    Component(mgen, "generated/api.ts", "TypeScript", "Tipos del contrato")
+  }
+  Container_Ext(api, "API", "REST /api/v1")
+  Container_Ext(sso, "Servicio de autenticación", "CAS")
+  Rel(mauth, sso, "Login CAS")
+  Rel(mauth, msvc, "Llama")
+  Rel(msess, msvc, "Llama")
+  Rel(matt, msvc, "Llama")
+  Rel(matt, mdev, "Identifica instalación")
+  Rel(msvc, mgen, "Tipos")
+  Rel(msvc, api, "HTTPS/JSON")
+```
+
+| Contenedor | Elemento | Responsabilidad |
+|---|---|---|
+| Web | `src/app` | Rutas por rol (`RoleNav`, `RoleGuard`) que solo componen funcionalidades; inicio por rol (`/hoy`, `/inicio`). |
+| Web | `features/*` | Una carpeta por funcionalidad, con sus pruebas junto al código; formularios largos en asistente (`ActivityWizard`) y administración en cajones laterales. |
+| Web | `lib/api/client.ts`, `generated` | Acceso único a la API; tipos y metadatos de documentación generados, no se editan a mano. |
+| Móvil | `features/auth` | Inicio de sesión CAS y almacenamiento de sesión. |
+| Móvil | `features/sessions`, `features/attendance` | Lista de sesiones activas y registro de asistencia con ubicación. |
+| Móvil | `features/device` | Identificador de instalación del dispositivo. |
+| Móvil | `services/api.ts` | Cliente HTTP hacia la API. |

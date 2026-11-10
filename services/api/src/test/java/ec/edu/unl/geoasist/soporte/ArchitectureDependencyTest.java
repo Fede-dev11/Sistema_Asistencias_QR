@@ -23,14 +23,42 @@ class ArchitectureDependencyTest {
         var edges = graph.computeIfAbsent(owner, k -> new TreeSet<>());
         var refs = reference.matcher(source);
         while (refs.find()) if (!refs.group(1).equals(owner)) edges.add(refs.group(1));
+        // estadisticas solo lee: no usa la capa de presentación de otros módulos.
+        if (owner.equals("estadisticas"))
+          assertFalse(
+              Pattern.compile("geoasist[.](?!estadisticas)[a-z]+[.]presentacion")
+                  .matcher(source)
+                  .find(),
+              file.toString());
         if (file.toString().contains("/dominio/")) {
           assertFalse(source.contains("jakarta.persistence"), file.toString());
           assertFalse(source.contains("org.springframework.web"), file.toString());
         }
       }
     }
+    for (String module : List.of("academico", "espacios"))
+      assertFalse(
+          graph.getOrDefault(module, Set.of()).contains("asistencia"),
+          module + " no debe depender de asistencia");
     Set<String> finished = new HashSet<>();
     for (String node : graph.keySet()) visit(node, graph, new LinkedHashSet<>(), finished);
+  }
+
+  @Test
+  void onlyIdentidadesUsesCasProviderOrRestClient() throws Exception {
+    Path root = Path.of("src/main/java/ec/edu/unl/geoasist");
+    var forbidden =
+        Pattern.compile(
+            "(?m)^import (?:static )?(?:[\\w.]*[.]CasIdentityProvider|org[.]springframework[.]web[.]client[.]RestClient)[;.\\s]");
+    try (var files = Files.walk(root)) {
+      for (Path file : files.filter(p -> p.toString().endsWith(".java")).toList()) {
+        String source = Files.readString(file);
+        var declaration =
+            Pattern.compile("(?m)^package ec[.]edu[.]unl[.]geoasist[.]([a-z]+)").matcher(source);
+        if (!declaration.find() || declaration.group(1).equals("identidades")) continue;
+        assertFalse(forbidden.matcher(source).find(), file.toString());
+      }
+    }
   }
 
   private static void visit(

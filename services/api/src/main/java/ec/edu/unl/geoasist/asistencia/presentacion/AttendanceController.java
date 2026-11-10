@@ -33,7 +33,8 @@ public class AttendanceController {
       HttpServletRequest request) {
     UUID session = null;
     try {
-      session = qr.lookup(body.qr_token()).session();
+      if (body.sesion_id() == null && body.qr_token() == null) throw ApiFailure.invalid();
+      session = body.sesion_id() != null ? body.sesion_id() : qr.lookup(body.qr_token()).session();
     } catch (ApiFailure e) {
       limits.account(user.personId(), null);
       throw e;
@@ -43,6 +44,8 @@ public class AttendanceController {
         service.record(
             user,
             body.qr_token(),
+            body.sesion_id(),
+            body.dispositivo_id(),
             body.ubicacion() == null ? null : body.ubicacion().measurement(),
             key,
             body,

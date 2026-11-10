@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="cabecera(titulo)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${titulo} + ' - Administración'">Administración</title>
+  <link rel="stylesheet" th:href="@{/css/sso.css}">
+  <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<header th:fragment="barra" class="barra">
+  <a class="salto" href="#contenido">Saltar al contenido</a>
+  <nav aria-label="Administración">
+    <a th:href="@{/admin/usuarios}">Usuarios</a>
+    <a th:href="@{/admin/importar}">Importar CSV</a>
+    <a th:href="@{/admin/servicios}">Servicios registrados</a>
+  </nav>
+  <form method="post" th:action="@{/admin/logout}" class="inline"><button type="submit">Cerrar sesión</button></form>
+</header>
+</body>
+</html>

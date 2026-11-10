@@ -53,7 +53,11 @@ class AuthContractTest extends PostgresFixture {
   void logoutRevokesBearer() throws Exception {
     String token = loginToken();
     api.perform(post("/api/v1/auth/logout").header("Authorization", "Bearer " + token))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath(
+                    "$.sso_logout_url")
+                .value(org.hamcrest.Matchers.containsString("/cas/logout?service=")));
     api.perform(post("/api/v1/auth/logout").header("Authorization", "Bearer " + token))
         .andExpect(status().isUnauthorized());
   }

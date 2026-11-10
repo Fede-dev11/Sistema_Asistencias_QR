@@ -26,6 +26,12 @@ public class DevelopmentSeed implements ApplicationRunner {
     this.password = password;
   }
 
+  // Cédulas ficticias con módulo 10 válido (provincia 01).
+  static final String[] CEDULAS = {
+    "0100000017", "0100000025", "0100000033", "0100000041",
+    "0100000058", "0100000066", "0100000074", "0100000082"
+  };
+
   public static UUID id(int n) {
     return UUID.fromString("00000000-0000-0000-0000-%012d".formatted(n));
   }
@@ -60,7 +66,7 @@ public class DevelopmentSeed implements ApplicationRunner {
       db.update(
           "INSERT INTO personas VALUES (?,?,?, 'INSTITUCIONAL') ON CONFLICT DO NOTHING",
           id(100 + i),
-          "%010d".formatted(i + 1),
+          CEDULAS[i],
           "Persona ficticia " + (i + 1));
       db.update(
           "INSERT INTO cuentas VALUES (?,?, 'DEV',?,?,?) ON CONFLICT DO NOTHING",
@@ -86,11 +92,12 @@ public class DevelopmentSeed implements ApplicationRunner {
     for (int i = 1; i <= 3; i++) {
       UUID activity = id(300 + i);
       db.update(
-          "INSERT INTO actividades(id,nombre,modalidad,responsable_id) VALUES (?,?,?,?) ON CONFLICT DO NOTHING",
+          "INSERT INTO actividades(id,nombre,modalidad,responsable_id,acceso) VALUES (?,?,?,?,?) ON CONFLICT DO NOTHING",
           activity,
           "Actividad ficticia " + i,
           i == 1 ? "CLASE" : "EVENTO",
-          id(i == 1 ? 200 : i == 2 ? 201 : 205));
+          id(i == 1 ? 200 : i == 2 ? 201 : 205),
+          i == 1 ? null : "CERRADO");
       db.update(
           "INSERT INTO actividad_carreras VALUES (?,?) ON CONFLICT DO NOTHING",
           activity,
@@ -109,5 +116,32 @@ public class DevelopmentSeed implements ApplicationRunner {
         "INSERT INTO estudiantes_autorizados VALUES (?,?,true) ON CONFLICT DO NOTHING",
         id(301),
         id(102));
+    db.update(
+        "INSERT INTO personas VALUES (?,?,?, 'INSTITUCIONAL') ON CONFLICT DO NOTHING",
+        id(108),
+        "2400000002",
+        "Administrador ficticio");
+    db.update(
+        "INSERT INTO cuentas VALUES (?,?, 'DEV',?,?,true) ON CONFLICT DO NOTHING",
+        id(208),
+        id(108),
+        "admin@dev.geoasist.local",
+        encoded);
+    db.update(
+        "INSERT INTO roles_cuenta VALUES (?, 'ADMINISTRADOR') ON CONFLICT DO NOTHING", id(208));
+    db.update(
+        "INSERT INTO espacios(id,nombre,tipo,codigo,codigo_normalizado,latitud,longitud,creado_por) VALUES (?,?,'EXTERIOR','UNL','UNL',-4.0328,-79.2026,?) ON CONFLICT DO NOTHING",
+        id(501),
+        "Campus UNL (referencia ficticia)",
+        id(208));
+    // Estudiantes (102, 106, 107) y docentes (200, 205) en los paralelos de 001.
+    for (int[] m : new int[][] {{102, 11}, {107, 11}, {106, 12}})
+      db.update(
+          "INSERT INTO matriculas VALUES (?,?,true) ON CONFLICT DO NOTHING", id(m[0]), id(m[1]));
+    for (int[] d : new int[][] {{200, 11}, {205, 12}})
+      db.update(
+          "INSERT INTO docentes_paralelo VALUES (?,?,true) ON CONFLICT DO NOTHING",
+          id(d[0]),
+          id(d[1]));
   }
 }

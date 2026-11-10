@@ -1,10 +1,19 @@
-export function Stepper({ steps, current, onPrev, onNext }: { steps: string[]; current: number; onPrev?: () => void; onNext?: () => void }) {
+import { Button } from './Button';
+
+/** steps: etiquetas; current: índice activo (controlado por el padre); onPrev/onNext: callbacks (Anterior se oculta en el primer paso, Siguiente en el último); nextDisabled: bloquea Siguiente. */
+export function Stepper({ steps, current, onPrev, onNext, nextDisabled = false }:
+  { steps: string[]; current: number; onPrev: () => void; onNext: () => void; nextDisabled?: boolean }) {
   return (
-    <div className="ui-stepper"><ol>
-      {steps.map((label, i) => <li key={i} aria-current={i === current ? 'step' : undefined}><span>{i + 1}</span> {label}</li>)}
-    </ol><div className="ui-stepper-nav">
-      {onPrev && <button type="button" onClick={onPrev} disabled={current === 0} className="ui-btn ui-btn-secondary">Anterior</button>}
-      {onNext && <button type="button" onClick={onNext} disabled={current === steps.length - 1} className="ui-btn ui-btn-primary">Siguiente</button>}
-    </div></div>
+    <div className="ui-stepper">
+      <ol>{steps.map((s, i) => (
+        <li key={s} aria-current={i === current ? 'step' : undefined} data-done={i < current || undefined}>
+          <span aria-hidden="true">{i < current ? '✓' : i + 1}</span> {s}
+        </li>
+      ))}</ol>
+      <div className="ui-stepper-nav">
+        {current > 0 && <Button variant="secondary" onClick={onPrev}>Anterior</Button>}
+        {current < steps.length - 1 && <Button onClick={onNext} disabled={nextDisabled}>Siguiente</Button>}
+      </div>
+    </div>
   );
 }

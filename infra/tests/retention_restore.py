@@ -33,11 +33,11 @@ def main():
         tool.query(f"""
         INSERT INTO personas VALUES ('{person}','0012345678','Cuenta ficticia vigente','INSTITUCIONAL');
         INSERT INTO cuentas VALUES ('{account}','{person}','DEV','restore@example.test',NULL,true);
-        INSERT INTO actividades(id,nombre,modalidad,responsable_id,estado,cerrada_en,anonimizar_en)
+        INSERT INTO actividades(id,nombre,modalidad,responsable_id,estado,cerrada_en,anonimizar_en,acceso)
           VALUES ('{expired}','MARCADOR_NOMINAL_VENCIDO','EVENTO','{account}','CERRADA',
-                  CURRENT_TIMESTAMP-INTERVAL '5 years'+INTERVAL '2 seconds',CURRENT_TIMESTAMP+INTERVAL '2 seconds');
-        INSERT INTO actividades(id,nombre,modalidad,responsable_id)
-          VALUES ('{current}','Evento ficticio vigente','EVENTO','{account}');
+                  CURRENT_TIMESTAMP-INTERVAL '5 years'+INTERVAL '2 seconds',CURRENT_TIMESTAMP+INTERVAL '2 seconds','CERRADO');
+        INSERT INTO actividades(id,nombre,modalidad,responsable_id,acceso)
+          VALUES ('{current}','Evento ficticio vigente','EVENTO','{account}','CERRADO');
         """)
         original = directory / (str(uuid.uuid4()) + ".dump")
         with original.open("wb") as output:

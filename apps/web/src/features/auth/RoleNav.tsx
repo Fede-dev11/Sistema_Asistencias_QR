@@ -30,7 +30,7 @@ export const TEST_ITEMS: readonly Item[] = [
 ];
 
 export function RoleNav() {
-  const { session, nombres, logout, ssoLogoutUrl } = useSession();
+  const { session, profile, logout, ssoLogoutUrl } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const pruebas = process.env.NEXT_PUBLIC_HERRAMIENTAS_PRUEBA === 'true';
@@ -43,7 +43,7 @@ export function RoleNav() {
   return <nav aria-label="Principal" className={`role-nav${open ? ' open' : ''}`}>
     <Button variant="secondary" type="button" className="role-nav-toggle" aria-expanded={open} aria-controls="role-nav-list" onClick={() => setOpen(o => !o)}>Menú</Button>
     <div id="role-nav-list" className="role-nav-list">
-      {session && <span className="role-nav-user">{nombres ? nombres + ' ' : ''}<small>({session.roles.join(', ')})</small></span>}
+      {session && <span className="role-nav-user">{profile?.nombres} <small>({session.roles.join(', ')})</small></span>}
       {mine(NAV_ITEMS).map(link)}
       {tests.length > 0 && <div role="group" aria-label="Pruebas" className="role-nav-tests"><strong>Pruebas</strong>{tests.map(link)}</div>}
       {session ? <Button variant="secondary" type="button" onClick={() => { void logout().catch(() => undefined); }}>Salir</Button> : <Link href="/login">Ingresar</Link>}

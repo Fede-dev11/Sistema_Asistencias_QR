@@ -14,6 +14,7 @@ import {
   type GuestResume,
 } from './guestResume';
 import { captureAttendanceLocation, type AttendanceLocation } from './location';
+import { getInstallationId } from '../device/installationId';
 
 type GuestStart = components['schemas']['GuestStartResult'];
 type Receipt = components['schemas']['AttendanceReceipt'];
@@ -46,6 +47,7 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
   const [qrToken, setQrToken] = useState('');
   const [guest, setGuest] = useState<GuestResume | null>(null);
   const [cedula, setCedula] = useState('');
+  const [names, setNames] = useState('');
   const [accountKey, setAccountKey] = useState('');
   const [accountLocation, setAccountLocation] = useState<AttendanceLocation | null>(null);
   const [guestLocation, setGuestLocation] = useState<AttendanceLocation | null>(null);
@@ -86,10 +88,11 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
     setBusy(true);
     setResult(null);
     try {
+      const deviceId = await getInstallationId();
       const value = await request<Receipt | Pending>('/attendance/attempts', {
         method: 'POST',
         headers: { 'Idempotency-Key': key },
-        body: JSON.stringify({ qr_token: qrToken, ...(location ? { ubicacion: location } : {}) }),
+        body: JSON.stringify({ qr_token: qrToken, dispositivo_id: deviceId, ...(location ? { ubicacion: location } : {}) }),
       });
       setResult(show(value));
     } catch (error) {
@@ -122,7 +125,7 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
         authentication: 'none',
         body: JSON.stringify({ qr_token: qrToken }),
       });
-      const resume = createGuestResume(opened);
+      const resume = createGuestResume(opened, await getInstallationId());
       await saveGuestResume(resume);
       setGuest(resume);
     } catch (error) {
@@ -146,13 +149,15 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
         method: 'POST',
         authentication: 'none',
         headers: { 'Idempotency-Key': current.idempotencyKey },
-        body: JSON.stringify({ registro_invitado_token: current.token, cedula, ...(location ? { ubicacion: location } : {}) }),
+        body: JSON.stringify({ registro_invitado_token: current.token, cedula, dispositivo_id: current.deviceId,
+          ...(current.openEvent ? { nombres: names.trim() } : {}), ...(location ? { ubicacion: location } : {}) }),
       });
       setResult(show(value));
       if (value.resultado === 'CONFIRMADA') {
         await clearGuestResume();
         setGuest(null);
         setCedula('');
+        setNames('');
       }
     } catch (error) {
       if (statusOf(error) === 401 || statusOf(error) === 410) {
@@ -182,6 +187,7 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
     await clearGuestResume();
     setGuest(null);
     setCedula('');
+    setNames('');
     setGuestLocation(null);
   }
 
@@ -209,7 +215,8 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
             autoComplete="off"
             onChangeText={value => setCedula(value.replace(/[^0-9]/g, '').slice(0, 10))}
           />
-          <Button title="Enviar asistencia" disabled={busy || !/^[0-9]{10}$/.test(cedula)} onPress={() => void submitGuest()} />
+          {guest.openEvent && <><Text>Nombres</Text><TextInput accessibilityLabel="Nombres" value={names} maxLength={200} onChangeText={setNames} /></>}
+          <Button title="Enviar asistencia" disabled={busy || !/^[0-9]{10}$/.test(cedula) || (guest.openEvent && names.trim().length === 0)} onPress={() => void submitGuest()} />
           <Button title="Escanear otro QR" disabled={busy} onPress={() => void discardGuest()} />
         </View>
       )}

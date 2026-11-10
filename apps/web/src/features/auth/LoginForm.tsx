@@ -1,13 +1,15 @@
 "use client";
 import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { useSession } from './SessionProvider';
-import { homeFor, type SsoConfiguration } from './sso';
+import { homeFor } from './sso';
 import { Button } from '../ui/Button';
-type Sso = SsoConfiguration;
+type Sso = components['schemas']['SsoConfiguration'];
 export function LoginForm() {
  const { session, login, logout, ssoLogoutUrl } = useSession(); const router = useRouter(); const home = session ? homeFor(session.roles) : null; const [error, setError] = useState(''); const [busy, setBusy] = useState(false);
+ // Modo: con /auth/sso-config disponible solo se ofrece el SSO; si falla, se asume login local (más simple que sondear /auth/login, que exigiría credenciales).
  const [sso, setSso] = useState<Sso | 'cargando' | null>('cargando');
  useEffect(() => { let vivo = true; request<Sso>('/auth/sso-config', { authentication: 'none' }).then(c => { if (vivo) setSso(c); }, () => { if (vivo) setSso(null); }); return () => { vivo = false; }; }, []);
  useEffect(() => { if (home && home !== '/login') router.replace(home); }, [home, router]);
@@ -17,7 +19,7 @@ export function LoginForm() {
  const salida = ssoLogoutUrl && <p><a href={ssoLogoutUrl}>Cerrar también la sesión universitaria</a></p>;
  const ir = () => {
   if (typeof sso !== 'object' || !sso) return;
-  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- destino externo (SSO)
+  // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- destino externo (SSO), no una ruta de Next
   window.location.href = `${sso.login_url}?service=${encodeURIComponent(sso.web_service)}`;
  };
  if (sso) return <section><h1>Ingresar</h1><Button variant="primary" onClick={ir}>Ingresar con cuenta universitaria</Button>{salida}</section>;

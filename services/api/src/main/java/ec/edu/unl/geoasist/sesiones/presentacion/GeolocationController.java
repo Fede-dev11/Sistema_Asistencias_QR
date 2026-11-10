@@ -20,8 +20,19 @@ public class GeolocationController {
 
   private final ConfigureSessionGeolocation service;
 
-  public GeolocationController(ConfigureSessionGeolocation service) {
+  private final ec.edu.unl.geoasist.sesiones.aplicacion.ReadSessionGeolocation reader;
+
+  public GeolocationController(
+      ConfigureSessionGeolocation service,
+      ec.edu.unl.geoasist.sesiones.aplicacion.ReadSessionGeolocation reader) {
     this.service = service;
+    this.reader = reader;
+  }
+
+  @GetMapping("/{sessionId}/geolocation")
+  public Map<String, Object> read(
+      @AuthenticationPrincipal UserSession user, @PathVariable UUID sessionId) {
+    return reader.read(user, sessionId);
   }
 
   @PutMapping("/{sessionId}/geolocation")

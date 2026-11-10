@@ -29,7 +29,7 @@ public class PostgisProximityAdapter implements ProximityPort, GeographicCapabil
   public boolean configured(UUID session) {
     return Boolean.TRUE.equals(
         db.queryForObject(
-            "SELECT EXISTS(SELECT 1 FROM sesiones s JOIN espacios e ON e.id=s.espacio_id WHERE s.id=? AND e.centro IS NOT NULL)",
+            "SELECT EXISTS(SELECT 1 FROM sesiones s JOIN espacios e ON e.id=s.espacio_id WHERE s.id=? AND e.latitud IS NOT NULL)",
             Boolean.class,
             session));
   }
@@ -38,7 +38,7 @@ public class PostgisProximityAdapter implements ProximityPort, GeographicCapabil
   public OptionalDouble distanceMeters(UUID session, GeoMeasurement measurement) {
     return db
         .query(
-            "SELECT ST_Distance(e.centro,ST_SetSRID(ST_MakePoint(?,?),4326)::geography) FROM sesiones s JOIN espacios e ON e.id=s.espacio_id WHERE s.id=? AND e.centro IS NOT NULL",
+            "SELECT ST_Distance(ST_SetSRID(ST_MakePoint(e.longitud,e.latitud),4326)::geography,ST_SetSRID(ST_MakePoint(?,?),4326)::geography) FROM sesiones s JOIN espacios e ON e.id=s.espacio_id WHERE s.id=? AND e.latitud IS NOT NULL",
             (row, number) -> row.getDouble(1),
             measurement.longitude(),
             measurement.latitude(),

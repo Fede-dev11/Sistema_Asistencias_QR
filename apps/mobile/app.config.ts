@@ -1,6 +1,7 @@
 import type { ExpoConfig } from 'expo/config';
 const config: ExpoConfig = {
   name: 'UNL GeoAsist', slug: 'unl-geoasist', version: '0.1.0', orientation: 'portrait',
+  scheme: 'geoasist',
   platforms: ['android', 'ios'],
   ios: { supportsTablet: true, bundleIdentifier: 'ec.edu.unl.geoasist' },
   android: { package: 'ec.edu.unl.geoasist' },

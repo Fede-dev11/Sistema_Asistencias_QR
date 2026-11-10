@@ -5,6 +5,24 @@ Incluye QR dinámico, invitados precargados, revisión responsable, reportes por
 conservación de cinco años con anonimización y restauración aislada. Usa datos ficticios de
 desarrollo; la integración CAS y la validación en dispositivos/institución permanecen pendientes.
 
+### Ingreso y componentes
+
+El ingreso se hace por el servicio de autenticación universitario (SSO, subconjunto simulado de CAS 3.0
+en desarrollo): en la web y en la app, el botón "Ingresar con cuenta universitaria" envía al usuario a
+`http://localhost:8081` y, al volver, la API valida el ticket con `POST /auth/cas`. El inicio de sesión
+local con contraseña (`POST /auth/login`) solo existe si `GEOASIST_LOCAL_LOGIN=true`, valor por defecto
+`false` en `.env.example`.
+
+| Componente | Puerto local |
+|---|---|
+| Web (Next.js) | 3000 |
+| API (GeoAsist) | 8080 |
+| Servicio de autenticación (`services/auth`) | 8081 |
+| PostgreSQL de desarrollo | 5433 |
+
+Arranque con el servicio de autenticación y la API en Docker, y configuración de `SSO_*`: ver
+[la sección del servicio simulado en la guía de infraestructura](infra/README.md#servicio-de-autenticación-simulado-004).
+
 ### Ejecutar y comprobar el incremento
 
 Requiere Java 21, Node 22.20.0 y Docker. Maven 3.9.11 y las dependencias de cada cliente están
@@ -34,15 +52,91 @@ ficticias: `docente@example.test`, `encargado@example.test`, `estudiante@example
 `director@example.test` y `director-carrera@example.test`; la contraseña proviene de
 `DEV_SEED_PASSWORD`, nunca del repositorio.
 
+Administrador de desarrollo: `admin@dev.geoasist.local` (misma contraseña local). Importación CSV
+de estudiantes: `POST /api/v1/admin/imports/students`; las cuentas creadas usan la contraseña de
+`geoasist.dev.import-password` (por defecto `geoasist.dev-seed-password`), solo en perfil `dev`.
+
 Comprobaciones: `./mvnw -B spotless:check verify` dentro de `services/api`; `npm run lint`,
 `npm run typecheck`, `npm test` y `npm run build` en cada cliente; `npm run validate` y
 `npm run check` en `tools/contracts`; `bash infra/tests/retention-restore.sh` desde la raíz.
 El ensayo de copias crea solo contenedores y archivos ficticios, sin tocar la base de desarrollo.
 
+Incremento 003: ausencias y estadísticas, asistencia manual y justificaciones, historial propio,
+ciclo automático de sesiones y renovación de cuenta; ver `specs/003-ausencias-reportes-cuenta/` y
+[su revisión](docs/validation/revision-incremento-003.md).
+
 La [guía de validación](specs/001-asistencia-qr-dinamico/quickstart.md) contiene los recorridos,
 el [procedimiento de conservación](docs/operations/conservacion-y-restauracion.md) documenta
 backups/WAL/exportaciones y el [registro de revisión](docs/validation/revision-incremento.md)
 enumera resultados y condiciones pendientes antes de integrar o utilizar datos reales.
+
+### Herramientas de prueba (006)
+
+Las rutas de simulador (en construcción) solo existen con la bandera `NEXT_PUBLIC_HERRAMIENTAS_PRUEBA=true`,
+definida en `apps/web/.env.local` o en el entorno. Tras cambiarla, reinicia `npm run dev` dentro de `apps/web`.
+
+- `/pruebas/participante` (en construcción): actúa como estudiante; requiere ingresar con una cuenta de estudiante.
+- `/pruebas/invitado` (en construcción): flujo público de invitado.
+
+Sin la bandera, ambas rutas no existen. En producción la bandera permanece desactivada: el registro de
+participantes se hace solo desde la app.
+
+Cuentas de desarrollo por rol (contraseña = valor de `DEV_SEED_PASSWORD`):
+
+| Rol | Cuenta |
+|---|---|
+| Docente | `docente@example.test` |
+| Encargado | `encargado@example.test` |
+| Estudiante | `estudiante@example.test` |
+| Director institucional | `director@example.test` |
+| Director de carrera | `director-carrera@example.test` |
+| Administrador | `admin@dev.geoasist.local` |
+
+### Navegación web por rol (007)
+
+Tras ingresar, cada rol aterriza en su inicio: docente y encargado en `/hoy`; director institucional,
+director de carrera y administrador en `/inicio`; estudiante en `/pruebas/participante` solo con
+`NEXT_PUBLIC_HERRAMIENTAS_PRUEBA=true` (sin esa bandera no tiene inicio web).
+
+Menú por rol (máximo cinco entradas):
+
+- Docente y encargado: Hoy, Actividades, Estadísticas, Reportes.
+- Director institucional y de carrera: Resumen, Estadísticas, Reportes.
+- Administrador: Inicio, Personas, Carreras y paralelos, Espacios, Importar.
+- Pruebas (con la bandera, al pie): Participante (estudiante), Invitado (todos los roles).
+
+Recargar la página mantiene la sesión mientras la sesión universitaria (SSO) siga vigente: la pestaña
+guarda solo un indicador en `sessionStorage` (nunca el token). Flujos clave:
+
+- "Iniciar y proyectar QR" desde Hoy: inicia la sesión y abre la proyección en un clic.
+- Nueva actividad: asistente en `/actividades/nueva` (Qué, Dónde y cuándo, Quiénes).
+- Proyección del QR: `/sesiones/{id}/proyectar`.
+
+Cobertura de operaciones de la API en la web: `npm run coverage:web` dentro de `tools/contracts`; escribe
+`docs/validation/cobertura-web.md`.
+
+## Documentación de la API
+
+Swagger UI se genera siempre desde el contrato `specs/001-asistencia-qr-dinamico/contracts/openapi.yaml`
+(`npm run generate` en `tools/contracts` copia el contrato a la API y a la web; `npm run check` falla en CI si difieren).
+
+- API: `http://localhost:8080/swagger-ui.html`. Se desactiva con `GEOASIST_SWAGGER_UI=false` (por defecto `true`).
+- Web: `http://localhost:3000/documentacion/swagger` (la página por rol sigue en `/documentacion`).
+- "Authorize": pega el token de sesión (esquema `SessionBearer`); no se guarda.
+- Referencia Quarto del API: `docs/api` genera, desde el mismo contrato, una página por funcionalidad con
+  parámetros, roles, cuerpos, respuestas, ejemplos JSON y llamadas `curl`, más el catálogo de esquemas y una
+  copia publicada de Swagger UI. En `docs/api`: `pip install pyyaml && quarto render`.
+- Publicación en GitHub Pages (`.github/workflows/pages.yml`):
+  - API: <https://fede-dev11.github.io/Sistema_Asistencias_QR/api/>
+  - Swagger UI: <https://fede-dev11.github.io/Sistema_Asistencias_QR/api/swagger.html>
+  - Arquitectura C4: <https://fede-dev11.github.io/Sistema_Asistencias_QR/arquitectura/>
+
+  El flujo se ejecuta al cambiar `docs/`, el contrato o el propio workflow. Para habilitarlo una sola vez:
+  Settings → Pages → Build and deployment → Source: **GitHub Actions**.
+- Arquitectura en la web: `http://localhost:3000/documentacion/arquitectura` muestra los diagramas C4, de clases,
+  el modelo de datos y los módulos del sitio Quarto (`docs/arquitectura`). Para publicarlo o actualizarlo, en `apps/web`:
+  `npm run docs:arquitectura` (requiere Quarto, Python y Java; con `-- --sin-render` copia el último render sin volver a
+  generarlo). La copia en `apps/web/public/arquitectura/` no se versiona; sin ella la página explica cómo generarla.
 
 ## GitHub Spec Kit
 

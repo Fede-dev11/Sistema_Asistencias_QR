@@ -3,9 +3,12 @@ import type { components } from '../../generated/api';
 import { request, setBearer } from '../../services/api';
 export type AccountSession = components['schemas']['LoginResult'];
 const KEY = 'geoasist-account-session';
+export async function saveSession(session: AccountSession): Promise<void> {
+ await SecureStore.setItemAsync(KEY,JSON.stringify(session));setBearer(session.access_token);
+}
 export async function login(correo: string, password: string): Promise<AccountSession> {
  const session = await request<AccountSession>('/auth/login', {method:'POST', authentication:'none', body:JSON.stringify({correo,password})});
- await SecureStore.setItemAsync(KEY,JSON.stringify(session));setBearer(session.access_token);return session;
+ await saveSession(session);return session;
 }
 export async function restore(): Promise<AccountSession | null> {
  const stored=await SecureStore.getItemAsync(KEY);if(!stored)return null;

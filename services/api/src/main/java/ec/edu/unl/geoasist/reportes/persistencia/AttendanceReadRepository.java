@@ -16,13 +16,15 @@ public class AttendanceReadRepository {
       Instant registered,
       UUID attempt,
       String code,
-      String message) {}
+      String message,
+      String form,
+      String manualReason) {}
 
   private static final String PROJECTION =
       """
       SELECT a.id asistencia_id,a.persona_id,p.cedula_normalizada,a.nombres_registro nombres,
              'CONFIRMADA' estado,a.registrada_en,a.intento_id,'ASISTENCIA_CONFIRMADA' code,
-             'Asistencia registrada.' mensaje
+             'Asistencia registrada.' mensaje,a.forma,a.razon_manual
         FROM asistencias a JOIN personas p ON p.id=a.persona_id
        WHERE a.sesion_id=?
       UNION ALL
@@ -31,7 +33,8 @@ public class AttendanceReadRepository {
                   THEN 'RECHAZADA' ELSE 'PENDIENTE_REVISION' END,
              l.recibido_en,l.id,
              CASE WHEN l.decision='RECHAZAR' THEN 'REVISION_RECHAZADA' ELSE l.code END,
-             CASE WHEN l.decision='RECHAZAR' THEN 'La revisión responsable rechazó el intento.' ELSE l.mensaje END
+             CASE WHEN l.decision='RECHAZAR' THEN 'La revisión responsable rechazó el intento.' ELSE l.mensaje END,
+             NULL,NULL
         FROM (
           SELECT DISTINCT ON (i.persona_id)
                  i.id,i.persona_id,i.nombres_referencia,i.resultado,i.code,i.mensaje,
@@ -96,6 +99,8 @@ public class AttendanceReadRepository {
         row.getTimestamp("registrada_en").toInstant(),
         row.getObject("intento_id", UUID.class),
         row.getString("code"),
-        row.getString("mensaje"));
+        row.getString("mensaje"),
+        row.getString("forma"),
+        row.getString("razon_manual"));
   }
 }

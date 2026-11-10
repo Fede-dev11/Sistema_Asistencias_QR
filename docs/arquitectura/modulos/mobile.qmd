@@ -1,0 +1,42 @@
+---
+title: "Módulo mobile"
+---
+
+## Responsabilidad
+
+App Expo / React Native (`apps/mobile`) del participante: inicia sesión por el SSO, lista las sesiones activas y
+registra la asistencia escaneando el QR con la ubicación del dispositivo. Las reglas se deciden en la API.
+
+## Estructura
+
+| Carpeta (`src/`) | Contenido |
+|---|---|
+| `features/auth` | `LoginScreen`, `casLogin.ts` (flujo CAS con navegador del sistema), `session.ts` (token en `expo-secure-store`) |
+| `features/sessions` | `ActiveSessionsScreen` (consulta `GET /me/active-sessions`) |
+| `features/attendance` | `AttendanceScreen` (cámara para el QR), `location.ts` (ubicación), `guestResume.ts` (reanuda el registro de invitado) |
+| `features/device` | `installationId.ts` (identificador de instalación del dispositivo) |
+| `services/api.ts` | Cliente HTTP de la API |
+| `generated/api.ts` | Tipos generados por [contracts](contracts.qmd) |
+
+Entrada: `index.ts` y `App.tsx`.
+
+## Endpoints que consume
+
+`GET /api/v1/auth/sso-config`, `POST /api/v1/auth/cas`, `POST /api/v1/auth/renew`, `POST /api/v1/auth/logout`,
+`GET /api/v1/me/active-sessions`, `POST /api/v1/attendance/attempts`, y el flujo de invitados
+(`GET /api/v1/events/open/{sessionId}`, `POST /api/v1/guest-registrations` y `/submit`).
+
+## Reglas de negocio
+
+Ninguna se decide en la app: envía el QR, la ubicación y el identificador de dispositivo y muestra el resultado
+(ACEPTADO, RECHAZADO, REPETIR, PENDIENTE_REVISION) que devuelve [asistencia](asistencia.qmd).
+
+## Configuración
+
+`EXPO_PUBLIC_API_URL`; el esquema de retorno `geoasist://auth/callback` debe coincidir con
+`SSO_MOBILE_SERVICE_PREFIX` de la API. Permisos: cámara (`expo-camera`) y ubicación (`expo-location`).
+
+## Pruebas
+
+Jest con `jest-expo` (`npm test`): `LoginScreen.test`, `casLogin.test`, `session.test`, `ActiveSessionsScreen.test`,
+`AttendanceScreen.test`, `location.test`, `installationId.test`.

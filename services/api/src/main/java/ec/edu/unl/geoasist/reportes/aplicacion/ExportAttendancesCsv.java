@@ -33,7 +33,7 @@ public class ExportAttendancesCsv {
     scope.write(user, activity);
     StringBuilder csv =
         new StringBuilder(
-            "asistencia_id,persona_id,cedula,nombres,estado,registrada_en,attempt_id,code,mensaje\n");
+            "asistencia_id,persona_id,cedula,nombres,estado,registrada_en,attempt_id,code,mensaje,forma,razon_manual\n");
     for (var row : rows.all(session, state)) {
       csv.append(cell(row.attendance() == null ? "" : row.attendance().toString())).append(',');
       csv.append(cell(row.person().toString())).append(',');
@@ -43,7 +43,9 @@ public class ExportAttendancesCsv {
       csv.append(cell(row.registered().toString())).append(',');
       csv.append(cell(row.attempt().toString())).append(',');
       csv.append(cell(row.code())).append(',');
-      csv.append(cell(row.message())).append('\n');
+      csv.append(cell(row.message())).append(',');
+      csv.append(cell(row.form())).append(',');
+      csv.append(cell(row.manualReason())).append('\n');
     }
     audit.write(
         activity,

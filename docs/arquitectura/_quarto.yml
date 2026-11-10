@@ -1,0 +1,41 @@
+project:
+  type: website
+  output-dir: _site
+  # Convierte puml/*.puml en SVG antes de renderizar (ver render_plantuml.py).
+  pre-render: python3 render_plantuml.py
+
+website:
+  title: "GeoAsist · Arquitectura C4"
+  site-url: "https://fede-dev11.github.io/Sistema_Asistencias_QR/arquitectura/"
+  repo-url: "https://github.com/Fede-dev11/Sistema_Asistencias_QR"
+  sidebar:
+    contents:
+      - index.qmd
+      - 01-contexto.qmd
+      - 02-contenedores.qmd
+      - 03-componentes.qmd
+      - 04-codigo.qmd
+      - 05-datos.qmd
+      - section: "Módulos"
+        contents:
+          - modulos/index.qmd
+          - modulos/identidades.qmd
+          - modulos/academico.qmd
+          - modulos/actividades.qmd
+          - modulos/espacios.qmd
+          - modulos/sesiones.qmd
+          - modulos/qr.qmd
+          - modulos/asistencia.qmd
+          - modulos/estadisticas.qmd
+          - modulos/reportes.qmd
+          - modulos/conservacion.qmd
+          - modulos/compartido.qmd
+          - modulos/auth.qmd
+          - modulos/web.qmd
+          - modulos/mobile.qmd
+          - modulos/contracts.qmd
+
+format:
+  html:
+    toc: true
+    lang: es

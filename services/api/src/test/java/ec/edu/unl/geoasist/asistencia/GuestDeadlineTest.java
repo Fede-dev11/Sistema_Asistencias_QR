@@ -81,6 +81,9 @@ class GuestDeadlineTest extends PostgresFixture {
   @Test
   void ordinaryTokensUseServerReceptionAndNeverTheGuestAllowance() throws Exception {
     var event = guests(301, fictionalId());
+    db.update(
+        "UPDATE actividades SET acceso='ABIERTO' WHERE id=?",
+        event.activity()); // la cuenta estudiante no está en el listado
     Instant initial = clock.instant();
     String student = token(ScenarioFixtures.STUDENT);
     clock.set(initial.plusSeconds(39));
@@ -89,7 +92,9 @@ class GuestDeadlineTest extends PostgresFixture {
                 .header("Authorization", "Bearer " + student)
                 .header("Idempotency-Key", UUID.randomUUID().toString())
                 .contentType("application/json")
-                .content(json.writeValueAsString(Map.of("qr_token", event.qr()))))
+                .content(
+                    json.writeValueAsString(
+                        Map.of("qr_token", event.qr(), "dispositivo_id", UUID.randomUUID()))))
         .andExpect(status().isCreated());
     clock.set(initial.plusSeconds(40));
     api.perform(
@@ -97,7 +102,9 @@ class GuestDeadlineTest extends PostgresFixture {
                 .header("Authorization", "Bearer " + student)
                 .header("Idempotency-Key", UUID.randomUUID().toString())
                 .contentType("application/json")
-                .content(json.writeValueAsString(Map.of("qr_token", event.qr()))))
+                .content(
+                    json.writeValueAsString(
+                        Map.of("qr_token", event.qr(), "dispositivo_id", UUID.randomUUID()))))
         .andExpect(status().isUnprocessableEntity())
         .andExpect(jsonPath("code").value("TOKEN_VENCIDO"));
   }

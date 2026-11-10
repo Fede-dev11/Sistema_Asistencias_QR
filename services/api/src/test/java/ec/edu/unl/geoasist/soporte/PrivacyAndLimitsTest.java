@@ -13,6 +13,12 @@ import org.springframework.test.context.TestPropertySource;
 @TestPropertySource(properties = "geoasist.rate-limit-multiplier=1")
 @ExtendWith(OutputCaptureExtension.class)
 class PrivacyAndLimitsTest extends PostgresFixture {
+  /** Los contadores viven en la base compartida y el reloj es fijo: otras clases los llenan. */
+  @org.junit.jupiter.api.BeforeEach
+  void resetRateLimitCounters() {
+    db.update("DELETE FROM contadores_limite");
+  }
+
   @Test
   void leadingZeroMinimalReceiptStrictInputAndRealRateLimitHaveNoRawSecrets(CapturedOutput logs)
       throws Exception {

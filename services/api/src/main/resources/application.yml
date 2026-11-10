@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 3MB
   application:
     name: geoasist-api
   datasource:
@@ -19,6 +23,22 @@ spring:
     deserialization:
       fail-on-unknown-properties: true
       accept-float-as-int: false
+springdoc:
+  # shortcut: springdoc desactiva toda la UI si api-docs está apagado; se deja encendido y se bloquea en seguridad.
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: ${GEOASIST_SWAGGER_UI:true}
+    url: /openapi.yaml
+    persist-authorization: false
+    doc-expansion: list
+    filter: true
+    display-request-duration: true
+    try-it-out-enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    default-models-expand-depth: 1
+    default-model-expand-depth: 1
 server:
   port: ${API_PORT:8080}
   error:
@@ -29,3 +49,11 @@ geoasist:
   dev-seed-password: ${DEV_SEED_PASSWORD:}
   allowed-origin: ${WEB_ORIGIN:http://localhost:3000}
   geography-enabled: false
+  auth:
+    local-login: ${GEOASIST_LOCAL_LOGIN:false}
+  sso:
+    internal-url: ${SSO_INTERNAL_URL:http://localhost:8081}
+    public-url: ${SSO_PUBLIC_URL:http://localhost:8081}
+    service-key: ${SSO_SERVICE_KEY:}
+    web-service: ${SSO_WEB_SERVICE:http://localhost:3000/auth/callback}
+    mobile-service-prefix: ${SSO_MOBILE_SERVICE_PREFIX:geoasist://auth/callback}

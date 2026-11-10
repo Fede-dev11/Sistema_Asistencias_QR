@@ -1,0 +1,6 @@
+_site/
+_generated/
+.quarto/
+
+/.quarto/
+**/*.quarto_ipynb

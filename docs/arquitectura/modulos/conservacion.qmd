@@ -1,0 +1,49 @@
+---
+title: "Módulo conservación"
+---
+
+## Responsabilidad
+
+Aplicar la política de retención de datos: anonimizar la actividad vencida (5 años tras el cierre), mantener
+estadísticas anónimas y sanear copias de respaldo restauradas.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| aplicacion | `AnonymizeExpiredActivity`, `BuildAnonymousStatistics`, `CopySanitizationService`, `RetentionMonitoring`, `RetentionScheduler` |
+
+No expone endpoints ni tiene clases de dominio, persistencia o presentación: opera por SQL.
+
+## Endpoints
+
+Ninguno.
+
+## Tablas
+
+`tratamientos_conservacion`, `estadisticas_anonimas`, `catalogo_copias`, `politica_copias`; actualiza
+`intentos_asistencia`, `asistencias`, `sesiones` y `actividades` mediante la función SQL `anonimizar_vencidas`.
+Migraciones: V008, V018.
+
+## Reglas de negocio
+
+- La fecha límite es el cierre más 5 años (`compartido.dominio.RetentionPolicy`, columna `anonimizar_en`).
+- El mismo procedimiento versionado sirve al job programado y a restauraciones aisladas.
+- Se anonimiza por lotes (100) y se conservan solo estadísticas anónimas.
+- `RetentionMonitoring` vigila el avance del tratamiento.
+
+## Dependencias
+
+Ningún otro módulo (no importa paquetes de `ec.edu.unl.geoasist`).
+
+## Configuración
+
+`geoasist.retention-delay-ms` (periodo del `RetentionScheduler`, 3 600 000 ms por defecto).
+
+## Pruebas
+
+`RetentionLifecycleTest`, `RetentionPolicyTest`.
+
+## Diagrama de clases
+
+[Conservación en el nivel 4](../04-codigo.qmd#fig-conservacion) (`puml/conservacion.puml`).

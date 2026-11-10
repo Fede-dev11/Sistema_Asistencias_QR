@@ -1,0 +1,7 @@
+cedula,nombres,correo,rol
+0150001014,Docente Ficticio 1,docente1@fixture.example.test,DOCENTE
+0150001022,Docente Ficticio 2,docente2@fixture.example.test,DOCENTE
+0150001030,Docente Ficticio 3,docente3@fixture.example.test,ENCARGADO
+0100000018,Cedula invalida,d-invalida@fixture.example.test,DOCENTE
+0150000602,Rol invalido,d-rol@fixture.example.test,ADMINISTRADOR
+abc,Cedula no numerica,d-abc@fixture.example.test,DOCENTE
