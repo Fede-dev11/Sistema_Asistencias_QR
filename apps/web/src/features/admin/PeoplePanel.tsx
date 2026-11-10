@@ -13,7 +13,7 @@ import styles from './PeoplePanel.module.css';
 
 type Person = components['schemas']['AdminPerson'];
 type Page = components['schemas']['AdminPersonPage'];
-const SIZE = 20;
+const SIZE = 5;
 const ROLES = ['ESTUDIANTE', 'DOCENTE', 'ENCARGADO', 'DIRECTOR_CARRERA', 'DIRECTOR_INSTITUCIONAL', 'ADMINISTRADOR'] as const;
 
 export function PeoplePanel() {

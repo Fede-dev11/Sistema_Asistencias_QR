@@ -48,14 +48,14 @@ describe('paneles de administración', () => {
   });
 
   it('busca, pagina y devuelve el foco al cerrar el panel de personas con Escape', async () => {
-    vi.mocked(request).mockImplementation(async (path: string) => path.startsWith('/admin/people') ? { items: [person], page: 0, size: 20, total: 21 } : {});
+    vi.mocked(request).mockImplementation(async (path: string) => path.startsWith('/admin/people') ? { items: [person], page: 0, size: 5, total: 21 } : {});
     render(<PeoplePanel />);
     const search = screen.getByLabelText('Buscar personas');
     fireEvent.change(search, { target: { value: 'Ana' } });
     expect(await screen.findByRole('button', { name: 'Editar Ana Pérez' })).toBeTruthy();
-    expect(request).toHaveBeenCalledWith('/admin/people?q=Ana&page=0&size=20');
+    expect(request).toHaveBeenCalledWith('/admin/people?q=Ana&page=0&size=5');
     fireEvent.click(screen.getByText('Siguiente'));
-    await waitFor(() => expect(request).toHaveBeenCalledWith('/admin/people?q=Ana&page=1&size=20'));
+    await waitFor(() => expect(request).toHaveBeenCalledWith('/admin/people?q=Ana&page=1&size=5'));
     const opener = screen.getByText('Nueva persona');
     opener.focus(); fireEvent.click(opener);
     expect(screen.getByRole('dialog', { name: 'Nueva persona' })).toBeTruthy();
@@ -67,7 +67,7 @@ describe('paneles de administración', () => {
   it('crea y edita una persona desde el panel', async () => {
     vi.mocked(request).mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/admin/people' && init?.method === 'POST') return { ...person, id: 'p2' };
-      if (path.startsWith('/admin/people?')) return { items: [person], page: 0, size: 20, total: 1 };
+      if (path.startsWith('/admin/people?')) return { items: [person], page: 0, size: 5, total: 1 };
       return {};
     });
     render(<PeoplePanel />);
@@ -88,7 +88,7 @@ describe('paneles de administración', () => {
     const accountless = { ...person, cuenta: null };
     let accountAttempts = 0;
     vi.mocked(request).mockImplementation(async (path: string, init?: RequestInit) => {
-      if (path.startsWith('/admin/people?')) return { items: [accountless], page: 0, size: 20, total: 1 };
+      if (path.startsWith('/admin/people?')) return { items: [accountless], page: 0, size: 5, total: 1 };
       if (path === '/admin/accounts' && init?.method === 'POST' && accountAttempts++ === 0) throw new Error('Correo no disponible.');
       return {};
     });
@@ -122,7 +122,7 @@ describe('paneles de administración', () => {
         personCreates++;
         return { ...person, id: 'p2' };
       }
-      if (path.startsWith('/admin/people?')) return { items: [person], page: 0, size: 20, total: 1 };
+      if (path.startsWith('/admin/people?')) return { items: [person], page: 0, size: 5, total: 1 };
       if (path === '/admin/accounts' && init?.method === 'POST' && accountAttempts++ === 0) throw new Error('Cuenta no disponible.');
       return {};
     });
