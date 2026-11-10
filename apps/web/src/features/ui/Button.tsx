@@ -2,9 +2,10 @@ import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'text' | 'danger';
+
 const cls = (v: ButtonVariant, extra?: string) => `ui-btn ui-btn-${v}${extra ? ` ${extra}` : ''}`;
 
-/** variant: primary|secondary|text|danger (def. primary). loading: deshabilita, aria-busy y muestra el texto de `children`. Resto: props nativas de button. */
+/** Botón compartido. variant: primary|secondary|text|danger (def. primary). loading: deshabilita, aria-busy. Resto: props nativas de button. */
 export function Button({ variant = 'primary', loading = false, className, disabled, children, type = 'button', ...rest }:
   { variant?: ButtonVariant; loading?: boolean } & ComponentProps<'button'>) {
   return <button {...rest} type={type} className={cls(variant, className)} disabled={disabled || loading} aria-busy={loading || undefined}>{children}</button>;

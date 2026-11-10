@@ -8,7 +8,7 @@ const MAP: Record<string, [string, Tone, string]> = {
   INACTIVA: ['Inactiva', 'danger', '✕'], SIN_CUENTA: ['Sin cuenta', 'neutral', '•'],
 };
 
-/** status: código del backend (PROGRAMADA, ACTIVA, ...). Muestra icono + etiqueta en español; un código desconocido se muestra tal cual. */
+/** status: código del backend. Muestra icono + etiqueta en español; un código desconocido se muestra tal cual. */
 export function StatusTag({ status }: { status: string }) {
   const [label, tone, icon] = MAP[status] ?? [status, 'neutral' as Tone, '•'];
   return <span className={`ui-tag ui-tag-${tone}`}><span aria-hidden="true">{icon}</span> {label}</span>;
