@@ -1,0 +1,164 @@
+.home {
+  --color-brand: #173a85;
+  --color-brand-hover: #102b67;
+  --color-ink: #17213d;
+  --color-muted: #52607a;
+  --color-line: #dce1f0;
+  --color-surface: #fff;
+  --color-paper: #f5f6ff;
+  display: grid;
+  gap: 1.25rem;
+  color: var(--color-ink);
+}
+
+.breadcrumb {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.breadcrumb span {
+  margin: 0 .45rem;
+}
+
+.heading h1 {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: clamp(2rem, 4vw, 3rem);
+}
+
+.heading p {
+  margin: .5rem 0 0;
+  color: var(--color-muted);
+  font-size: 1.1rem;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: .75rem;
+  background: var(--color-surface);
+}
+
+.summary > div {
+  display: grid;
+  gap: .15rem;
+  padding: 1rem 1.25rem;
+}
+
+.summary > div + div {
+  border-left: 1px solid var(--color-line);
+}
+
+.summary strong {
+  color: var(--color-brand);
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.summary span {
+  color: var(--color-muted);
+  font-size: .875rem;
+}
+
+.notice {
+  margin: 0;
+}
+
+.error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+}
+
+.error > :first-child {
+  flex: 1 1 18rem;
+}
+
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+}
+
+.shortcut {
+  display: grid;
+  align-content: start;
+  gap: .55rem;
+  min-width: 0;
+  min-height: 10rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-line);
+  border-radius: .75rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.shortcut:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-brand);
+  box-shadow: 0 3px 12px rgb(23 58 133 / 10%);
+}
+
+.shortcut:focus-visible {
+  outline: 3px solid var(--color-brand);
+  outline-offset: 3px;
+}
+
+.shortcutTitle {
+  color: var(--color-brand);
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+.shortcut > span:nth-child(2) {
+  color: var(--color-muted);
+}
+
+.shortcut strong {
+  display: flex;
+  justify-content: space-between;
+  gap: .5rem;
+  align-items: center;
+  margin-top: auto;
+  color: var(--color-brand);
+  font-size: .875rem;
+}
+
+@media (max-width: 640px) {
+  .summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary > div:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .summary > div:nth-child(4) {
+    border-top: 1px solid var(--color-line);
+  }
+
+  .shortcuts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shortcut {
+    min-height: 8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shortcut {
+    transition: none;
+  }
+}
