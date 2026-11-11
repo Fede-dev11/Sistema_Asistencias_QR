@@ -49,4 +49,13 @@ describe('RoleNav', () => {
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
   });
+  it('Escape cierra el menú compacto y devuelve el foco al botón', () => {
+    session = { roles: ['DOCENTE'] };
+    render(<RoleNav />);
+    const toggle = screen.getByRole('button', { name: 'Menú' });
+    fireEvent.click(toggle);
+    fireEvent.keyDown(screen.getByRole('navigation', { name: 'Principal' }), { key: 'Escape' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveFocus();
+  });
 });

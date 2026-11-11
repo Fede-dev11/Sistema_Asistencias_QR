@@ -1,0 +1,382 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+  color: var(--color-ink);
+}
+
+.breadcrumb {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.breadcrumb span {
+  margin: 0 .45rem;
+}
+
+.heading h1 {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -.03em;
+}
+
+.heading p {
+  max-width: 68ch;
+  margin: .5rem 0 0;
+  color: var(--color-muted);
+  font-size: 1.05rem;
+}
+
+.panel {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+  background: var(--color-surface);
+  box-shadow: var(--color-shadow);
+}
+
+.panelHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem 1rem;
+}
+
+.panelHead h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.panelHead p {
+  max-width: 66ch;
+  margin: .35rem 0 0;
+  color: var(--color-muted);
+  font-size: .92rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.field {
+  display: grid;
+  gap: .35rem;
+  min-width: 0;
+}
+
+.field label {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: .6rem .75rem;
+  border: 1px solid var(--color-field);
+  border-radius: .5rem;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.fieldHint {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+}
+
+.actions :global(.ui-btn) {
+  min-width: 10.5rem;
+}
+
+.notice {
+  margin: 0;
+}
+
+.errorActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+}
+
+.errorActions > :first-child {
+  flex: 1 1 18rem;
+}
+
+.resultBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .35rem 1rem;
+}
+
+.resultBar p {
+  margin: 0;
+}
+
+.resultBar strong {
+  color: var(--color-brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.resultHint {
+  color: var(--color-muted);
+  font-size: .85rem;
+}
+
+.tableCard {
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: .85rem;
+  background: var(--color-surface);
+}
+
+.tableHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem 1rem;
+  padding: .9rem 1.15rem;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-paper);
+}
+
+.tableHead h3 {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1rem;
+}
+
+.tableHead > span {
+  color: var(--color-muted);
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  padding: .65rem .9rem;
+  background: #eaedff;
+  color: var(--color-muted);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: .8rem .9rem;
+  border-bottom: 1px solid var(--color-line);
+  font-size: .9rem;
+  vertical-align: top;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.table tbody tr:hover {
+  background: var(--color-paper);
+}
+
+.personName {
+  font-weight: 700;
+}
+
+.mono {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.date {
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.reason {
+  display: block;
+  max-width: 42ch;
+}
+
+.reason small {
+  display: block;
+  margin-top: .15rem;
+  color: var(--color-muted);
+  font-size: .78rem;
+}
+
+.tableEmpty {
+  padding: 1rem;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .85rem 1.15rem;
+  border-top: 1px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.pagination p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: .82rem;
+}
+
+.paginationButtons {
+  display: flex;
+  gap: .5rem;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.audit {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: 1rem;
+  }
+
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .actions :global(.ui-btn) {
+    width: 100%;
+  }
+
+  .table {
+    display: block;
+    padding: .75rem;
+  }
+
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .table tbody {
+    display: grid;
+    gap: .75rem;
+  }
+
+  .table tr {
+    display: grid;
+    gap: .3rem;
+    padding: .85rem .9rem;
+    border: 1px solid var(--color-line);
+    border-radius: .7rem;
+    background: var(--color-paper);
+  }
+
+  .table td {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0;
+    border: 0;
+    font-size: .88rem;
+    text-align: left;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    flex: 0 0 auto;
+    color: var(--color-muted);
+    font-size: .7rem;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+
+  .reason {
+    max-width: none;
+    text-align: right;
+  }
+
+  .pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .paginationButtons {
+    width: 100%;
+  }
+
+  .paginationButtons :global(.ui-btn) {
+    flex: 1;
+  }
+}
