@@ -12,16 +12,14 @@ const DIRECTORES = ['DIRECTOR_INSTITUCIONAL', 'DIRECTOR_CARRERA'];
 const ADMIN = ['ADMINISTRADOR'];
 // Máximo 5 entradas por rol (plan 007, "Arquitectura de información"). Con href repetido gana la primera.
 export const NAV_ITEMS: readonly Item[] = [
-  { href: '/hoy', label: 'Hoy', roles: RESPONSABLES },
-  { href: '/actividades', label: 'Actividades', roles: RESPONSABLES },
-  { href: '/inicio', label: 'Resumen', roles: DIRECTORES },
   { href: '/inicio', label: 'Inicio', roles: ADMIN },
+  { href: '/hoy', label: 'Hoy', roles: RESPONSABLES },
+  { href: '/actividades', label: 'Actividades', roles: [...RESPONSABLES, ...ADMIN] },
+  { href: '/sesiones', label: 'Sesiones', roles: ADMIN },
+  { href: '/inicio', label: 'Resumen', roles: DIRECTORES },
   { href: '/estadisticas', label: 'Estadísticas', roles: [...RESPONSABLES, ...DIRECTORES] },
   { href: '/reportes', label: 'Reportes', roles: [...RESPONSABLES, ...DIRECTORES] },
-  { href: '/admin/personas', label: 'Personas', roles: ADMIN },
-  { href: '/admin/carreras', label: 'Carreras y paralelos', roles: ADMIN },
-  { href: '/admin/espacios', label: 'Espacios', roles: ADMIN },
-  { href: '/admin/importar', label: 'Importar', roles: ADMIN },
+  { href: '/admin/carreras', label: 'Administración', roles: ADMIN },
 ];
 // Sección "Pruebas" (solo con NEXT_PUBLIC_HERRAMIENTAS_PRUEBA): el participante usa su cuenta de estudiante; el invitado no necesita cuenta.
 export const TEST_ITEMS: readonly Item[] = [
@@ -39,7 +37,7 @@ export function RoleNav() {
     const own = list.filter(i => session?.roles.some(r => i.roles.includes(r)));
     return own.filter((i, n) => own.findIndex(o => o.href === i.href) === n);
   };
-  const link = (i: Item) => <Link key={i.href} href={i.href} onClick={() => setOpen(false)} aria-current={pathname === i.href || pathname.startsWith(i.href + '/') ? 'page' : undefined}>{i.label}</Link>;
+  const link = (i: Item) => <Link key={i.href} href={i.href} onClick={() => setOpen(false)} aria-current={pathname === i.href || pathname.startsWith(i.href + '/') || (i.label === 'Administración' && pathname.startsWith('/admin/')) ? 'page' : undefined}>{i.label}</Link>;
   const tests = pruebas ? mine(TEST_ITEMS) : [];
   function onKeyDown(event: KeyboardEvent<HTMLElement>) {
     if (event.key !== 'Escape' || !open) return;

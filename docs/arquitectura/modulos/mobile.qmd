@@ -7,6 +7,9 @@ title: "Módulo mobile"
 App Expo / React Native (`apps/mobile`) del participante: inicia sesión por el SSO, lista las sesiones activas y
 registra la asistencia escaneando el QR con la ubicación del dispositivo. Las reglas se deciden en la API.
 
+Stack actual: Expo SDK 58, React Native 0.88.1 y React 19.3.0; módulos nativos y `jest-expo`
+alineados con la matriz de Expo. El ingreso CAS registra el plugin `expo-web-browser`.
+
 ## Estructura
 
 | Carpeta (`src/`) | Contenido |

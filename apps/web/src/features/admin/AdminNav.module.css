@@ -1,0 +1,7 @@
+.container { max-width:1280px; margin:0 auto 1.5rem; }
+.back { display:inline-flex; align-items:center; min-height:44px; margin-bottom:.5rem; color:var(--color-brand); font-weight:700; }
+.nav { display:flex; flex-wrap:wrap; gap:.25rem; padding:.3rem; border-radius:.9rem; background:#f2f3ff; }
+.nav a { display:inline-flex; align-items:center; min-height:44px; padding:.55rem 1rem; border:0; border-radius:.65rem; background:transparent; color:var(--color-ink); font-size:.875rem; font-weight:600; }
+.nav a:hover { background:var(--color-surface); }
+.nav a[aria-current="page"] { background:var(--color-brand); color:#fff; }
+@media (max-width:600px) { .nav { flex-wrap:nowrap; overflow-x:auto; } .nav a { flex:0 0 auto; } }

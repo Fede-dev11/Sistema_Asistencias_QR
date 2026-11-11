@@ -30,7 +30,7 @@ describe('RoleNav', () => {
     expect(links()).toEqual(['Resumen', 'Estadísticas', 'Reportes']); unmount();
     session = { roles: ['ADMINISTRADOR'] };
     render(<RoleNav />);
-    expect(links()).toEqual(['Inicio', 'Personas', 'Carreras y paralelos', 'Espacios', 'Importar']);
+    expect(links()).toEqual(['Inicio', 'Actividades', 'Sesiones', 'Administración']);
   });
   it('la sección Pruebas aparece separada y solo con la bandera', () => {
     session = { roles: ['DOCENTE'] };

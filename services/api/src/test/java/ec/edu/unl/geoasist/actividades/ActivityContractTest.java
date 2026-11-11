@@ -44,6 +44,37 @@ class ActivityContractTest extends ClassSupport {
   }
 
   @Test
+  void administratorCanManageOtherTeachersActivitiesAndSessions() throws Exception {
+    String teacher = token(ScenarioFixtures.TEACHER);
+    String admin = token("admin@dev.geoasist.local");
+    var created = createClass(teacher, List.of(P11), null, 201);
+    String id = created.get("id").asText();
+    assertEquals(
+        id, ok(send("GET", "/api/v1/activities/" + id, admin, null), 200).get("id").asText());
+    boolean found = false;
+    for (int page = 0; !found; page++) {
+      var items =
+          ok(send("GET", "/api/v1/activities?size=100&page=" + page, admin, null), 200)
+              .get("items");
+      if (items.isEmpty()) break;
+      for (var item : items) if (item.get("id").asText().equals(id)) found = true;
+    }
+    assertTrue(found);
+    var session =
+        ok(
+            send(
+                "POST",
+                "/api/v1/activities/" + id + "/sessions",
+                admin,
+                Map.of("inicio", "2026-11-20T13:00:00Z", "fin", "2026-11-20T14:00:00Z")),
+            201);
+    ok(
+        send("POST", "/api/v1/sessions/" + session.get("id").asText() + "/cancel", admin, null),
+        200);
+    ok(send("POST", "/api/v1/activities/" + id + "/cancel", admin, null), 200);
+  }
+
+  @Test
   void getAndListItemsMatchActivitySchemaForClassAndEvent() throws Exception {
     String t = token(ScenarioFixtures.TEACHER);
     var clazz =

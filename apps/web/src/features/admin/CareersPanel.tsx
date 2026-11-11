@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import Link from 'next/link';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
@@ -80,12 +79,6 @@ function CareersContent() {
       <h1>Administración del sistema</h1>
       <p>Gestiona las carreras y paralelos de la institución.</p>
     </div>
-    <nav className={styles.adminNav} aria-label="Secciones de administración">
-      <Link href="/admin/personas">Personas y cuentas</Link>
-      <Link href="/admin/carreras" aria-current="page">Carreras y paralelos</Link>
-      <Link href="/admin/espacios">Espacios</Link>
-      <Link href="/admin/importar">Importar listas</Link>
-    </nav>
     {status && <p role="status">{status}</p>}
     <ProblemMessage error={drawer ? null : error} />
     <div className={styles.grid}>
