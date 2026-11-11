@@ -9,7 +9,7 @@ export function RoleGuard({ roles, children }: { roles: readonly string[]; child
   const { session } = useSession();
   if (!session) return <section>
     <p role="alert">Ingresa con tu cuenta para continuar.</p>
-    <ButtonLink href="/login">Ingresar</ButtonLink>
+    <ButtonLink href="/login">Ingresar con mi cuenta</ButtonLink>
   </section>;
   if (!session.roles.some(role => roles.includes(role))) return <section>
     <p role="alert">No tienes acceso a esta sección.</p>

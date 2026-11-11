@@ -10,7 +10,7 @@ describe('RoleGuard', () => {
   it('pide ingresar sin sesión y ofrece el acceso', () => {
     render(<RoleGuard roles={['DOCENTE']}>x</RoleGuard>);
     expect(screen.getByRole('alert')).toHaveTextContent('Ingresa');
-    expect(screen.getByRole('link', { name: 'Ingresar' })).toHaveAttribute('href', '/login');
+    expect(screen.getByRole('link', { name: 'Ingresar con mi cuenta' })).toHaveAttribute('href', '/login');
   });
   it('niega el acceso sin el rol y permite volver al inicio', () => {
     session = { roles: ['ESTUDIANTE'] };
