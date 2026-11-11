@@ -5,6 +5,6 @@ const config: ExpoConfig = {
   platforms: ['android', 'ios'],
   ios: { supportsTablet: true, bundleIdentifier: 'ec.edu.unl.geoasist' },
   android: { package: 'ec.edu.unl.geoasist' },
-  plugins: [['expo-camera', { cameraPermission: 'Escanear el QR de asistencia.', microphonePermission: false, recordAudioAndroid: false }], ['expo-location', { locationWhenInUsePermission: 'Validar ubicación solo cuando la sesión la requiere.' }], 'expo-secure-store'],
+  plugins: [['expo-camera', { cameraPermission: 'Escanear el QR de asistencia.', microphonePermission: false, recordAudioAndroid: false }], ['expo-location', { locationWhenInUsePermission: 'Validar ubicación solo cuando la sesión la requiere.' }], 'expo-secure-store', 'expo-web-browser'],
 };
 export default config;

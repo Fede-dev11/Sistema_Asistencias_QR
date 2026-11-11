@@ -224,8 +224,8 @@ paths:
     get:
       operationId: listActivities
       summary: Descubrir actividades autorizadas
-      description: Lista paginada y filtrada en servidor. RESPONSABLE solo descubre sus actividades; DIRECTOR_INSTITUCIONAL
-        todas; DIRECTOR_CARRERA solo las vinculadas a su carrera y paralelos. Los filtros restringen el ámbito autorizado
+      description: Lista paginada y filtrada en servidor. RESPONSABLE solo descubre sus actividades; ADMINISTRADOR y DIRECTOR_INSTITUCIONAL
+        descubren todas; DIRECTOR_CARRERA solo las vinculadas a su carrera y paralelos. Los filtros restringen el ámbito autorizado
         y nunca lo amplían. Una carrera fuera del ámbito devuelve 403. Excluir actividades cuyo plazo nominal de
         cinco años calendario ya venció; los agregados anónimos no se exponen aquí. Sin filtros, devolver solo actividades
         autorizadas.
@@ -331,7 +331,7 @@ paths:
     get:
       operationId: getActivity
       summary: Consultar actividad
-      description: Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA
+      description: Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA
         solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por
         el cliente. Al vencer cinco años calendario desde su cierre definitivo, la consulta nominal devuelve 410;
         estadísticas anónimas no se exponen aquí. El 410 de conservación aplica mientras el recurso nominal vencido
@@ -365,7 +365,7 @@ paths:
     patch:
       operationId: updateActivity
       summary: Editar nombre, espacio o método por defecto
-      description: Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.
+      description: RESPONSABLE de una actividad ABIERTA o ADMINISTRADOR. Los valores son por defecto; las sesiones ya creadas no cambian.
       tags:
       - activities
       requestBody:
@@ -400,7 +400,7 @@ paths:
     post:
       operationId: closeActivity
       summary: Cerrar definitivamente una actividad
-      description: Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación
+      description: RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación
         por su permiso de lectura. Cierre definitivo distinto del cierre de una sesión. Cierra las sesiones activas,
         invalida QR e inicios invitados y fija cerrada_en y anonimizar_en a cinco años calendario. No permite reabrir
         ni crear nuevas sesiones.
@@ -559,7 +559,7 @@ paths:
     post:
       operationId: startSession
       summary: Iniciar sesión de asistencia
-      description: Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación
+      description: RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación
         por su permiso de lectura. Transición PROGRAMADA a ACTIVA solo si la actividad permanece abierta. Transacción
         coordinada con sus cierres.
       tags:
@@ -598,7 +598,7 @@ paths:
     post:
       operationId: closeSession
       summary: Cerrar sesión de asistencia
-      description: 'Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación
+      description: 'RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación
         por su permiso de lectura. Invalida inmediatamente nuevos registros e inicios de invitados, aunque QR o
         formularios tengan plazo restante. No inicia por sí mismo los cinco años: el origen es el cierre definitivo
         de la actividad.'
@@ -695,7 +695,7 @@ paths:
     put:
       operationId: setSessionGeolocation
       summary: Configurar GPS opcional
-      description: 'Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación
+      description: 'RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación
         por su permiso de lectura. Solo PROGRAMADA. Habilitar exige capacidad geográfica disponible y radio_m, precision_max_m
         y antiguedad_max_s válidos. El servidor determina el modo: piloto/revisión permitido; rechazo automático
         solo con evidencia de campo verificada, sin aceptar una declaración del cliente como prueba. Sin GPS no
@@ -955,7 +955,7 @@ paths:
     get:
       operationId: listAttendances
       summary: Consultar asistencias paginadas
-      description: 'Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA
+      description: 'Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA
         solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por
         el cliente. Al vencer retención de la actividad: 410 sin datos nominales; estadísticas agregadas se definirán
         por separado. Una fila por persona identificada: confirmación prevalece; sin asistencia, último intento
@@ -1286,7 +1286,7 @@ paths:
     get:
       operationId: listActivityAudit
       summary: Consultar auditoría paginada
-      description: 'Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA
+      description: 'Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA
         solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por
         el cliente. Incluye acciones administrativas, cambios manuales, configuración, listados y exportaciones
         con sus valores pertinentes. No devuelve credenciales, tokens ni ubicación exacta. Auditoría nominal sujeta
@@ -1982,7 +1982,7 @@ paths:
     post:
       operationId: cancelActivity
       summary: Cancelar actividad
-      description: Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
+      description: RESPONSABLE o ADMINISTRADOR y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
       tags:
       - activities
       responses:
@@ -2211,7 +2211,7 @@ paths:
     post:
       operationId: createLooseSession
       summary: Crear una sesión suelta
-      description: Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.
+      description: RESPONSABLE de una actividad ABIERTA o ADMINISTRADOR. Hereda espacio y método de la actividad.
       tags:
       - sessions
       requestBody:
@@ -2247,7 +2247,7 @@ paths:
     patch:
       operationId: updateScheduledSession
       summary: Editar hora, espacio o método de una sesión programada
-      description: Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+      description: RESPONSABLE o ADMINISTRADOR; solo PROGRAMADA, si no, 409 SESION_NO_EDITABLE.
       tags:
       - sessions
       requestBody:
@@ -2282,7 +2282,7 @@ paths:
     post:
       operationId: cancelScheduledSession
       summary: Cancelar una sesión programada
-      description: Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+      description: RESPONSABLE o ADMINISTRADOR; solo PROGRAMADA, si no, 409 SESION_NO_EDITABLE.
       tags:
       - sessions
       responses:

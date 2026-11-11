@@ -64,6 +64,21 @@ describe('paneles de administración', () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it('explica los errores de cédula y correo antes de crear una persona', async () => {
+    vi.mocked(request).mockImplementation(async (path: string) => path.startsWith('/admin/people?') ? { items: [], page: 0, size: 5, total: 0 } : {});
+    render(<PeoplePanel />);
+    fireEvent.click(await screen.findByText('Nueva persona'));
+    expect(screen.getByText(/campos marcados con/)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Cédula'), { target: { value: '1100000002' } });
+    fireEvent.change(screen.getByLabelText('Nombres'), { target: { value: 'Luis' } });
+    fireEvent.change(screen.getByLabelText('Correo (opcional, crea cuenta)'), { target: { value: 'correo-invalido' } });
+    fireEvent.click(screen.getByText('Registrar persona'));
+    expect(screen.getByText(/cédula ecuatoriana válida de 10 dígitos/)).toBeTruthy();
+    expect(screen.getByText(/Ingresa un correo válido/)).toBeTruthy();
+    expect(screen.getByLabelText('Cédula')).toHaveAttribute('aria-invalid', 'true');
+    expect(request).not.toHaveBeenCalledWith('/admin/people', expect.anything());
+  });
+
   it('crea y edita una persona desde el panel', async () => {
     vi.mocked(request).mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === '/admin/people' && init?.method === 'POST') return { ...person, id: 'p2' };
@@ -72,7 +87,7 @@ describe('paneles de administración', () => {
     });
     render(<PeoplePanel />);
     fireEvent.click(await screen.findByText('Nueva persona'));
-    fireEvent.change(screen.getByLabelText('Cédula'), { target: { value: '1100000002' } });
+    fireEvent.change(screen.getByLabelText('Cédula'), { target: { value: '1100000007' } });
     fireEvent.change(screen.getByLabelText('Nombres'), { target: { value: 'Luis' } });
     fireEvent.click(screen.getByText('Registrar persona'));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
@@ -128,7 +143,7 @@ describe('paneles de administración', () => {
     });
     render(<PeoplePanel />);
     fireEvent.click(await screen.findByText('Nueva persona'));
-    fireEvent.change(screen.getByLabelText('Cédula'), { target: { value: '1100000002' } });
+    fireEvent.change(screen.getByLabelText('Cédula'), { target: { value: '1100000007' } });
     fireEvent.change(screen.getByLabelText('Nombres'), { target: { value: 'Luis' } });
     fireEvent.change(screen.getByLabelText('Correo (opcional, crea cuenta)'), { target: { value: 'luis@unl.edu.ec' } });
     fireEvent.click(screen.getByText('Registrar persona'));

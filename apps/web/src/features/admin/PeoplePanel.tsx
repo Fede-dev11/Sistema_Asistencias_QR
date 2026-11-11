@@ -15,6 +15,19 @@ type Person = components['schemas']['AdminPerson'];
 type Page = components['schemas']['AdminPersonPage'];
 const SIZE = 5;
 const ROLES = ['ESTUDIANTE', 'DOCENTE', 'ENCARGADO', 'DIRECTOR_CARRERA', 'DIRECTOR_INSTITUCIONAL', 'ADMINISTRADOR'] as const;
+type FieldErrors = Partial<Record<'cedula' | 'nombres' | 'correo', string>>;
+
+function validCedula(value: string) {
+  if (!/^[0-9]{10}$/.test(value)) return false;
+  const province = Number(value.slice(0, 2));
+  if ((province < 1 || province > 24) && province !== 30) return false;
+  if (Number(value[2]) >= 6) return false;
+  const sum = [...value.slice(0, 9)].reduce((total, char, index) => {
+    const digit = Number(char) * (index % 2 === 0 ? 2 : 1);
+    return total + (digit > 9 ? digit - 9 : digit);
+  }, 0);
+  return (10 - sum % 10) % 10 === Number(value[9]);
+}
 
 export function PeoplePanel() {
   return <RoleGuard roles={['ADMINISTRADOR']}><PeopleContent /></RoleGuard>;
@@ -32,6 +45,7 @@ function PeopleContent() {
   const [drawer, setDrawer] = useState<'new' | Person | null>(null);
   const [reload, setReload] = useState(0);
   const [pendingPersonId, setPendingPersonId] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   useEffect(() => {
     let alive = true;
@@ -59,9 +73,23 @@ function PeopleContent() {
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const errors: FieldErrors = {};
+    const cedula = String(form.get('cedula') ?? '').trim();
+    const names = String(form.get('nombres') ?? '').trim();
+    const email = String(form.get('correo') ?? '').trim();
+    if (drawer === 'new' && !pendingPersonId && !validCedula(cedula)) errors.cedula = 'Ingresa una cédula ecuatoriana válida de 10 dígitos, sin espacios ni guiones.';
+    if (!names) errors.nombres = 'Ingresa los nombres y apellidos de la persona.';
+    if ((email && (email.length > 254 || !/^[^@\s]{1,64}@[^@\s]+\.[^@\s]+$/.test(email))) || (drawer !== 'new' && drawer && !drawer.cuenta && !email)) errors.correo = 'Ingresa un correo válido, por ejemplo nombre@universidad.edu.ec.';
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) {
+      setError(null);
+      const first = Object.keys(errors)[0];
+      event.currentTarget.querySelector<HTMLInputElement>(`[name="${first}"]`)?.focus();
+      return;
+    }
     const roles = ROLES.filter(role => form.getAll('roles').includes(role));
-    if (drawer !== 'new' && drawer && !drawer.cuenta && roles.length === 0) {
-      setError(new Error('Selecciona al menos un rol para crear la cuenta.'));
+    if (drawer !== 'new' && drawer && roles.length === 0) {
+      setError(new Error('Selecciona al menos un rol para la cuenta.'));
       return;
     }
     setBusy(true); setError(null); setStatus('');
@@ -104,7 +132,10 @@ function PeopleContent() {
       setPendingPersonId(null);
       setLoading(true);
       setReload(n => n + 1);
-    } catch (cause) { setError(cause); }
+    } catch (cause) {
+      if (cause instanceof ApiError && cause.problem.code === 'CEDULA_INVALIDA') setFieldErrors({ cedula: 'La cédula no es válida. Verifica sus 10 dígitos y vuelve a intentarlo.' });
+      else setError(cause);
+    }
     finally { setBusy(false); }
   }
 
@@ -112,6 +143,7 @@ function PeopleContent() {
     setDrawer(null);
     setError(null);
     setPendingPersonId(null);
+    setFieldErrors({});
   }
 
   return <section className={styles.people}>
@@ -135,15 +167,17 @@ function PeopleContent() {
       <Button variant="text" disabled={page === 0 || loading} onClick={() => { setLoading(true); setData(null); setPage(p => p - 1); }}>Anterior</Button>
       <Button variant="text" disabled={(page + 1) * SIZE >= data.total || loading} onClick={() => { setLoading(true); setData(null); setPage(p => p + 1); }}>Siguiente</Button></nav>}
     {drawer && <Drawer title={drawer === 'new' ? 'Nueva persona' : `Editar ${drawer.nombres}`} onClose={closeDrawer}>
-      <form aria-label={drawer === 'new' ? 'Nueva persona' : 'Editar persona'} onSubmit={save}>
-        {drawer === 'new' && <label>Cédula<input name="cedula" required pattern="[0-9]{10}" inputMode="numeric" disabled={!!pendingPersonId} /></label>}
-        <label>Nombres<input name="nombres" required maxLength={200} defaultValue={drawer === 'new' ? '' : drawer.nombres} /></label>
-        {drawer === 'new' ? <><label>Correo (opcional, crea cuenta)<input name="correo" type="email" autoComplete="email" /></label>
-          <label>Rol<select name="rol" defaultValue="ESTUDIANTE">{ROLES.map(role => <option key={role}>{role}</option>)}</select></label></>
+      <form aria-label={drawer === 'new' ? 'Nueva persona' : 'Editar persona'} onSubmit={save} noValidate>
+        <p className={styles.hint}>Los campos marcados con <span aria-hidden="true">*</span> son obligatorios.</p>
+        {drawer === 'new' && <><label>Cédula <span aria-hidden="true">*</span><input aria-label="Cédula" name="cedula" required maxLength={10} inputMode="numeric" disabled={!!pendingPersonId} aria-invalid={!!fieldErrors.cedula} aria-describedby="person-cedula-hint" /></label><p id="person-cedula-hint" role={fieldErrors.cedula ? 'alert' : undefined} className={fieldErrors.cedula ? styles.fieldError : styles.hint}>{fieldErrors.cedula ?? 'Cédula ecuatoriana válida: 10 dígitos, sin espacios ni guiones.'}</p></>}
+        <label>Nombres <span aria-hidden="true">*</span><input aria-label="Nombres" name="nombres" required maxLength={200} defaultValue={drawer === 'new' ? '' : drawer.nombres} aria-invalid={!!fieldErrors.nombres} aria-describedby={fieldErrors.nombres ? 'person-names-error' : undefined} /></label>
+        {fieldErrors.nombres && <p id="person-names-error" className={styles.fieldError} role="alert">{fieldErrors.nombres}</p>}
+        {drawer === 'new' ? <><label>Correo (opcional, crea cuenta)<input name="correo" type="email" autoComplete="email" aria-invalid={!!fieldErrors.correo} aria-describedby="person-email-hint" /></label><p id="person-email-hint" role={fieldErrors.correo ? 'alert' : undefined} className={fieldErrors.correo ? styles.fieldError : styles.hint}>{fieldErrors.correo ?? 'Ejemplo: nombre@universidad.edu.ec. Déjalo vacío si aún no tendrá cuenta.'}</p>
+          <label>Rol<select name="rol" defaultValue="ESTUDIANTE">{ROLES.map(role => <option key={role}>{role}</option>)}</select></label><p className={styles.hint}>El rol se usa si ingresas un correo para crear la cuenta.</p></>
           : drawer.cuenta ? <><fieldset><legend>Roles</legend>{ROLES.map(role => <label key={role}><input type="checkbox" name="roles" value={role} defaultChecked={drawer.cuenta?.roles.includes(role)} /> {role}</label>)}</fieldset>
             <label><input type="checkbox" name="activa" defaultChecked={drawer.cuenta.activa} /> Cuenta activa</label></>
             : <><p>Esta persona no tiene cuenta. Puedes crear una con su correo y los roles asignados.</p>
-              <label>Correo<input name="correo" type="email" required autoComplete="email" /></label>
+              <label>Correo <span aria-hidden="true">*</span><input aria-label="Correo" name="correo" type="email" required autoComplete="email" aria-invalid={!!fieldErrors.correo} aria-describedby="person-email-hint" /></label><p id="person-email-hint" role={fieldErrors.correo ? 'alert' : undefined} className={fieldErrors.correo ? styles.fieldError : styles.hint}>{fieldErrors.correo ?? 'Ejemplo: nombre@universidad.edu.ec.'}</p>
               <fieldset><legend>Roles de la cuenta</legend>{ROLES.map(role => <label key={role}><input type="checkbox" name="roles" value={role} /> {role}</label>)}</fieldset></>}
         <ProblemMessage error={error} />
         <Button type="submit" loading={busy}>{drawer === 'new' ? 'Registrar persona' : 'Guardar cambios'}</Button>

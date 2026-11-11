@@ -17,6 +17,7 @@ import { ClassSessions } from './ClassSessions';
 import { GuestListView } from './GuestListView';
 import { SchedulePanel } from './SchedulePanel';
 import styles from './activities.module.css';
+import { useSession } from '../auth/SessionProvider';
 
 type Activity = components['schemas']['Activity'];
 
@@ -28,11 +29,15 @@ const METHOD_LABELS: Record<string, string> = {
 };
 
 export function ActivityDetail({ id }: { id: string }) {
+  const { session } = useSession();
+  const adminOnly = session?.roles.includes('ADMINISTRADOR');
   const router = useRouter();
   const [activity, setActivity] = useState<Activity | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [menu, setMenu] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState('');
   useEffect(() => { request<Activity>(`/activities/${id}`).then(setActivity).catch(setError); }, [id]);
 
   async function cancel() {
@@ -40,16 +45,27 @@ export function ActivityDetail({ id }: { id: string }) {
     try { await request(`/activities/${id}/cancel`, { method: 'POST' }); router.push('/actividades'); } catch (e) { setError(e); }
   }
 
+  async function saveName(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      setActivity(await request<Activity>(`/activities/${id}`, { method: 'PATCH', body: JSON.stringify({ nombre: name.trim() }) }));
+      setEditing(false);
+      setError(null);
+    } catch (cause) { setError(cause); }
+  }
+
   const isClass = activity?.tipo === 'CLASE';
   const parallelCount = activity?.paralelo_ids?.length ?? 0;
   const method = activity?.metodo_verificacion ? METHOD_LABELS[activity.metodo_verificacion] ?? activity.metodo_verificacion : null;
   const tabs = [
     { id: 'sesiones', label: 'Sesiones', content: <ClassSessions activityId={id} /> },
+    ...(!adminOnly ? [
     isClass ? { id: 'participantes', label: 'Participantes', content: <AuthorizedStudents activityId={id} /> }
       : { id: 'invitados', label: 'Invitados', content: <GuestListView activityId={id} /> },
     ...(isClass ? [{ id: 'horario', label: 'Horario', content: <SchedulePanel activityId={id} /> }] : []),
     { id: 'justificaciones', label: 'Justificaciones', content: <JustificationInbox activityId={id} /> },
     { id: 'auditoria', label: 'Auditoría', content: <ActivityAuditPanel activityId={id} /> },
+    ] : []),
   ];
 
   return <section className={styles.detail}>
@@ -78,8 +94,10 @@ export function ActivityDetail({ id }: { id: string }) {
     </header>
 
     {menu && !confirming && <div className={styles.menuPanel}>
+      {adminOnly && <Button variant="secondary" onClick={() => { setName(activity?.nombre ?? ''); setEditing(true); setMenu(false); }}>Editar nombre</Button>}
       <Button variant="danger" onClick={() => setConfirming(true)}>Cancelar actividad</Button>
     </div>}
+    {editing && <form onSubmit={saveName}><label>Nombre de la actividad<input required maxLength={200} value={name} onChange={event => setName(event.target.value)} /></label><Button type="submit">Guardar cambios</Button> <Button type="button" variant="secondary" onClick={() => setEditing(false)}>Descartar</Button></form>}
     {confirming && <ConfirmInline danger message="¿Cancelar esta actividad? No se podrá deshacer." confirmLabel="Cancelar actividad" onConfirm={() => void cancel()} onCancel={() => setConfirming(false)} />}
 
     <ProblemMessage error={error} />

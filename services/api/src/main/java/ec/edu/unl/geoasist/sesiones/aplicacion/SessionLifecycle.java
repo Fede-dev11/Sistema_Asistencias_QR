@@ -51,10 +51,10 @@ public class SessionLifecycle {
   @Transactional
   public Receipt change(UserSession user, UUID session, UUID key, boolean start) {
     UUID id = activities.activityOfSession(session);
-    scope.write(user, id);
+    scope.manage(user, id);
     locks.activity(id, false);
     locks.session(session);
-    var activity = scope.write(user, id);
+    var activity = scope.manage(user, id);
     return replay.run(
         start ? "start-session" : "close-session",
         user.accountId().toString(),

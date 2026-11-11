@@ -45,9 +45,9 @@ public class CloseActivity {
 
   @Transactional
   public Receipt close(UserSession user, UUID id, UUID key) {
-    scope.write(user, id);
+    scope.manage(user, id);
     locks.activity(id, true);
-    scope.write(user, id);
+    scope.manage(user, id);
     locks.allSessions(id);
     return replay.run(
         "close-activity",
@@ -56,7 +56,7 @@ public class CloseActivity {
         id,
         Map.of("activity_id", id),
         () -> {
-          var activity = scope.write(user, id);
+          var activity = scope.manage(user, id);
           if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
           var now = clock.instant();
           db.queryForList(

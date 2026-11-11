@@ -47,9 +47,9 @@ public class EditActivity {
   }
 
   private Map<String, Object> lockOpen(UserSession user, UUID id) {
-    scope.write(user, id);
+    scope.manage(user, id);
     locks.activity(id, true);
-    var activity = scope.write(user, id);
+    var activity = scope.manage(user, id);
     locks.allSessions(id);
     if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
     return db.queryForMap(

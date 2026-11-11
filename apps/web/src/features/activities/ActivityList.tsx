@@ -10,6 +10,8 @@ import { ButtonLink } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { StatusTag } from '../ui/StatusTag';
 import styles from './activities.module.css';
+import { useSession } from '../auth/SessionProvider';
+import { loadActivities } from './loadActivities';
 
 type Activity = components['schemas']['Activity'];
 type Session = components['schemas']['ScheduledSession'];
@@ -33,11 +35,13 @@ const TYPES = [['', 'Todos'], ['CLASE', 'Clase'], ['EVENTO', 'Evento']] as const
 const STATES = [['', 'Todos'], ['ABIERTA', 'Abierta'], ['CERRADA', 'Cerrada'], ['CANCELADA', 'Cancelada']] as const;
 
 export function ActivityList() {
+  const { session } = useSession();
+  const canCreate = session?.roles.some(role => role === 'DOCENTE' || role === 'ENCARGADO');
   const router = useRouter(); const pathname = usePathname(); const search = useSearchParams();
   const q = search?.get('q') ?? ''; const tipo = search?.get('tipo') ?? ''; const estado = search?.get('estado') ?? '';
   const [items, setItems] = useState<Activity[] | null>(null);
   const [error, setError] = useState<unknown>(null);
-  useEffect(() => { request<{ items: Activity[] }>('/activities?size=100').then(p => setItems(p.items)).catch(setError); }, []);
+  useEffect(() => { loadActivities().then(setItems).catch(setError); }, []);
 
   const setParam = (key: string, value: string) => {
     const p = new URLSearchParams(search?.toString());
@@ -58,7 +62,7 @@ export function ActivityList() {
           <p className={styles.subtitle}>Consulta clases y eventos, filtra por tipo o estado y abre el detalle para gestionar sesiones, participantes y horario.</p>
         </div>
         <div className={styles.headerActions}>
-          <ButtonLink href="/actividades/nueva"><span aria-hidden="true">+</span> Nueva actividad</ButtonLink>
+          {canCreate && <ButtonLink href="/actividades/nueva"><span aria-hidden="true">+</span> Nueva actividad</ButtonLink>}
         </div>
       </header>
 
@@ -95,7 +99,7 @@ export function ActivityList() {
         text={items.length ? 'Ninguna coincide con los filtros seleccionados.' : 'Crea tu primera clase o evento para comenzar.'}
         action={filtered
           ? <button type="button" className={styles.ghostButton} onClick={clearFilters}>Restablecer todos los filtros</button>
-          : <ButtonLink href="/actividades/nueva">Crear actividad</ButtonLink>} />}
+          : canCreate ? <ButtonLink href="/actividades/nueva">Crear actividad</ButtonLink> : undefined} />}
 
       {shown.length > 0 && <div className={styles.tableCard}>
         <div className="table-wrap">
