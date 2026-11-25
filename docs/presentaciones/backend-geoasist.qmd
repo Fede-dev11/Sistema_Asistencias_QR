@@ -1,0 +1,167 @@
+---
+title: "Backend de GeoAsist"
+subtitle: "Arquitectura, funcionamiento y tecnologías"
+format:
+  pptx:
+    slide-level: 2
+lang: es
+---
+
+## ¿Qué es GeoAsist?
+
+- Sistema académico para registrar asistencia en clases y eventos.
+- El backend concentra las reglas, valida las solicitudes y almacena la información.
+- Atiende a la aplicación web y a la aplicación móvil mediante una API REST.
+- El registro puede utilizar QR dinámico y ubicación según la configuración.
+
+::: notes
+El backend es la parte que procesa las reglas de negocio. La web y la aplicación móvil son clientes que se comunican con esa lógica a través de peticiones HTTP.
+:::
+
+## ¿Qué tipo de arquitectura utiliza?
+
+- **API principal: monolito modular.** Los módulos de negocio forman una sola aplicación desplegable.
+- **Autenticación separada:** otro servicio Spring Boot simula el SSO universitario.
+- Ambos servicios utilizan PostgreSQL con bases de datos lógicas separadas.
+- Los servicios se ejecutan en contenedores Docker durante el desarrollo.
+
+::: notes
+Se llama monolito modular porque actividades, asistencia y reportes están organizados como módulos, pero se empaquetan en la misma API. No es una arquitectura de microservicios: hay un servicio independiente de autenticación, pero los módulos de negocio no se despliegan cada uno por separado.
+:::
+
+## Tecnologías y versiones
+
+| Tecnología | Versión | Función |
+|---|---|---|
+| Java | 21 | Lenguaje del backend |
+| Spring Boot | 4.1.1 | Framework para la API y el SSO |
+| PostgreSQL | 17.7 | Base de datos relacional |
+| Maven | 3.9.11 | Dependencias, compilación y pruebas |
+| OpenAPI | 3.0.3 | Contrato de la API |
+| Springdoc | 3.2.0 | Documentación Swagger UI |
+| Docker Compose | Según instalación | Arranque de servicios locales |
+
+::: notes
+Las versiones se tomaron de los archivos pom.xml, Docker Compose, README y contrato del proyecto. Varias bibliotecas heredan su versión desde Spring Boot; no tienen una versión escrita directamente en el pom.
+:::
+
+## Dependencias principales
+
+- **Spring Web MVC:** controladores y solicitudes HTTP.
+- **Spring Security:** autenticación y protección de rutas.
+- **Spring Data JPA y JDBC:** acceso a los datos.
+- **Bean Validation:** validación de solicitudes.
+- **Flyway:** creación y evolución de la estructura de la base de datos.
+- **Springdoc:** documentación interactiva de la API.
+
+::: notes
+El proyecto también usa el controlador JDBC de PostgreSQL y Testcontainers para pruebas. El servicio de autenticación utiliza Thymeleaf para sus formularios HTML.
+:::
+
+## Organización interna de la API
+
+**Cada dominio se organiza por capas:**
+
+1. **Presentación:** controladores REST; reciben peticiones y devuelven respuestas.
+2. **Aplicación:** casos de uso, reglas de negocio y autorización.
+3. **Dominio:** conceptos y reglas propias del problema.
+4. **Persistencia:** consultas y almacenamiento en PostgreSQL.
+
+::: notes
+Por ejemplo, un controlador recibe la petición para cerrar una sesión, un servicio verifica si el usuario tiene permiso y si el estado permite el cierre, y la capa de persistencia guarda el resultado.
+:::
+
+## Módulos principales
+
+- **Identidades:** sesiones, cuentas y conexión con el SSO.
+- **Académico:** personas, carreras, paralelos e importación CSV.
+- **Actividades y sesiones:** clases, eventos, horarios y ciclo de sesiones.
+- **QR y asistencia:** emisión del QR y registro de asistencia.
+- **Espacios:** lugares, configuración y evidencia geográfica.
+- **Estadísticas, reportes y conservación:** consultas, exportación y anonimización.
+
+::: notes
+Los módulos están en services/api/src/main/java/ec/edu/unl/geoasist. Cada uno concentra una responsabilidad y se comunica con los demás dentro de la API.
+:::
+
+## Flujo: inicio de sesión
+
+1. El usuario inicia el ingreso desde un cliente.
+2. El cliente redirige al servicio SSO simulado.
+3. El SSO autentica y emite un ticket para el servicio solicitado.
+4. La API valida el ticket con el servicio SSO.
+5. La API crea una sesión y entrega un token opaco para las siguientes peticiones.
+
+::: notes
+El SSO incluido es una simulación de un subconjunto de CAS 3.0 para el entorno de desarrollo; no debemos presentarlo como el CAS real de la UNL. El bearer de GeoAsist es un token opaco, no se debe afirmar que sea JWT.
+:::
+
+## Flujo: registro de asistencia
+
+1. El responsable inicia una sesión de clase o evento.
+2. La API emite un QR dinámico para la sesión activa.
+3. El participante escanea el QR y envía el intento a la API.
+4. El servidor verifica vigencia, estado, autorización y ubicación cuando corresponde.
+5. El sistema registra el resultado y evita duplicados.
+
+::: notes
+El QR se renueva cada 30 segundos y cada token tiene una vigencia de 40 segundos. La API evalúa la recepción en el servidor; no depende únicamente de la hora declarada por el dispositivo.
+:::
+
+## Ubicación y control geográfico
+
+- La verificación geográfica se configura por sesión.
+- Se pueden aplicar radio, precisión y antigüedad máxima de la ubicación.
+- PostGIS es opcional para el cálculo geográfico cuando está habilitado.
+- El tratamiento del resultado depende de la configuración y la evidencia disponible.
+
+::: notes
+La ubicación no es obligatoria para todas las sesiones. El sistema admite métodos como solo QR, solo GPS, QR y GPS o ninguno, según la actividad y la sesión.
+:::
+
+## Seguridad y reglas de acceso
+
+- Las operaciones se autorizan según el rol y el ámbito del usuario.
+- Los docentes y encargados operan las actividades de las que son responsables.
+- Los directores consultan según su alcance; el administrador gestiona la estructura académica.
+- Las modificaciones administrativas y otras operaciones relevantes se registran en auditoría.
+- Las claves y contraseñas se configuran mediante variables de entorno.
+
+::: notes
+En los cambios locales del PR 35 se amplió la gestión administrativa de actividades y sesiones. El estado integrado en main puede depender de la aprobación e integración de ese PR. No debe confundirse consulta con permiso automático para exportar datos.
+:::
+
+## Base de datos y mantenimiento
+
+- **geoasist:** actividades, sesiones, asistencias y datos académicos.
+- **geoasist_auth:** cuentas, servicios y tickets del SSO simulado.
+- Flyway aplica migraciones versionadas para evolucionar las bases.
+- El sistema contempla retención y anonimización de datos al cumplir sus plazos.
+- Tareas programadas apoyan la rotación del QR y la conservación.
+
+::: notes
+Las dos bases lógicas se ejecutan en la misma instancia PostgreSQL en la configuración local. La separación lógica no significa que exista un servidor de base de datos independiente para cada servicio.
+:::
+
+## Pruebas y documentación
+
+- Pruebas de reglas, permisos y contratos de la API.
+- Spring Boot Test y Spring Security Test para verificar comportamiento.
+- Testcontainers levanta PostgreSQL temporal para pruebas de integración.
+- OpenAPI y Swagger UI describen y permiten explorar las operaciones.
+- CI ejecuta comprobaciones automáticas de API, autenticación y contrato.
+
+::: notes
+Testcontainers permite probar contra una base PostgreSQL real y aislada, evitando depender de los datos personales o de la base de desarrollo.
+:::
+
+## Cierre
+
+- La API centraliza las reglas de asistencia y autorización.
+- El monolito modular permite organizar los dominios dentro de un mismo servicio.
+- El SSO se mantiene separado para gestionar la autenticación.
+- PostgreSQL, Flyway y las pruebas respaldan la persistencia y la evolución.
+
+::: notes
+Para cerrar, relaciona la arquitectura con un ejemplo concreto: una persona inicia sesión, escanea un QR y el backend verifica las condiciones antes de guardar la asistencia.
+:::

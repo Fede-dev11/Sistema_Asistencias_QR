@@ -15,6 +15,7 @@ import { Tabs } from '../ui/Tabs';
 import { GeolocationSettingsPanel } from './GeolocationSettingsPanel';
 import { LiveAttendances } from './LiveAttendances';
 import { loadSession, type SessionInfo } from './loadSession';
+import styles from './sessions.module.css';
 import { useSession } from '../auth/SessionProvider';
 
 const total = (path: string) => request<{ total: number }>(path).then(p => p.total);
@@ -48,31 +49,55 @@ export function SessionSummary({ id }: { id: string }) {
   }
 
   const date = info && new Date(info.session.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil', dateStyle: 'medium', timeStyle: 'short' });
+  const end = info && new Date(info.session.fin).toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil', hour: '2-digit', minute: '2-digit' });
   const activityId = info?.activity.id ?? '';
-  return <section>
+  return <section className={styles.detail}>
     <Breadcrumbs items={[{ label: 'Actividades', href: '/actividades' }, { label: info?.activity.nombre ?? 'Actividad', href: info ? `/actividades/${activityId}` : undefined }, { label: `Sesión ${date ?? ''}` }]} />
-    <div className="page-head"><h1>{info ? info.activity.nombre : 'Sesión'}</h1>{state && <StatusTag status={state} />}</div>
+    <header className={styles.hero}>
+      <div className={styles.heroMain}>
+        <div className={styles.chips}>
+          {state && <StatusTag status={state} />}
+          {info && <span className={styles.chip}>{info.session.metodo_verificacion.replaceAll('_', ' ')}</span>}
+        </div>
+        <h1 className={styles.heroTitle}>{info ? info.activity.nombre : 'Sesión'}</h1>
+        <p className={styles.heroMeta}>
+          <span>{date ?? 'Cargando fecha…'}{end ? ` - ${end}` : ''}</span>
+          {info?.space && <span>{info.space}</span>}
+        </p>
+      </div>
+      <div className={styles.heroActions}>
+        {state === 'ACTIVA' && !adminOnly && <ButtonLink href={`/sesiones/${id}/proyectar`}>Proyectar QR</ButtonLink>}
+        {state === 'ACTIVA' && <Button variant="danger" onClick={() => setConfirm('session')}>Cerrar sesión</Button>}
+        {state === 'PROGRAMADA' && <Button onClick={() => void run('start')}>{adminOnly ? 'Iniciar sesión' : 'Iniciar y proyectar QR'}</Button>}
+      </div>
+    </header>
     <ProblemMessage error={error} />
     {message && <p role="status">{message}</p>}
-    {!info && !error && <p role="status">Cargando la sesión…</p>}
+    {!info && !error && <p role="status" className={styles.loading}>Cargando la sesión…</p>}
     {confirm && <ConfirmInline danger message={confirm === 'session' ? '¿Cerrar la sesión? Ya no se admitirán registros.' : '¿Cerrar definitivamente esta actividad y todas sus sesiones?'} confirmLabel="Cerrar" onConfirm={() => void run(confirm === 'session' ? 'close' : 'activity')} onCancel={() => setConfirm(null)} />}
-    {state === 'PROGRAMADA' && <><Button onClick={() => void run('start')}>{adminOnly ? 'Iniciar sesión' : 'Iniciar y proyectar QR'}</Button><GeolocationSettingsPanel sessionId={id} /></>}
-    {state === 'ACTIVA' && <>
-      <div>{!adminOnly && <ButtonLink href={`/sesiones/${id}/proyectar`}>Proyectar QR</ButtonLink>} <Button variant="danger" onClick={() => setConfirm('session')}>Cerrar sesión</Button></div>
+    {state === 'PROGRAMADA' && <div className={styles.statePanel}>
+      <p className={styles.subtitle}>Antes de iniciar, revisa la ubicación de la sesión. Al iniciar se abrirá la proyección del QR.</p>
+      <GeolocationSettingsPanel sessionId={id} />
+    </div>}
+
+    {state === 'ACTIVA' && <div className={styles.statePanel}>
       <LiveAttendances sessionId={id} active />
       <GeolocationSettingsPanel sessionId={id} />
-    </>}
+    </div>}
+
     {state === 'CERRADA' && <>
-      {info?.activity.estado === 'ABIERTA' && <Button variant="danger" onClick={() => setConfirm('activity')}>Cerrar actividad definitivamente</Button>}
-      <Tabs param="tab" tabs={[
-        { id: 'resumen', label: 'Resumen', content: <>
-          <dl className="panel"><div><dt>Asistencias</dt><dd>{counts?.asistencias ?? '…'}</dd></div><div><dt>Ausencias</dt><dd>{counts?.ausencias ?? '…'}</dd></div><div><dt>Pendientes de revisión</dt><dd>{counts?.pendientes ?? '…'}</dd></div></dl>
-          {!adminOnly && <AbsencesPanel sessionId={id} />}
-        </> },
-        { id: 'asistencias', label: 'Asistencias', content: <LiveAttendances sessionId={id} active={false} /> },
-        ...(!adminOnly ? [{ id: 'manual', label: 'Asistencia manual', content: <ManualAttendanceForm activityId={activityId} sessionId={id} /> },
-          { id: 'revisiones', label: 'Revisiones', content: <ReviewPanel /> }] : []),
-      ]} />
+      {info?.activity.estado === 'ABIERTA' && <div className={styles.actionRow}><Button variant="danger" onClick={() => setConfirm('activity')}>Cerrar actividad definitivamente</Button></div>}
+      <div className={styles.tabsCard}>
+        <Tabs param="tab" tabs={[
+          { id: 'resumen', label: 'Resumen', content: <>
+            <dl className={styles.metrics}><div className={styles.metric}><dt>Asistencias</dt><dd>{counts?.asistencias ?? '…'}</dd></div><div className={styles.metric}><dt>Ausencias</dt><dd>{counts?.ausencias ?? '…'}</dd></div><div className={styles.metric}><dt>Pendientes de revisión</dt><dd>{counts?.pendientes ?? '…'}</dd></div></dl>
+            {!adminOnly && <AbsencesPanel sessionId={id} />}
+          </> },
+          { id: 'asistencias', label: 'Asistencias', content: <LiveAttendances sessionId={id} active={false} /> },
+          ...(!adminOnly ? [{ id: 'manual', label: 'Asistencia manual', content: <ManualAttendanceForm activityId={activityId} sessionId={id} /> },
+            { id: 'revisiones', label: 'Revisiones', content: <ReviewPanel /> }] : []),
+        ]} />
+      </div>
     </>}
   </section>;
 }

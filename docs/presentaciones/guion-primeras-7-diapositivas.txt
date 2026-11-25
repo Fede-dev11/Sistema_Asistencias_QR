@@ -1,0 +1,103 @@
+GUIÓN DE EXPOSICIÓN — BACKEND DE GEOASIST
+
+DIAPOSITIVA 1. PRESENTACIÓN DEL BACKEND
+
+Buenos días. En esta parte de la exposición voy a presentar el backend de GeoAsist, un sistema diseñado para registrar la asistencia en clases y eventos.
+
+El backend es la parte del sistema que recibe las solicitudes, aplica las reglas de negocio y guarda la información. Durante la presentación explicaré cómo está organizada su arquitectura, cuáles son sus módulos, qué roles maneja y cómo se comunican sus servicios.
+
+
+DIAPOSITIVA 2. PROBLEMÁTICA Y PROPUESTA DE SOLUCIÓN
+
+Para entender por qué desarrollamos GeoAsist, primero debemos identificar el problema.
+
+Un registro manual de asistencia puede consumir tiempo de clase y dificultar la consulta posterior de la información. Por otro lado, si se utiliza siempre el mismo código QR, ese código podría compartirse con personas que no están presentes.
+
+Frente a esto, GeoAsist propone utilizar un QR dinámico, es decir, un código que cambia con el tiempo. Cuando una persona intenta registrar su asistencia, el servidor verifica si el código sigue vigente y si se cumplen las condiciones de la sesión.
+
+Además, la información queda centralizada para consultar asistencias y estadísticas. Si se necesita corregir un registro, el sistema guarda una auditoría de la operación.
+
+
+DIAPOSITIVA 3. ARQUITECTURA DEL SISTEMA
+
+En esta diapositiva podemos ver los componentes principales del sistema.
+
+Tenemos dos clientes: la aplicación web, desarrollada con Next.js, y la aplicación móvil, desarrollada con Expo. Ambos se comunican con la API de GeoAsist mediante solicitudes HTTP.
+
+La API está desarrollada con Java 21 y Spring Boot. Allí se encuentran las reglas de actividades, sesiones, asistencias y los demás procesos del negocio.
+
+Para la autenticación tenemos un servicio separado que simula el funcionamiento de un SSO basado en CAS. Finalmente, utilizamos PostgreSQL para almacenar los datos.
+
+Dentro de la API usamos JPA y JDBC para acceder a la base de datos, mientras que Flyway administra los cambios en su estructura mediante migraciones.
+
+Si preguntan si es monolito o microservicios: la API principal es un monolito modular. Sus módulos están separados por responsabilidad, pero forman una sola aplicación. Además, existe un servicio de autenticación independiente. Por eso, el sistema completo tiene más de un servicio, aunque la API principal no está dividida en microservicios.
+
+Aclaración: el CAS mostrado es una simulación para desarrollo; la integración con un servicio institucional real sigue pendiente.
+
+
+DIAPOSITIVA 4. MÓDULOS DEL BACKEND: NÚCLEO
+
+Para organizar el código, el backend está dividido en módulos. En esta diapositiva se muestran los que forman el núcleo de la operación.
+
+El módulo de Identidades se ocupa de las cuentas, las sesiones de usuario y la conexión con la autenticación.
+
+El módulo Académico administra personas, carreras, paralelos y la importación de información.
+
+El módulo de Espacios maneja los lugares donde se realizan las actividades y la información relacionada con la validación geográfica.
+
+El módulo de Actividades gestiona clases y eventos; mientras que el módulo de Sesiones administra las ocasiones concretas en las que se registra asistencia, incluyendo su apertura, cierre y configuración.
+
+Finalmente, el módulo QR se encarga de generar y renovar los códigos utilizados en las sesiones activas.
+
+Ejemplo: una materia puede ser la actividad; cada clase programada de esa materia sería una sesión diferente.
+
+
+DIAPOSITIVA 5. MÓDULOS DE OPERACIÓN Y SOPORTE
+
+Además de los módulos anteriores, tenemos otros que permiten operar el sistema y dar soporte a sus procesos.
+
+El módulo de Asistencia procesa los registros de participantes e invitados, así como revisiones y correcciones.
+
+El módulo de Estadísticas calcula información como porcentajes de asistencia e historial. El módulo de Reportes permite consultar información, exportar CSV cuando el usuario tiene permiso y revisar la auditoría.
+
+También existe el módulo de Conservación, que contempla la anonimización de datos y el tratamiento de copias cuando se cumplen los plazos definidos.
+
+Por último, el módulo Compartido reúne elementos utilizados por varias partes de la API, como el manejo de errores y la idempotencia.
+
+En total, la API organiza estas responsabilidades en 11 módulos.
+
+Si preguntan qué es idempotencia: es una forma de evitar que una misma solicitud repetida genere la operación dos veces. Por ejemplo, si una petición falla por conexión y se vuelve a enviar con la misma clave, el sistema puede reconocer que corresponde al mismo intento.
+
+
+DIAPOSITIVA 6. ROLES Y PERMISOS
+
+GeoAsist utiliza roles para definir qué puede consultar o modificar cada persona.
+
+El administrador gestiona la estructura académica: personas, cuentas, carreras, paralelos y espacios.
+
+El docente puede crear clases y eventos y gestionar las actividades de las que es responsable. El encargado puede crear y gestionar sus eventos.
+
+El estudiante registra su asistencia y puede consultar información propia y presentar justificaciones. En determinados eventos también existe el flujo de invitado, con un registro limitado según la configuración.
+
+En cuanto a los directores, el director institucional tiene alcance de consulta institucional, mientras que el director de carrera consulta la información vinculada a sus carreras.
+
+Cuando hablamos de responsable, nos referimos al docente o encargado vinculado a una actividad. Sus acciones y permisos se comprueban en el backend.
+
+Actualización para el expositor: en el código del PR #35 se amplió el acceso del administrador para consultar y gestionar actividades y sesiones institucionales. Verifica si ese PR está integrado en la versión que vas a presentar. Consultar información no concede automáticamente permiso para exportarla.
+
+
+DIAPOSITIVA 7. CANTIDAD Y ORGANIZACIÓN DE APIS
+
+Para comunicar los clientes con el backend, el proyecto define operaciones REST.
+
+En el contrato de la API principal hay 73 operaciones distribuidas en 57 rutas. Las rutas están organizadas alrededor de recursos como autenticación, personas, actividades, sesiones, asistencias y estadísticas.
+
+Estas operaciones utilizan distintos métodos HTTP. Por ejemplo, GET se usa principalmente para consultar información; POST, para crear recursos o ejecutar acciones; PUT y PATCH, para actualizar información; y DELETE, para eliminar o retirar un recurso cuando la operación está definida.
+
+La distribución es de 32 operaciones GET, 28 POST, 6 PUT, 6 PATCH y 1 DELETE.
+
+Además, el servicio de autenticación SSO tiene su propio contrato, con 7 operaciones en 5 rutas.
+
+La documentación de la API principal se puede consultar mediante Swagger, donde es posible revisar los parámetros, respuestas y requisitos de cada operación.
+
+Si preguntan por qué hay más operaciones que rutas: una misma ruta puede admitir varios métodos HTTP. Por ejemplo, una ruta puede permitir consultar con GET y crear con POST; eso cuenta como una ruta y dos operaciones.

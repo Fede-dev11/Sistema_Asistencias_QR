@@ -9,6 +9,7 @@ import { ProblemMessage } from '../common/ProblemMessage';
 import { Button, ButtonLink } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { StatusTag } from '../ui/StatusTag';
+import styles from '../sessions/sessions.module.css';
 
 type Activity = components['schemas']['Activity'];
 type Session = components['schemas']['ScheduledSession'];
@@ -48,20 +49,38 @@ export function TeacherToday() {
   }
 
   const heading = new Intl.DateTimeFormat('es-EC', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
-  return <section>
-    <h1>Hoy, {heading}</h1>
+  return <section className={styles.page}>
+    <header className={styles.header}>
+      <div>
+        <p className={styles.eyebrow}>Agenda docente · Ecuador (UTC-5)</p>
+        <h1 className={styles.title}>Hoy, {heading}</h1>
+        <p className={styles.subtitle}>Revisa tus sesiones del día, inicia la toma de asistencia y accede al detalle o a la proyección según el estado real de cada sesión.</p>
+      </div>
+      <div className={styles.headerMeta}>
+        <span className={styles.metaPill}>{data ? `${data.today.length} sesión${data.today.length === 1 ? '' : 'es'} hoy` : 'Cargando agenda'}</span>
+      </div>
+    </header>
     <ProblemMessage error={error} />
-    {!data && !error && <p role="status">Cargando tus sesiones de hoy…</p>}
+    {!data && !error && <p role="status" className={styles.loading}>Cargando tus sesiones de hoy…</p>}
     {data && data.today.length === 0 && <EmptyState title="No tienes sesiones hoy"
       text={data.next ? `Tu próxima sesión: ${data.next.nombre}, ${new Intl.DateTimeFormat('es-EC', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(data.next.inicio))} a las ${hour(data.next.inicio)}.` : 'No hay sesiones programadas.'}
       action={<ButtonLink href="/actividades" variant="secondary">Ver actividades</ButtonLink>} />}
-    {data && data.today.length > 0 && <ul className="today-list">
-      {data.today.map(s => <li key={s.id} className="panel">
-        <StatusTag status={s.estado} /> <strong>{s.nombre}</strong> <span>{hour(s.inicio)}–{hour(s.fin)}</span>{s.espacio && <span> · {s.espacio}</span>}
-        <div>
-          {s.estado === 'PROGRAMADA' && <Button loading={starting === s.id} onClick={() => void start(s.id)}>Iniciar y proyectar QR</Button>}
-          {s.estado === 'ACTIVA' && <ButtonLink href={`/sesiones/${s.id}`}>Ver en vivo</ButtonLink>}
-          {s.estado === 'CERRADA' && <ButtonLink href={`/sesiones/${s.id}?tab=resumen`} variant="secondary">Revisar ausencias</ButtonLink>}
+    {data && data.today.length > 0 && <ul className={styles.todayList}>
+      {data.today.map(s => <li key={s.id} className={styles.todayCard} data-state={s.estado}>
+        <div className={styles.cardTop}>
+          <div className={styles.cardMain}>
+            <StatusTag status={s.estado} />
+            <h2 className={styles.cardName}>{s.nombre}</h2>
+            <div className={styles.cardMeta}>
+              <span>{hour(s.inicio)}–{hour(s.fin)}</span>
+              {s.espacio && <span>{s.espacio}</span>}
+            </div>
+          </div>
+          <div className={styles.cardActions}>
+            {s.estado === 'PROGRAMADA' && <Button loading={starting === s.id} onClick={() => void start(s.id)}>Iniciar y proyectar QR</Button>}
+            {s.estado === 'ACTIVA' && <ButtonLink href={`/sesiones/${s.id}`}>Ver en vivo</ButtonLink>}
+            {s.estado === 'CERRADA' && <ButtonLink href={`/sesiones/${s.id}?tab=resumen`} variant="secondary">Revisar ausencias</ButtonLink>}
+          </div>
         </div>
       </li>)}
     </ul>}

@@ -10,6 +10,7 @@ import { ProblemMessage } from '../common/ProblemMessage';
 import { Button, ButtonLink } from '../ui/Button';
 import { ConfirmInline } from '../ui/ConfirmInline';
 import { loadSession, type SessionInfo } from './loadSession';
+import styles from './sessions.module.css';
 
 type Qr = components['schemas']['Qr'];
 
@@ -67,18 +68,37 @@ export function ProjectionView({ id }: { id: string }) {
     catch (e) { setError(e); }
   }
 
-  return <div className="projection">
-    <header>
-      <h1>{info ? `${info.activity.nombre}${info.space ? ` · ${info.space}` : ''}` : 'Sesión'}</h1>
-      {active && <div><Button variant="secondary" onClick={() => void fullscreen()}>Pantalla completa</Button> <Button variant="danger" onClick={() => setConfirming(true)}>Cerrar sesión</Button></div>}
+  return <div className={`projection ${styles.projectionShell}`}>
+    <header className={styles.projectionHeader}>
+      <div>
+        <p className={styles.projectionKicker}>Proyección de asistencia · UNL GeoAsist</p>
+        <h1 className={styles.projectionTitle}>{info ? `${info.activity.nombre}${info.space ? ` · ${info.space}` : ''}` : 'Sesión'}</h1>
+        <p className={styles.projectionMeta}>{info ? `${new Date(info.session.inicio).toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil', hour: '2-digit', minute: '2-digit' })} - ${new Date(info.session.fin).toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil', hour: '2-digit', minute: '2-digit' })}` : 'Cargando sesión…'}</p>
+      </div>
+      {active && <div className={styles.projectionActions}><Button variant="secondary" onClick={() => void fullscreen()}>Pantalla completa</Button> <Button variant="danger" onClick={() => setConfirming(true)}>Cerrar sesión</Button></div>}
     </header>
+
     {confirming && <ConfirmInline danger message="¿Cerrar la sesión? Ya no se admitirán registros." confirmLabel="Cerrar sesión" onConfirm={() => void close()} onCancel={() => setConfirming(false)} />}
     {note && <p role="status">{note}</p>}
     <ProblemMessage error={error} />
-    {info && !active && <div className="panel"><p role="status">Esta sesión no está activa ({info.session.estado.toLowerCase()}).</p><ButtonLink href={`/sesiones/${id}`}>Volver a la sesión</ButtonLink></div>}
+
+    {info && !active && <div className={styles.inactiveCard}>
+      <p role="status">Esta sesión no está activa ({info.session.estado.toLowerCase()}).</p>
+      <div><ButtonLink href={`/sesiones/${id}`}>Volver a la sesión</ButtonLink></div>
+    </div>}
+
     {active && <>
-      <div className="projection-qr">{image ? <Image unoptimized src={image} alt="Código QR de asistencia de la sesión activa" width={640} height={640} /> : <p role="status">Generando QR…</p>}</div>
-      <footer><span>Nuevo código en {left} s</span><span aria-live="polite">{present} presentes</span></footer>
+      <div className={styles.projectionBody}>
+        <div className={`projection-qr ${styles.qrFrame}`}>
+          {image
+            ? <Image unoptimized src={image} alt="Código QR de asistencia de la sesión activa" width={640} height={640} />
+            : <div className={styles.qrLoading} role="status">Generando QR…</div>}
+        </div>
+      </div>
+      <footer className={styles.projectionFooter}>
+        <span>Nuevo código en {left} s</span>
+        <span aria-live="polite">{present} presentes</span>
+      </footer>
     </>}
   </div>;
 }
