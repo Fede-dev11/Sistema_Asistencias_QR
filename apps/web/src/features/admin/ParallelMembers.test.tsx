@@ -17,7 +17,10 @@ describe('miembros del paralelo', () => {
     vi.mocked(request).mockImplementation(async (p: string) => list(p));
     render(<ParallelMembers parallelId="p1" />);
     expect(await screen.findByText(/1100000001/)).toBeTruthy();
-    expect(screen.getByText(/doc@unl.edu.ec/)).toHaveTextContent('(no vigente)');
+    expect(screen.getByText('doc@unl.edu.ec')).toBeTruthy();
+    expect(screen.getByText('No vigente')).toBeTruthy();
+    const enrollments = screen.getByRole('region', { name: 'Matriculados' });
+    expect(within(enrollments).getByRole('note')).toHaveTextContent('reemplaza por completo');
     expect(request).toHaveBeenCalledWith('/admin/parallels/p1/teachers?page=0&size=20');
   });
 

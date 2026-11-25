@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { request } from '../../lib/api/client';
 import { useSession, type Session } from './SessionProvider';
 import { homeFor, safeDestino, serviceFor } from './sso';
+import { AccessLayout } from './AccessLayout';
 export function CasCallback() {
  const router = useRouter(); const params = useSearchParams(); const { establish } = useSession();
  const started = useRef(false); const [error, setError] = useState('');
@@ -22,6 +23,6 @@ export function CasCallback() {
    } catch (e) { setError(e instanceof Error ? e.message : 'No hay conexión. Reintenta.'); }
   })();
  }, [params, router, establish]);
- if (error) return <section><h1>No se pudo iniciar sesión</h1><p role="alert">{error}</p><ButtonLink href="/login">Reintentar</ButtonLink></section>;
- return <section><h1>Verificando acceso</h1><p role="status">Validando tu cuenta universitaria…</p></section>;
+ if (error) return <AccessLayout><h1>No se pudo iniciar sesión</h1><p role="alert">{error}</p><ButtonLink href="/login">Reintentar</ButtonLink></AccessLayout>;
+ return <AccessLayout><h1>Verificando acceso</h1><p role="status">Validando tu cuenta universitaria…</p></AccessLayout>;
 }

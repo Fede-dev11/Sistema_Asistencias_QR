@@ -12,6 +12,7 @@ vi.mock('next/navigation', () => ({
 }));
 vi.mock('qrcode', () => ({ default: { toDataURL: vi.fn(async () => 'data:image/png;base64,AAAA') } }));
 vi.mock('../../lib/api/client', () => ({ ApiError: class extends Error {}, request: vi.fn(), requestText: vi.fn() }));
+vi.mock('../auth/SessionProvider', () => ({ useSession: () => ({ session: { roles: ['DOCENTE'] } }) }));
 
 let estado = 'ACTIVA';
 const page = (total: number) => ({ items: [], total, page: 0, size: 1 });

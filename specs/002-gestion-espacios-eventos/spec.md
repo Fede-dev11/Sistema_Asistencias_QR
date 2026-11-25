@@ -37,6 +37,14 @@ todos".
 
 ### Historia de usuario 1 — Administrador gestiona la sección académica simulada (Prioridad: P1)
 
+**Ampliación de permisos administrativos:** el administrador puede consultar las actividades y
+sesiones de toda la institución y gestionar incidencias mediante edición o cancelación de
+actividades, creación, edición y cancelación de sesiones, inicio y cierre de sesiones, cierre
+de actividades y configuración de ubicación. Se mantienen los estados, las validaciones,
+la retención y la auditoría existentes. La gestión administrativa no concede por sí sola
+exportación de asistencias, proyección de QR, modificaciones de invitados ni correcciones
+nominales; esas operaciones conservan sus permisos específicos.
+
 Mientras no exista integración con el sistema académico y de autenticación institucional,
 un administrador mantiene personas, cuentas, roles, carreras, paralelos, matrículas de
 estudiantes en paralelos y asignaciones de docentes a paralelos. Puede hacerlo registro a

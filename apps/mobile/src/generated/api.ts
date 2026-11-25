@@ -128,7 +128,7 @@ export interface paths {
         };
         /**
          * Descubrir actividades autorizadas
-         * @description Lista paginada y filtrada en servidor. RESPONSABLE solo descubre sus actividades; DIRECTOR_INSTITUCIONAL todas; DIRECTOR_CARRERA solo las vinculadas a su carrera y paralelos. Los filtros restringen el ámbito autorizado y nunca lo amplían. Una carrera fuera del ámbito devuelve 403. Excluir actividades cuyo plazo nominal de cinco años calendario ya venció; los agregados anónimos no se exponen aquí. Sin filtros, devolver solo actividades autorizadas.
+         * @description Lista paginada y filtrada en servidor. RESPONSABLE solo descubre sus actividades; ADMINISTRADOR y DIRECTOR_INSTITUCIONAL descubren todas; DIRECTOR_CARRERA solo las vinculadas a su carrera y paralelos. Los filtros restringen el ámbito autorizado y nunca lo amplían. Una carrera fuera del ámbito devuelve 403. Excluir actividades cuyo plazo nominal de cinco años calendario ya venció; los agregados anónimos no se exponen aquí. Sin filtros, devolver solo actividades autorizadas.
          */
         get: operations["listActivities"];
         put?: never;
@@ -152,7 +152,7 @@ export interface paths {
         };
         /**
          * Consultar actividad
-         * @description Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer cinco años calendario desde su cierre definitivo, la consulta nominal devuelve 410; estadísticas anónimas no se exponen aquí. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.
+         * @description Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer cinco años calendario desde su cierre definitivo, la consulta nominal devuelve 410; estadísticas anónimas no se exponen aquí. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.
          */
         get: operations["getActivity"];
         put?: never;
@@ -162,7 +162,7 @@ export interface paths {
         head?: never;
         /**
          * Editar nombre, espacio o método por defecto
-         * @description Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.
+         * @description RESPONSABLE de una actividad ABIERTA o ADMINISTRADOR. Los valores son por defecto; las sesiones ya creadas no cambian.
          */
         patch: operations["updateActivity"];
         trace?: never;
@@ -178,7 +178,7 @@ export interface paths {
         put?: never;
         /**
          * Cerrar definitivamente una actividad
-         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Cierre definitivo distinto del cierre de una sesión. Cierra las sesiones activas, invalida QR e inicios invitados y fija cerrada_en y anonimizar_en a cinco años calendario. No permite reabrir ni crear nuevas sesiones.
+         * @description RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación por su permiso de lectura. Cierre definitivo distinto del cierre de una sesión. Cierra las sesiones activas, invalida QR e inicios invitados y fija cerrada_en y anonimizar_en a cinco años calendario. No permite reabrir ni crear nuevas sesiones.
          */
         post: operations["closeActivity"];
         delete?: never;
@@ -246,7 +246,7 @@ export interface paths {
         put?: never;
         /**
          * Iniciar sesión de asistencia
-         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Transición PROGRAMADA a ACTIVA solo si la actividad permanece abierta. Transacción coordinada con sus cierres.
+         * @description RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación por su permiso de lectura. Transición PROGRAMADA a ACTIVA solo si la actividad permanece abierta. Transacción coordinada con sus cierres.
          */
         post: operations["startSession"];
         delete?: never;
@@ -266,7 +266,7 @@ export interface paths {
         put?: never;
         /**
          * Cerrar sesión de asistencia
-         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Invalida inmediatamente nuevos registros e inicios de invitados, aunque QR o formularios tengan plazo restante. No inicia por sí mismo los cinco años: el origen es el cierre definitivo de la actividad.
+         * @description RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación por su permiso de lectura. Invalida inmediatamente nuevos registros e inicios de invitados, aunque QR o formularios tengan plazo restante. No inicia por sí mismo los cinco años: el origen es el cierre definitivo de la actividad.
          */
         post: operations["closeSession"];
         delete?: never;
@@ -309,7 +309,7 @@ export interface paths {
         get: operations["getSessionGeolocation"];
         /**
          * Configurar GPS opcional
-         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo PROGRAMADA. Habilitar exige capacidad geográfica disponible y radio_m, precision_max_m y antiguedad_max_s válidos. El servidor determina el modo: piloto/revisión permitido; rechazo automático solo con evidencia de campo verificada, sin aceptar una declaración del cliente como prueba. Sin GPS no se solicitan permisos ni se almacenan coordenadas. Capacidad ausente: 409 CAPACIDAD_GPS_NO_DISPONIBLE.
+         * @description RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación por su permiso de lectura. Solo PROGRAMADA. Habilitar exige capacidad geográfica disponible y radio_m, precision_max_m y antiguedad_max_s válidos. El servidor determina el modo: piloto/revisión permitido; rechazo automático solo con evidencia de campo verificada, sin aceptar una declaración del cliente como prueba. Sin GPS no se solicitan permisos ni se almacenan coordenadas. Capacidad ausente: 409 CAPACIDAD_GPS_NO_DISPONIBLE.
          */
         put: operations["setSessionGeolocation"];
         post?: never;
@@ -408,7 +408,7 @@ export interface paths {
         };
         /**
          * Consultar asistencias paginadas
-         * @description Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer retención de la actividad: 410 sin datos nominales; estadísticas agregadas se definirán por separado. Una fila por persona identificada: confirmación prevalece; sin asistencia, último intento identificado. Excluir intentos sin persona identificada y cédulas desconocidas. Aplicar estado después de esta proyección. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.
+         * @description Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer retención de la actividad: 410 sin datos nominales; estadísticas agregadas se definirán por separado. Una fila por persona identificada: confirmación prevalece; sin asistencia, último intento identificado. Excluir intentos sin persona identificada y cédulas desconocidas. Aplicar estado después de esta proyección. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.
          */
         get: operations["listAttendances"];
         put?: never;
@@ -568,7 +568,7 @@ export interface paths {
         };
         /**
          * Consultar auditoría paginada
-         * @description Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Incluye acciones administrativas, cambios manuales, configuración, listados y exportaciones con sus valores pertinentes. No devuelve credenciales, tokens ni ubicación exacta. Auditoría nominal sujeta al mismo vencimiento: 410; evidencia estadística anónima fuera de este endpoint. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.
+         * @description Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Incluye acciones administrativas, cambios manuales, configuración, listados y exportaciones con sus valores pertinentes. No devuelve credenciales, tokens ni ubicación exacta. Auditoría nominal sujeta al mismo vencimiento: 410; evidencia estadística anónima fuera de este endpoint. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.
          */
         get: operations["listActivityAudit"];
         put?: never;
@@ -931,7 +931,7 @@ export interface paths {
         put?: never;
         /**
          * Cancelar actividad
-         * @description Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
+         * @description RESPONSABLE o ADMINISTRADOR y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
          */
         post: operations["cancelActivity"];
         delete?: never;
@@ -1043,7 +1043,7 @@ export interface paths {
         put?: never;
         /**
          * Crear una sesión suelta
-         * @description Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.
+         * @description RESPONSABLE de una actividad ABIERTA o ADMINISTRADOR. Hereda espacio y método de la actividad.
          */
         post: operations["createLooseSession"];
         delete?: never;
@@ -1067,7 +1067,7 @@ export interface paths {
         head?: never;
         /**
          * Editar hora, espacio o método de una sesión programada
-         * @description Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+         * @description RESPONSABLE o ADMINISTRADOR; solo PROGRAMADA, si no, 409 SESION_NO_EDITABLE.
          */
         patch: operations["updateScheduledSession"];
         trace?: never;
@@ -1083,7 +1083,7 @@ export interface paths {
         put?: never;
         /**
          * Cancelar una sesión programada
-         * @description Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+         * @description RESPONSABLE o ADMINISTRADOR; solo PROGRAMADA, si no, 409 SESION_NO_EDITABLE.
          */
         post: operations["cancelScheduledSession"];
         delete?: never;

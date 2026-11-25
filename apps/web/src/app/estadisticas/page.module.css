@@ -1,0 +1,32 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.breadcrumb {
+  margin: 0;
+  max-width: none;
+  color: var(--color-muted);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.breadcrumb span {
+  margin: 0 .45rem;
+}
+
+.heading h1 {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -.03em;
+}
+
+.heading p {
+  max-width: 68ch;
+  margin: .5rem 0 0;
+  color: var(--color-muted);
+  font-size: 1.05rem;
+}

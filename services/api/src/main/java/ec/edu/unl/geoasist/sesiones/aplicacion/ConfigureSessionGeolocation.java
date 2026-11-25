@@ -50,10 +50,10 @@ public class ConfigureSessionGeolocation {
   @Transactional
   public Map<String, Object> configure(UserSession user, UUID sessionId, Command command) {
     UUID activityId = activities.activityOfSession(sessionId);
-    scope.write(user, activityId);
+    scope.manage(user, activityId);
     locks.activity(activityId, false);
     locks.session(sessionId);
-    var activity = scope.write(user, activityId);
+    var activity = scope.manage(user, activityId);
     var session = sessions.find(sessionId);
     if (!activity.state().equals("ABIERTA") || !session.state().equals("PROGRAMADA"))
       throw ApiFailure.conflict();
