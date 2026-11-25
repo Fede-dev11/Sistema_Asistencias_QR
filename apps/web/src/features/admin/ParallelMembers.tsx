@@ -60,9 +60,12 @@ function MemberList({ parallelId, kind, onChanged }: { parallelId: string; kind:
       <Paginated<Row>
         items={data?.items ?? null} total={data?.total ?? 0} page={page} size={20} onPage={setPage} loading={!data && !error}
         empty={`Sin ${cfg.title.toLowerCase()}.`}
-        renderItem={r => <span>{'cedula' in r ? r.cedula : r.correo} · {r.nombres}{r.vigente ? '' : ' (no vigente)'}</span>}
+        renderItem={r => <span>
+          <strong>{'cedula' in r ? r.cedula : r.correo}</strong> · {r.nombres} · <span>{r.vigente ? 'Vigente' : 'No vigente'}</span>
+        </span>}
       />
       <form aria-label={`Reemplazar ${cfg.title.toLowerCase()}`} onSubmit={e => void replace(e)}>
+        <p role="note">Esta operación reemplaza por completo el listado actual de {cfg.title.toLowerCase()} del paralelo.</p>
         <label>{cfg.label}<textarea name="lista" rows={5} /></label>
         <button className="ui-btn ui-btn-secondary" disabled={busy}>Reemplazar {cfg.title.toLowerCase()}</button>
       </form>
