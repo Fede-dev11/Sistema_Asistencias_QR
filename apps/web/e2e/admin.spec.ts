@@ -33,5 +33,5 @@ test('administrador registra evidencia GPS de un espacio y abre los miembros de 
     buffer: Buffer.from('cabecera-invalida\n'),
   });
   await page.getByRole('button', { name: 'Importar' }).click();
-  await expect(page.getByRole('alert')).toContainText('encabezado debe ser');
+  await expect(page.locator('p[role="alert"]')).toContainText('encabezado debe ser');
 });
