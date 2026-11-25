@@ -16,8 +16,7 @@ export function SessionList() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selected, setSelected] = useState('');
   const [error, setError] = useState<unknown>(null);
-<<<<<<< HEAD
-  useEffect(() => { request<{ items: Activity[] }>('/activities?size=100').then(p => setActivities(p.items), setError); }, []);
+  useEffect(() => { loadActivities().then(setActivities, setError); }, []);
   return <section className={styles.page}>
     <header className={styles.header}>
       <div>
@@ -26,11 +25,6 @@ export function SessionList() {
         <p className={styles.subtitle}>Selecciona una actividad y abre la sesión que necesitas revisar, iniciar o proyectar.</p>
       </div>
     </header>
-=======
-  useEffect(() => { loadActivities().then(setActivities, setError); }, []);
-  return <section>
-    <h1>Sesiones</h1>
->>>>>>> origin/main
     <ProblemMessage error={error} />
     <div className={styles.selectorCard}>
       <div className={styles.field}>
