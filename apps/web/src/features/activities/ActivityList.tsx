@@ -26,7 +26,7 @@ function NextSession({ id }: { id: string }) {
       const s = p.items.filter(x => (x.estado === 'PROGRAMADA' || x.estado === 'ACTIVA') && new Date(x.fin).getTime() >= now)
         .sort((a, b) => a.inicio.localeCompare(b.inicio))[0];
       if (s) setText(new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil', dateStyle: 'medium', timeStyle: 'short' }));
-    }).catch(() => undefined).finally(() => setLoading(false));
+    }).catch(() => setText('No se pudo cargar la próxima sesión.')).finally(() => setLoading(false));
   }, [id]);
   return <span className={styles.nextSession}>{text}{loading && <span className={styles.nextSessionMuted}>Consultando…</span>}</span>;
 }

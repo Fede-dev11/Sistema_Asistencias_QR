@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from './SessionProvider';
 import { Button } from '../ui/Button';
+import { ProblemMessage } from '../common/ProblemMessage';
 
 type Item = { href: string; label: string; roles: readonly string[] };
 const RESPONSABLES = ['DOCENTE', 'ENCARGADO'];
@@ -31,6 +32,7 @@ export function RoleNav() {
   const { session, profile, logout, ssoLogoutUrl } = useSession();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState<unknown>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
   const pruebas = process.env.NEXT_PUBLIC_HERRAMIENTAS_PRUEBA === 'true';
   const mine = (list: readonly Item[]) => {
@@ -50,7 +52,8 @@ export function RoleNav() {
       {session && <span className="role-nav-user">{profile?.nombres} <small>({session.roles.join(', ')})</small></span>}
       {mine(NAV_ITEMS).map(link)}
       {tests.length > 0 && <div role="group" aria-label="Pruebas" className="role-nav-tests"><strong>Pruebas</strong>{tests.map(link)}</div>}
-      {session ? <Button variant="secondary" type="button" onClick={() => { setOpen(false); void logout().catch(() => undefined); }}>Salir</Button> : <Link href="/login">Ingresar</Link>}
+      {session ? <Button variant="secondary" type="button" onClick={() => { setOpen(false); setLogoutError(null); void logout().catch(setLogoutError); }}>Salir</Button> : <Link href="/login">Ingresar</Link>}
+      <ProblemMessage error={logoutError} />
       {!session && ssoLogoutUrl && <a href={ssoLogoutUrl}>Cerrar también la sesión universitaria</a>}
     </div>
   </nav>;
