@@ -23,4 +23,15 @@ test('administrador registra evidencia GPS de un espacio y abre los miembros de 
   await expect(page.getByRole('region', { name: 'Matriculados' })).toBeVisible();
   await page.getByRole('tab', { name: 'Docentes' }).click();
   await expect(page.getByRole('region', { name: 'Docentes' })).toBeVisible();
+
+  await page.getByRole('dialog').getByRole('button', { name: 'Cerrar' }).click();
+  await page.getByRole('navigation', { name: 'Secciones de administración' }).getByRole('link', { name: 'Importar listas' }).click();
+  await expect(page.getByText('cedula,nombres,correo')).toBeVisible();
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'encabezado-invalido.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('cabecera-invalida\n'),
+  });
+  await page.getByRole('button', { name: 'Importar' }).click();
+  await expect(page.locator('p[role="alert"]')).toContainText('encabezado debe ser');
 });

@@ -5,6 +5,7 @@ import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { Button } from '../ui/Button';
+import styles from './spaces.module.css';
 
 type Evidence = components['schemas']['GeoEvidence'];
 
@@ -47,19 +48,19 @@ export function GeoEvidencePanel({ spaceId, canCreate = false }: { spaceId: stri
   }
 
   return (
-    <section aria-label="Evidencia geográfica">
+    <section className={styles.evidencePanel} aria-label="Evidencia geográfica">
       <h3>Evidencia geográfica</h3>
       {!items && !error && <p role="status">Cargando…</p>}
       {items && (items.length === 0 ? <p>Sin evidencias registradas.</p> : (
-        <div className="table-wrap"><table>
-          <thead><tr><th>Versión</th><th>Referencia</th><th>Realizada</th><th>Falsos positivos</th><th>Falsos negativos</th></tr></thead>
+        <div className={styles.tableWrap}><table className={styles.evidenceTable}>
+          <thead><tr><th scope="col">Versión</th><th scope="col">Referencia</th><th scope="col">Realizada</th><th scope="col">Falsos positivos</th><th scope="col">Falsos negativos</th></tr></thead>
           <tbody>{items.map(e => (
             <tr key={e.id}><td>{e.version}</td><td>{e.referencia}</td><td>{new Date(e.realizada_en).toLocaleString('es-EC')}</td><td>{e.falsos_positivos}</td><td>{e.falsos_negativos}</td></tr>
           ))}</tbody>
         </table></div>
       ))}
       {canCreate && (
-        <form aria-label="Registrar evidencia" onSubmit={e => void submit(e)}>
+        <form className={styles.evidenceForm} aria-label="Registrar evidencia" onSubmit={e => void submit(e)}>
           <label>Referencia<input name="referencia" required maxLength={500} /></label>
           <label>Realizada en<input type="datetime-local" name="realizada_en" required /></label>
           <label>Falsos positivos (0 a 1)<input type="number" name="falsos_positivos" required min={0} max={1} step="any" /></label>
