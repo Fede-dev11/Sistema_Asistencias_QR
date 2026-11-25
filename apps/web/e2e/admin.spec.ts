@@ -25,6 +25,7 @@ test('administrador registra evidencia GPS de un espacio y abre los miembros de 
   await expect(page.getByRole('region', { name: 'Docentes' })).toBeVisible();
 
   await page.getByRole('dialog').getByRole('button', { name: 'Cerrar' }).click();
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Administración' }).click();
   await page.getByRole('navigation', { name: 'Accesos de administración' }).getByRole('link', { name: 'Importar listas' }).click();
   await expect(page.getByText('cedula,nombres,correo')).toBeVisible();
   await page.locator('input[type="file"]').setInputFiles({
