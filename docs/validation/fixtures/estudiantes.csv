@@ -1,0 +1,14 @@
+cedula,nombres,correo
+0150000016,Estudiante Ficticio 1,estudiante1@fixture.example.test
+0150000024,Estudiante Ficticio 2,estudiante2@fixture.example.test
+0150000032,Estudiante Ficticio 3,estudiante3@fixture.example.test
+0150000040,Estudiante Ficticio 4,estudiante4@fixture.example.test
+0150000057,Estudiante Ficticio 5,estudiante5@fixture.example.test
+0150000065,Estudiante Ficticio 6,estudiante6@fixture.example.test
+0150000073,Estudiante Ficticio 7,estudiante7@fixture.example.test
+0150000081,Estudiante Ficticio 8,estudiante8@fixture.example.test
+0150000099,Estudiante Ficticio 9,estudiante9@fixture.example.test
+0150000107,Estudiante Ficticio 10,estudiante10@fixture.example.test
+0100000018,Cedula invalida,invalida@fixture.example.test
+0150000503,Correo invalido,correo-sin-arroba
+1500000000,Cedula con tercer digito invalido,otra@fixture.example.test

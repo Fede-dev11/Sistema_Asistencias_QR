@@ -13,7 +13,7 @@ export async function request<T>(path: string, options: ApiRequestInit = {}): Pr
  const { authentication = 'account', ...fetchOptions } = options;
  const bearerUsed = authentication === 'account' ? bearer : null;
  const headers = new Headers(options.headers);
- if (options.body) headers.set('Content-Type', 'application/json');
+ if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
  if (bearerUsed) headers.set('Authorization', `Bearer ${bearerUsed}`);
  const response = await fetch(base + path, { ...fetchOptions, headers, credentials: 'omit', cache: 'no-store' });
  if (!response.ok) {

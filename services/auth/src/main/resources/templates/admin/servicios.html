@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragmentos :: cabecera('Servicios registrados')}"></head>
+<body>
+<main class="ancho">
+  <header th:replace="~{admin/fragmentos :: barra}"></header>
+  <h1 id="contenido">Servicios registrados</h1>
+  <p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+  <p role="status" class="ok" th:if="${aviso}" th:text="${aviso}"></p>
+  <section th:if="${clave}" aria-labelledby="clave">
+    <h2 id="clave" th:text="'Clave de ' + ${nombreClave}">Clave</h2>
+    <p>Cópiala ahora: no se volverá a mostrar. Se envía en la cabecera <code>X-Service-Key</code>.</p>
+    <p class="secreto" th:text="${clave}"></p>
+  </section>
+  <h2>Registrar servicio</h2>
+  <form method="post" th:action="@{/admin/servicios}">
+    <label for="nuevo-nombre">Nombre</label>
+    <input id="nuevo-nombre" name="nombre" required maxlength="100">
+    <label for="nuevo-retornos">Direcciones de retorno (una por línea)</label>
+    <textarea id="nuevo-retornos" name="retornos" rows="3" required></textarea>
+    <button type="submit">Registrar</button>
+  </form>
+  <h2>Registrados</h2>
+  <div class="fila-servicio" th:each="s, it : ${servicios}">
+    <form method="post" th:action="@{/admin/servicios/{id}(id=${s.id})}">
+      <label th:for="'nombre-' + ${it.index}">Nombre</label>
+      <input th:id="'nombre-' + ${it.index}" name="nombre" required maxlength="100" th:value="${s.nombre}">
+      <label th:for="'retornos-' + ${it.index}">Direcciones de retorno (una por línea)</label>
+      <textarea th:id="'retornos-' + ${it.index}" name="retornos" rows="3" required th:text="${#strings.listJoin(s.retornos, '&#10;')}"></textarea>
+      <label th:for="'activo-' + ${it.index}"><input th:id="'activo-' + ${it.index}" type="checkbox" name="activo" value="true" th:checked="${s.activo}"> Activo</label>
+      <button type="submit">Guardar</button>
+    </form>
+    <form method="post" th:action="@{/admin/servicios/{id}/clave(id=${s.id})}">
+      <button type="submit">Regenerar clave</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

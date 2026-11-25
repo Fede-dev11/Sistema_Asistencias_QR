@@ -1,0 +1,19 @@
+/* Ajustes de lectura para la referencia generada. */
+main table {
+  font-size: 0.86rem;
+}
+
+main table code {
+  white-space: nowrap;
+}
+
+main h3 code {
+  font-size: 1.15rem;
+  background: #eef2f7;
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.25rem;
+}
+
+main pre {
+  font-size: 0.82rem;
+}

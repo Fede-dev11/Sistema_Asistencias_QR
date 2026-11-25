@@ -11,6 +11,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
       "geoasist.hmac-key=fixture-key-exclusivamente-para-pruebas-con-datos-ficticios",
       "geoasist.dev-seed-password=fixture-password",
       "spring.profiles.active=dev",
+      "geoasist.auth.local-login=true",
       "geoasist.rate-limit-multiplier=1000",
       "geoasist.scheduling-enabled=false"
     })
@@ -33,7 +34,11 @@ public abstract class PostgresFixture {
     clock.set(java.time.Instant.parse("2026-10-20T01:00:00Z"));
   }
 
-  protected static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17.7");
+  // Cada contexto de Spring en caché conserva su pool (hasta 10 conexiones); con varios contextos
+  // distintos
+  // se superan las 100 conexiones por defecto de PostgreSQL ("too many clients").
+  protected static final PostgreSQLContainer POSTGRES =
+      new PostgreSQLContainer("postgres:17.7").withCommand("postgres", "-c", "max_connections=400");
 
   static {
     POSTGRES.start();
@@ -75,11 +80,12 @@ public abstract class PostgresFixture {
     var activity = java.util.UUID.randomUUID();
     var session = java.util.UUID.randomUUID();
     db.update(
-        "INSERT INTO actividades(id,nombre,modalidad,responsable_id) VALUES (?,?,?,?)",
+        "INSERT INTO actividades(id,nombre,modalidad,responsable_id,acceso) VALUES (?,?,?,?,?)",
         activity,
         "Escenario ficticio",
         mode,
-        ScenarioFixtures.id(owner));
+        ScenarioFixtures.id(owner),
+        mode.equals("EVENTO") ? "CERRADO" : null);
     db.update("INSERT INTO actividad_carreras VALUES (?,?)", activity, ScenarioFixtures.id(1));
     db.update(
         "INSERT INTO sesiones(id,actividad_id,ventana_inicio,ventana_fin) VALUES (?,?,?,?)",
@@ -116,7 +122,7 @@ public abstract class PostgresFixture {
         .asText();
   }
 
-  protected record GuestScenario(
+  public record GuestScenario(
       java.util.UUID activity, java.util.UUID session, String owner, String qr) {}
 
   protected GuestScenario guests(int duration, String... cedulas) throws Exception {
@@ -166,20 +172,42 @@ public abstract class PostgresFixture {
 
   protected org.springframework.test.web.servlet.ResultActions guestSubmit(
       String secret, String cedula, java.util.UUID key) throws Exception {
+    // Dispositivo estable por clave: un reintento idempotente conserva el mismo cuerpo canonico.
+    return guestSubmit(
+        secret, cedula, key, java.util.UUID.nameUUIDFromBytes(key.toString().getBytes()));
+  }
+
+  protected org.springframework.test.web.servlet.ResultActions guestSubmit(
+      String secret, String cedula, java.util.UUID key, java.util.UUID deviceId) throws Exception {
+    return guestSubmit(secret, cedula, null, key, deviceId);
+  }
+
+  protected org.springframework.test.web.servlet.ResultActions guestSubmit(
+      String secret, String cedula, String nombres, java.util.UUID key, java.util.UUID deviceId)
+      throws Exception {
+    var body = new java.util.LinkedHashMap<String, Object>();
+    body.put("registro_invitado_token", secret);
+    body.put("cedula", cedula);
+    body.put("dispositivo_id", deviceId);
+    if (nombres != null) body.put("nombres", nombres);
     return api.perform(
         org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
                 "/api/v1/guest-registrations/submit")
             .header("Idempotency-Key", key.toString())
             .contentType("application/json")
-            .content(
-                json.writeValueAsString(
-                    java.util.Map.of("registro_invitado_token", secret, "cedula", cedula))));
+            .content(json.writeValueAsString(body)));
   }
 
   private static final java.util.concurrent.atomic.AtomicLong FICTIONAL_IDS =
-      new java.util.concurrent.atomic.AtomicLong(500000000);
+      new java.util.concurrent.atomic.AtomicLong(500000);
 
   protected String fictionalId() {
-    return "%010d".formatted(FICTIONAL_IDS.incrementAndGet());
+    String base = "010%06d".formatted(FICTIONAL_IDS.incrementAndGet());
+    int sum = 0;
+    for (int i = 0; i < 9; i++) {
+      int d = (base.charAt(i) - '0') * (i % 2 == 0 ? 2 : 1);
+      sum += d > 9 ? d - 9 : d;
+    }
+    return base + (10 - sum % 10) % 10;
   }
 }

@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
+import { Button } from '../ui/Button';
 
 type Decision = components['schemas']['ReviewRequest']['decision'];
 type ReviewResult = components['schemas']['ReviewResult'];
@@ -47,8 +48,8 @@ export function ReviewPanel() {
       <h2>Resolver intento pendiente</h2>
       <label>ID del intento<input aria-label="ID del intento" value={attemptId} onChange={event => setAttemptId(event.target.value.trim())} /></label>
       <label>Razón<textarea aria-label="Razón de revisión" required maxLength={2000} value={reason} onChange={event => setReason(event.target.value)} /></label>
-      <button type="button" disabled={busy || !attemptId} onClick={() => void decide('APROBAR')}>Aprobar</button>{' '}
-      <button type="button" disabled={busy || !attemptId} onClick={() => void decide('RECHAZAR')}>Rechazar</button>
+      <Button variant="primary" type="button" disabled={busy || !attemptId} onClick={() => void decide('APROBAR')}>Aprobar</Button>{' '}
+      <Button variant="danger" type="button" disabled={busy || !attemptId} onClick={() => void decide('RECHAZAR')}>Rechazar</Button>
       {result && <p role="status">Revisión {result.decision.toLowerCase()} registrada el {new Date(result.revisada_en).toLocaleString('es-EC')}.</p>}
       {error && <p role="alert">{error}</p>}
     </section>

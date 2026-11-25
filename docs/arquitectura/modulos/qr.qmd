@@ -1,0 +1,50 @@
+---
+title: "Módulo qr"
+---
+
+## Responsabilidad
+
+Emitir el QR vigente de una sesión activa para proyectarlo, y rotarlo periódicamente. El QR es un secreto opaco
+de corta vida; solo se guarda su hash.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `QrController` |
+| aplicacion | `IssueSessionQr`, `QrRotationScheduler` |
+
+Las capas `dominio` y `persistencia` solo contienen `package-info`; el acceso a datos es directo con `JdbcTemplate`.
+
+## Endpoints
+
+| Método y ruta | Roles |
+|---|---|
+| `GET /api/v1/sessions/{sessionId}/qr` | Responsable de la actividad |
+
+## Tablas
+
+`tokens_qr` (hash, emisión, expiración); lee `sesiones` y `actividades`. Migración: V004.
+
+## Reglas de negocio
+
+- Solo se emite si la actividad está ABIERTA, la sesión ACTIVA, dentro de su ventana y con un método que usa QR.
+- Se reutiliza el mismo QR hasta 30 s tras su emisión; luego se emite otro con expiración a los 40 s.
+- `QrRotationScheduler` ejecuta la rotación cada segundo, bajo bloqueo de actividad y sesión.
+- La caché en memoria se descarta si la transacción no se confirma.
+
+## Dependencias
+
+`actividades` (autorización), `sesiones` (método y estado), `identidades`, `compartido` (`OpaqueSecrets`, `AttendanceLocks`, tiempo).
+
+## Configuración
+
+`GEOASIST_HMAC_KEY` (usada por `OpaqueSecrets`). La rotación es fija en el código.
+
+## Pruebas
+
+`QrLifecycleTest`.
+
+## Diagrama de clases
+
+[QR en el nivel 4](../04-codigo.qmd#fig-qr) (`puml/qr.puml`).

@@ -1,0 +1,147 @@
+@startuml datos-geoasist
+' Fuente: services/api/src/main/resources/db/migration (V001-V019). Area: identidad, academico, actividades y sesiones.
+skinparam shadowing false
+skinparam linetype ortho
+hide circle
+title Base geoasist - identidad, academico, actividades y sesiones
+
+entity personas {
+  * id : uuid <<PK>>
+  --
+  * cedula_normalizada : varchar(10) <<UQ>>
+  * nombres
+  * tipo : INSTITUCIONAL | EXTERNA
+}
+entity cuentas {
+  * id : uuid <<PK>>
+  --
+  * persona_id : uuid <<FK, UQ>>
+  * proveedor : (CAS en cuentas SSO)
+  * identificador : varchar(254) <<UQ>>
+  password_hash : null si proveedor = CAS
+  * activa
+  * debe_cambiar_password
+  sincronizada_en
+}
+entity roles_cuenta {
+  * cuenta_id : uuid <<PK, FK>>
+  * rol : <<PK>>
+}
+entity sesiones_acceso {
+  * id : uuid <<PK>>
+  --
+  * cuenta_id : uuid <<FK>>
+  * secreto_hash <<UQ>>
+  * creada_en, vence_en, login_original_en
+  revocada_en
+}
+entity carreras {
+  * id : uuid <<PK>>
+  --
+  * codigo <<UQ>>
+  * nombre
+}
+entity paralelos {
+  * id : uuid <<PK>>
+  --
+  * carrera_id : uuid <<FK>>
+  * codigo
+  (carrera_id, codigo) <<UQ>>
+}
+entity direcciones_carrera {
+  * cuenta_id : uuid <<PK, FK>>
+  * carrera_id : uuid <<PK, FK>>
+  * vigente
+}
+entity matriculas {
+  * persona_id : uuid <<PK, FK>>
+  * paralelo_id : uuid <<PK, FK>>
+  * vigente
+}
+entity docentes_paralelo {
+  * cuenta_id : uuid <<PK, FK>>
+  * paralelo_id : uuid <<PK, FK>>
+  * vigente
+}
+entity espacios {
+  * id : uuid <<PK>>
+  --
+  * nombre
+  * tipo : AULA | LABORATORIO | AUDITORIO | EXTERIOR | OTRO
+  codigo_normalizado <<UQ>>
+  latitud, longitud : double (ambas o ninguna)
+  * radio_defecto_m, precision_defecto_m
+  creado_por : uuid <<FK>>
+}
+entity actividades {
+  * id : uuid <<PK>>
+  --
+  * nombre
+  * modalidad : CLASE | EVENTO
+  * responsable_id : uuid <<FK cuentas>>
+  * estado : ABIERTA | CERRADA | CANCELADA
+  acceso : CERRADO | ABIERTO (solo EVENTO)
+  * metodo_verificacion
+  espacio_id : uuid <<FK>>
+  cerrada_en, anonimizar_en
+  * ciclo_automatico, umbral_asistencia
+}
+entity actividad_carreras {
+  * actividad_id : uuid <<PK, FK>>
+  * carrera_id : uuid <<PK, FK>>
+}
+entity actividad_paralelos {
+  * actividad_id : uuid <<PK, FK>>
+  * paralelo_id : uuid <<PK, FK>>
+  * carrera_id : uuid <<FK>>
+}
+entity estudiantes_autorizados {
+  * actividad_id : uuid <<PK, FK>>
+  * persona_id : uuid <<PK, FK>>
+  * vigente
+}
+entity horarios_clase {
+  * id : uuid <<PK>>
+  --
+  * actividad_id : uuid <<FK>>
+  espacio_id : uuid <<FK>>
+  * dias : smallint[]
+  * hora_inicio, hora_fin
+  * fecha_desde, fecha_hasta, zona
+}
+entity sesiones {
+  * id : uuid <<PK>>
+  --
+  * actividad_id : uuid <<FK>>
+  espacio_id : uuid <<FK>>
+  horario_id : uuid <<FK>>
+  * estado : PROGRAMADA | ACTIVA | CERRADA | CANCELADA
+  * ventana_inicio, ventana_fin
+  iniciada_en, cerrada_en, siguiente_intento_en
+  * metodo_verificacion
+}
+
+personas ||--o| cuentas
+cuentas ||--o{ roles_cuenta
+cuentas ||--o{ sesiones_acceso
+carreras ||--o{ paralelos
+cuentas ||--o{ direcciones_carrera
+carreras ||--o{ direcciones_carrera
+personas ||--o{ matriculas
+paralelos ||--o{ matriculas
+cuentas ||--o{ docentes_paralelo
+paralelos ||--o{ docentes_paralelo
+cuentas ||--o{ actividades : responsable
+espacios |o--o{ actividades
+actividades ||--o{ actividad_carreras
+carreras ||--o{ actividad_carreras
+actividad_carreras ||--o{ actividad_paralelos
+paralelos ||--o{ actividad_paralelos
+actividades ||--o{ estudiantes_autorizados
+personas ||--o{ estudiantes_autorizados
+actividades ||--o{ horarios_clase
+espacios |o--o{ horarios_clase
+actividades ||--o{ sesiones
+espacios |o--o{ sesiones
+horarios_clase |o--o{ sesiones
+@enduml

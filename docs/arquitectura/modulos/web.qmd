@@ -1,0 +1,62 @@
+---
+title: "Módulo web"
+---
+
+## Responsabilidad
+
+Cliente Next.js (`apps/web`) para docentes, encargados, directores y administradores: gestión de actividades y
+sesiones, proyección del QR, correcciones, estadísticas, reportes y administración académica. Consume la API
+mediante tipos generados desde el contrato OpenAPI.
+
+## Estructura
+
+Las rutas están en `apps/web/src/app` y la lógica de pantalla en `apps/web/src/features/<area>`.
+
+| Área (`features/`) | Rol principal | Contenido |
+|---|---|---|
+| `auth` | Todos | `SessionProvider`, `LoginForm`, `CasCallback`, `sso.ts`, `RoleNav` |
+| `home` | Docente, encargado, directores, admin | `TeacherToday` (Hoy), `DirectorSummary`, `AdminHome` |
+| `activities` | Docente, encargado | `ActivityList`, `ActivityWizard` (3 pasos), `ActivityDetail`, `SchedulePanel`, `AuthorizedStudents`, `GuestSettingsPanel`, `ClassSessions` |
+| `sessions` | Docente, encargado | `SessionList`, `ProjectionView` (QR), `LiveAttendances`, `SessionSummary`, `GeolocationSettingsPanel`, `MethodSelect` |
+| `reviews`, `corrections` | Docente, encargado | `ReviewPanel`, `ManualAttendanceForm`, `AbsencesPanel`, `JustificationInbox` |
+| `stats`, `reports` | Docente, encargado, directores | `ActivityStats`, `ParallelStats`, `CareerStats`, `AttendanceReportPage`, `ActivityAuditPanel` |
+| `admin` | Administrador | `PeoplePanel`, `CareersPanel`, `ParallelMembers`, `ImportPanel` |
+| `spaces` | Administrador (y selección por responsables) | `SpaceForm`, `SpacePicker`, `GeoEvidencePanel` |
+| `testing` | Solo con la bandera de pruebas | `ParticipantSimulator`, `GuestSimulator` |
+| `docs` | Todos | `ApiDocsPage` (`/documentacion`, desde `api-docs.json`) |
+| `common`, `ui` | Transversal | `RoleGuard`, `Paginated`, `ProblemMessage`; `Button`, `Tabs`, `Breadcrumbs`, `Stepper`, `Drawer`, `StatusTag`, `ConfirmInline`, `EmptyState` |
+
+## Navegación por rol (007)
+
+`RoleNav` define `NAV_ITEMS` con un máximo de cinco entradas por rol y `aria-current` en la ruta activa.
+
+| Rol | Entradas |
+|---|---|
+| DOCENTE, ENCARGADO | Hoy (`/hoy`), Actividades, Estadísticas, Reportes |
+| DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA | Resumen (`/inicio`), Estadísticas, Reportes |
+| ADMINISTRADOR | Inicio (`/inicio`), Personas, Carreras y paralelos, Espacios, Importar |
+| Sección Pruebas (con `NEXT_PUBLIC_HERRAMIENTAS_PRUEBA=true`) | Participante (ESTUDIANTE), Invitado (todos los roles) |
+
+Tras ingresar, cada rol llega a su inicio; recargar conserva la sesión mientras el SSO siga vigente (solo un
+indicador en `sessionStorage`, nunca el token). Flujos clave: "Iniciar y proyectar QR" desde Hoy,
+asistente `/actividades/nueva` y proyección en `/sesiones/{id}/proyectar`.
+
+## Endpoints que consume
+
+Prácticamente toda la API (ver [índice de módulos](index.qmd)); la cobertura por operación se mide con
+`npm run coverage:web` en [contracts](contracts.qmd).
+
+## Reglas de negocio
+
+La web no decide reglas de asistencia (Principio II de la constitución): valida entradas, muestra los códigos de
+error de la API (`ProblemMessage`) y restringe pantallas por rol (`RoleGuard`).
+
+## Configuración
+
+`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_HERRAMIENTAS_PRUEBA`.
+
+## Pruebas
+
+Unitarias con Vitest y Testing Library junto a cada componente (`*.test.tsx`; `npm test`). E2E con Playwright en
+`apps/web/e2e` (`admin`, `docente`, `director`, `session-lifecycle`, `reporting-scopes`, `simulador`,
+`sso-login`, `client-recovery`, `ux-clics`; `npm run test:e2e`).

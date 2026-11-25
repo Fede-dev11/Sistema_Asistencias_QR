@@ -1,0 +1,207 @@
+---
+title: "Nivel 4 · Código"
+---
+
+El nivel 4 del modelo C4 muestra cómo están construidos por dentro los componentes del
+nivel 3: clases, interfaces, registros (`record`) y sus dependencias. Los diagramas son
+**PlantUML como código**: viven en `docs/arquitectura/puml/*.puml`, se versionan con el
+repositorio y se redactaron a partir de las clases Java reales (`services/api` y
+`services/auth`). Cada módulo agrupa sus clases por capa (`presentacion`, `aplicacion`,
+`dominio`, `persistencia`); las flechas continuas son colaboradores inyectados por
+constructor y las punteadas son uso o implementación de una interfaz. Solo se listan los
+métodos públicos principales, no todos los accesores.
+
+::: {.callout-tip}
+## Cómo regenerar los diagramas
+`quarto render` ejecuta el `pre-render` (`render_plantuml.py`), que convierte cada `.puml`
+en `_generated/<nombre>.svg`. También puede ejecutarse a mano con
+`python render_plantuml.py` desde `docs/arquitectura`. El script usa el jar indicado en
+`PLANTUML_JAR`, o el de `~/.m2`, o lo descarga con `mvnw`; requiere Java.
+:::
+
+## Backend `services/api`
+
+### Identidades
+
+Paquete `ec.edu.unl.geoasist.identidades`. Autenticación por SSO (`IdentityProvider`,
+implementado por `CasIdentityProvider`) o credenciales locales de desarrollo
+(`LocalCredentials`), y sesiones opacas representadas por `UserSession`.
+
+![Clases del módulo identidades](_generated/identidades.svg){#fig-identidades}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: identidades
+```plantuml
+{{< include puml/identidades.puml >}}
+```
+:::
+
+### Académico
+
+Paquete `ec.edu.unl.geoasist.academico`. Personas, cuentas, carreras, paralelos e
+importación masiva por CSV.
+
+![Clases del módulo académico](_generated/academico.svg){#fig-academico}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: académico
+```plantuml
+{{< include puml/academico.puml >}}
+```
+:::
+
+### Actividades
+
+Paquete `ec.edu.unl.geoasist.actividades`. Casos de uso sobre actividades, autorización
+(`ActivityAuthorization`) y generación de sesiones desde un `WeeklySchedule`.
+
+![Clases del módulo actividades](_generated/actividades.svg){#fig-actividades}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: actividades
+```plantuml
+{{< include puml/actividades.puml >}}
+```
+:::
+
+### Sesiones
+
+Paquete `ec.edu.unl.geoasist.sesiones`. Ciclo de vida de cada sesión, programación y
+configuración de geolocalización a través de `GeographicCapability`.
+
+![Clases del módulo sesiones](_generated/sesiones.svg){#fig-sesiones}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: sesiones
+```plantuml
+{{< include puml/sesiones.puml >}}
+```
+:::
+
+### Asistencia
+
+Paquete `ec.edu.unl.geoasist.asistencia`. Registro de asistencia autenticada y de
+invitados, correcciones y política geográfica. `ProximityPort` tiene dos adaptadores:
+`PostgisProximityAdapter` y `NoGeographyAdapter`.
+
+![Clases del módulo asistencia](_generated/asistencia.svg){#fig-asistencia}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: asistencia
+```plantuml
+{{< include puml/asistencia.puml >}}
+```
+:::
+
+### Espacios
+
+Paquete `ec.edu.unl.geoasist.espacios`. Catálogo de espacios y su evidencia geográfica.
+
+![Clases del módulo espacios](_generated/espacios.svg){#fig-espacios}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: espacios
+```plantuml
+{{< include puml/espacios.puml >}}
+```
+:::
+
+### Estadísticas
+
+Paquete `ec.edu.unl.geoasist.estadisticas`. Porcentajes de asistencia por actividad,
+paralelo y carrera, e historial propio del estudiante.
+
+![Clases del módulo estadísticas](_generated/estadisticas.svg){#fig-estadisticas}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: estadísticas
+```plantuml
+{{< include puml/estadisticas.puml >}}
+```
+:::
+
+### Reportes
+
+Paquete `ec.edu.unl.geoasist.reportes`. Consulta y exportación CSV de asistencias, y
+consulta de auditoría.
+
+![Clases del módulo reportes](_generated/reportes.svg){#fig-reportes}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: reportes
+```plantuml
+{{< include puml/reportes.puml >}}
+```
+:::
+
+### QR
+
+Paquete `ec.edu.unl.geoasist.qr`. Emisión, caché y rotación periódica de los tokens QR
+de cada sesión.
+
+![Clases del módulo qr](_generated/qr.svg){#fig-qr}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: qr
+```plantuml
+{{< include puml/qr.puml >}}
+```
+:::
+
+### Conservación
+
+Paquete `ec.edu.unl.geoasist.conservacion`. Anonimización de actividades vencidas,
+saneamiento de copias y estadísticas anónimas.
+
+![Clases del módulo conservación](_generated/conservacion.svg){#fig-conservacion}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: conservación
+```plantuml
+{{< include puml/conservacion.puml >}}
+```
+:::
+
+### Compartido
+
+Paquete `ec.edu.unl.geoasist.compartido`. Piezas transversales: errores de API,
+idempotencia, secretos opacos, bloqueos de asistencia y reglas de retención.
+
+![Clases del módulo compartido](_generated/compartido.svg){#fig-compartido}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: compartido
+```plantuml
+{{< include puml/compartido.puml >}}
+```
+:::
+
+## Servicio SSO `services/auth`
+
+### Protocolo CAS y servicios registrados
+
+Paquete `ec.edu.unl.sso` (`cas`, `servicios`, `compartido`). Inicio y cierre de sesión,
+emisión y validación de tickets, y registro de servicios autorizados.
+
+![Clases del SSO: CAS y servicios](_generated/sso-cas.svg){#fig-sso-cas}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: SSO CAS
+```plantuml
+{{< include puml/sso-cas.puml >}}
+```
+:::
+
+### Administración de usuarios
+
+Paquete `ec.edu.unl.sso.usuarios`. Alta, activación, restablecimiento de contraseña e
+importación CSV de usuarios.
+
+![Clases del SSO: usuarios](_generated/sso-usuarios.svg){#fig-sso-usuarios}
+
+::: {.callout-note collapse="true"}
+## Código PlantUML: SSO usuarios
+```plantuml
+{{< include puml/sso-usuarios.puml >}}
+```
+:::

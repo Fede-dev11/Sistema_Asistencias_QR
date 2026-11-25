@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/fragmentos :: cabecera('Importar')}"></head>
+<body>
+<main class="ancho">
+  <header th:replace="~{admin/fragmentos :: barra}"></header>
+  <h1 id="contenido">Importar usuarios (CSV)</h1>
+  <p class="hint">Encabezado: <code>correo,cedula,nombres,roles,carreras</code>. Usa <code>|</code> para varios roles o carreras. Máximo 5 000 filas y 2 MB, en UTF-8.</p>
+  <p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+  <form method="post" enctype="multipart/form-data" th:action="@{/admin/importar(_csrf=${_csrf.token})}">
+    <label for="archivo">Archivo CSV</label>
+    <input id="archivo" name="archivo" type="file" accept=".csv,text/csv" required>
+    <button type="submit">Importar</button>
+  </form>
+  <section th:if="${informe}" aria-labelledby="informe">
+    <h2 id="informe">Informe</h2>
+    <p role="status" th:text="${informe.procesadas} + ' procesadas: ' + ${informe.creadas} + ' creadas, ' + ${informe.actualizadas} + ' actualizadas, ' + ${informe.sinCambios} + ' sin cambios, ' + ${informe.rechazadas} + ' rechazadas.'"></p>
+    <p th:if="${informe.creadas > 0}">Las contraseñas temporales se muestran solo ahora; cópialas antes de salir.</p>
+    <div class="tabla">
+      <table>
+        <thead><tr><th scope="col">Fila</th><th scope="col">Correo</th><th scope="col">Estado</th><th scope="col">Detalle</th><th scope="col">Contraseña temporal</th></tr></thead>
+        <tbody>
+          <tr th:each="f : ${informe.filas}">
+            <td th:text="${f.fila}"></td><td th:text="${f.correo}"></td><td th:text="${f.estado}"></td><td th:text="${f.detalle}"></td><td th:text="${f.temporal}"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+</body>
+</html>

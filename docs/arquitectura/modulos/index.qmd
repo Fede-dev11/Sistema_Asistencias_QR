@@ -1,0 +1,79 @@
+---
+title: "Módulos"
+---
+
+Documentación por módulo, derivada del código real (paquetes de `services/api`, `services/auth`, `apps/web`,
+`apps/mobile` y `tools/contracts`). Complementa los niveles 3 y 4 del [modelo C4](../index.qmd): cada página
+indica responsabilidad, capas, endpoints, tablas, reglas, dependencias, configuración y pruebas.
+
+## Backend `services/api` (`ec.edu.unl.geoasist`)
+
+| Módulo | Responsabilidad |
+|---|---|
+| [identidades](identidades.qmd) | Inicio de sesión (SSO CAS o local de desarrollo), sesiones opacas, perfil y cuenta propia. |
+| [academico](academico.qmd) | Personas, cuentas, carreras, paralelos, matrículas, docentes e importación CSV (rol administrador). |
+| [actividades](actividades.qmd) | Clases y eventos, horario semanal, lista autorizada, invitados, cierre y auditoría de actividad. |
+| [espacios](espacios.qmd) | Catálogo de espacios y evidencia geográfica de campo. |
+| [sesiones](sesiones.qmd) | Ciclo de vida de cada sesión (programada, activa, cerrada), ciclo automático y configuración GPS. |
+| [qr](qr.qmd) | Emisión y rotación del QR vigente de una sesión. |
+| [asistencia](asistencia.qmd) | Registro de asistencia (autenticada e invitados), revisión, correcciones y justificaciones. |
+| [estadisticas](estadisticas.qmd) | Ausencias, porcentajes por estudiante, paralelo y carrera, historial propio (solo lectura). |
+| [reportes](reportes.qmd) | Consulta y exportación CSV de asistencias, y consulta de auditoría. |
+| [conservacion](conservacion.qmd) | Retención de 5 años, anonimización y estadísticas anónimas. |
+| [compartido](compartido.qmd) | Problem Details, idempotencia, bloqueos, auditoría académica, secretos opacos, tiempo. |
+
+## Otros componentes
+
+| Módulo | Responsabilidad |
+|---|---|
+| [auth](auth.qmd) | Servicio SSO CAS 3.0 simulado (`services/auth`): login, tickets, `serviceValidate`, administración de usuarios. |
+| [web](web.qmd) | Cliente Next.js (`apps/web`): funcionalidades por rol y navegación de la 007. |
+| [mobile](mobile.qmd) | App Expo/React Native (`apps/mobile`): login SSO, sesiones activas y registro de asistencia. |
+| [contracts](contracts.qmd) | Herramientas del contrato OpenAPI (`tools/contracts`): validación, tipos generados, datos de `/documentacion`. |
+
+## Dependencias entre módulos del backend
+
+Calculadas con `grep "import ec.edu.unl.geoasist.<modulo>"` sobre los paquetes. Una flecha `A --> B` significa que
+`A` importa clases de `B`. Casi todos importan `identidades.dominio.UserSession` y `compartido`; el test
+`ArchitectureDependencyTest` exige que no haya ciclos.
+
+```{mermaid}
+graph LR
+  academico --> compartido
+  academico --> identidades
+  actividades --> compartido
+  actividades --> espacios
+  actividades --> identidades
+  asistencia --> actividades
+  asistencia --> compartido
+  asistencia --> identidades
+  asistencia --> qr
+  asistencia --> sesiones
+  espacios --> compartido
+  espacios --> identidades
+  estadisticas --> actividades
+  estadisticas --> compartido
+  estadisticas --> identidades
+  identidades --> compartido
+  qr --> actividades
+  qr --> compartido
+  qr --> identidades
+  qr --> sesiones
+  reportes --> actividades
+  reportes --> compartido
+  reportes --> identidades
+  sesiones --> actividades
+  sesiones --> compartido
+  sesiones --> identidades
+  conservacion
+```
+
+`conservacion` no importa otros módulos: opera por SQL sobre las tablas de actividades, sesiones y asistencias
+(y la función `anonimizar_vencidas`).
+
+## Configuración común de la API
+
+`DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `API_PORT`, `GEOASIST_HMAC_KEY` (obligatoria),
+`WEB_ORIGIN`, `DEV_SEED_PASSWORD`, `GEOASIST_LOCAL_LOGIN` y las variables `SSO_*` (ver
+`services/api/src/main/resources/application.yml`). Las migraciones Flyway están en
+`services/api/src/main/resources/db/migration` (V001 a V019).

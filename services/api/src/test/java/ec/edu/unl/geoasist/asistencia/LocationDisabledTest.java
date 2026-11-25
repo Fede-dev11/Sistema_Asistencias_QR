@@ -42,6 +42,8 @@ class LocationDisabledTest extends PostgresFixture {
                             secret,
                             "cedula",
                             cedula,
+                            "dispositivo_id",
+                            UUID.randomUUID(),
                             "ubicacion",
                             Map.of(
                                 "latitud",

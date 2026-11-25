@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingresar - Cuenta universitaria</title>
+  <link rel="stylesheet" th:href="@{/css/sso.css}">
+</head>
+<body>
+<main>
+  <h1>Cuenta universitaria</h1>
+  <p class="hint">Servicio de autenticación simulado (datos ficticios).</p>
+  <p class="error" role="alert" th:if="${error}" th:text="${error}"></p>
+  <form method="post" th:action="@{/cas/login}">
+    <input type="hidden" name="service" th:value="${service}">
+    <label for="correo">Correo</label>
+    <input id="correo" name="correo" type="email" autocomplete="username" required autofocus maxlength="254">
+    <label for="password">Contraseña</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required maxlength="128">
+    <button type="submit">Ingresar</button>
+  </form>
+</main>
+</body>
+</html>

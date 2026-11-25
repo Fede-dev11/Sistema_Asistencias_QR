@@ -13,29 +13,45 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class AuthenticationService {
   private final IdentityRepository accounts;
-  private final ObjectProvider<IdentityProvider> provider;
+  private final ObjectProvider<LocalCredentials> localCredentials;
+  private final IdentityProvider provider;
+  private final AccountProvisioning provisioning;
   private final OpaqueSecrets secrets;
   private final Clock clock;
 
   public AuthenticationService(
       IdentityRepository accounts,
-      ObjectProvider<IdentityProvider> provider,
+      ObjectProvider<LocalCredentials> localCredentials,
+      IdentityProvider provider,
+      AccountProvisioning provisioning,
       OpaqueSecrets secrets,
       Clock clock) {
     this.accounts = accounts;
+    this.localCredentials = localCredentials;
     this.provider = provider;
+    this.provisioning = provisioning;
     this.secrets = secrets;
     this.clock = clock;
   }
 
   @Transactional
   public Map<String, Object> login(String email, String password) {
-    IdentityProvider identity = provider.getIfAvailable();
-    if (identity == null) throw ApiFailure.unauthenticated();
-    UUID account = identity.authenticate(email, password);
+    LocalCredentials credentials = localCredentials.getIfAvailable();
+    if (credentials == null) throw ApiFailure.missing();
+    UUID account = credentials.authenticate(email, password);
+    return issue(account, clock.instant());
+  }
+
+  @Transactional
+  public Map<String, Object> cas(String ticket, String service) {
+    return issue(provisioning.provision(provider.verifyTicket(ticket, service)), clock.instant());
+  }
+
+  private Map<String, Object> issue(UUID account, Instant loginOriginal) {
     String token = secrets.issue();
     Instant now = clock.instant(), expiry = now.plus(Duration.ofHours(8));
-    accounts.createSession(UUID.randomUUID(), account, OpaqueSecrets.hash(token), now, expiry);
+    accounts.createSession(
+        UUID.randomUUID(), account, OpaqueSecrets.hash(token), now, expiry, loginOriginal);
     return Map.of(
         "access_token",
         token,
@@ -44,7 +60,29 @@ public class AuthenticationService {
         "vence_en",
         expiry,
         "roles",
-        accounts.roles(account));
+        accounts.roles(account),
+        "debe_cambiar_password",
+        accounts.mustChangePassword(account));
+  }
+
+  /**
+   * Rota el secreto: el anterior se revoca y el límite de 30 días cuenta desde el login original.
+   */
+  @Transactional(noRollbackFor = ApiFailure.class)
+  public Map<String, Object> renew(UserSession user) {
+    Instant original = accounts.loginOriginal(user.sessionId());
+    if (clock.instant().isAfter(original.plus(Duration.ofDays(30))))
+      throw new ApiFailure(
+          401, "RENOVACION_VENCIDA", "La sesión superó 30 días. Ingresa con tus credenciales.");
+    var row = accounts.accountRow(user.accountId());
+    // Cierra en falso: si el SSO no responde, no se renueva (502 SSO_NO_DISPONIBLE).
+    if ("CAS".equals(row.get("proveedor"))
+        && !provider.isActive((String) row.get("identificador"))) {
+      accounts.revoke(user.sessionId(), clock.instant());
+      throw new ApiFailure(403, "CUENTA_INACTIVA", "La cuenta está inactiva en el SSO.");
+    }
+    accounts.revoke(user.sessionId(), clock.instant());
+    return issue(user.accountId(), original);
   }
 
   public UserSession authenticate(String token) {

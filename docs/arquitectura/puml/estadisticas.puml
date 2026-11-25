@@ -1,0 +1,65 @@
+@startuml estadisticas
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/estadisticas
+!include _estilo.iuml
+title Estadísticas (porcentajes de asistencia e historial propio)
+
+package "presentacion" {
+  class StatsController
+  class MyHistoryController {
+    +stats(UserSession): Map
+  }
+}
+package "aplicacion" {
+  class AttendanceStats {
+    +{static} percentage(Counts): BigDecimal
+    +activity(user, id, page, size): Map
+    +parallels(user, career, from, to): Map
+    +careers(user, from, to): Map
+    +absences(user, session, page, size): Map
+    +myHistory(user, page, size): Map
+    +myStats(user): Map
+  }
+}
+package "persistencia" {
+  class StatsRepository {
+    +threshold(activity): BigDecimal
+    +byStudent(activity, limit, offset): List<Student>
+    +totals(activity): Counts
+    +byParallel(Viewer, career, from, to): List<Group>
+    +byCareer(Viewer, from, to): List<Group>
+    +directsCareer(account, career): boolean
+    +absences(session, limit, offset): List<Absence>
+    +mine(person, limit, offset): List<Mine>
+    +myActivities(person): List<MyActivity>
+  }
+  class "StatsRepository.Counts" as Counts <<record>> {
+    attended; absent; justified: int
+    +computable(): int
+  }
+  class "StatsRepository.Student" as Student <<record>> {
+    person; cedula; names
+  }
+  class "StatsRepository.Group" as Group <<record>> {
+    id; careerId; careerCode; code
+  }
+  class "StatsRepository.Absence" as Absence <<record>> {
+    person; cedula; names; state
+  }
+}
+package "otros módulos (usado)" {
+  class ActivityRepository
+  class ActivityAuthorization
+}
+
+StatsController --> AttendanceStats
+MyHistoryController --> AttendanceStats
+AttendanceStats --> StatsRepository
+AttendanceStats --> ActivityRepository
+AttendanceStats --> ActivityAuthorization
+StatsRepository +-- Counts
+StatsRepository +-- Student
+StatsRepository +-- Group
+StatsRepository +-- Absence
+Student *-- Counts
+Group *-- Counts
+@enduml

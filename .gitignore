@@ -9,6 +9,7 @@ target/
 *.jar
 !.mvn/wrapper/maven-wrapper.jar
 !**/.mvn/wrapper/maven-wrapper.jar
+_site/
 *.log
 .env
 .env.*

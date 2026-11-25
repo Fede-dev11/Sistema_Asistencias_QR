@@ -1,0 +1,42 @@
+---
+title: "Módulo contracts"
+---
+
+## Responsabilidad
+
+Herramientas Node (`tools/contracts`, Node 22.13 o superior) que mantienen el contrato OpenAPI
+`specs/001-asistencia-qr-dinamico/contracts/openapi.yaml` como fuente única para la API, la web y la móvil.
+
+## Scripts
+
+| Script (`npm run`) | Archivo | Qué hace |
+|---|---|---|
+| `validate` | `validate.mjs` | Valida el contrato y comprueba que los ejemplos cumplan sus esquemas (Ajv). |
+| `generate` | `generate.mjs` | Genera `apps/web/src/generated/api.ts`, `apps/mobile/src/generated/api.ts` (tipos con openapi-typescript) y `apps/web/src/generated/api-docs.json`. |
+| `check` | `generate.mjs --check` | Falla si los archivos generados no coinciden con el contrato. |
+| `coverage:web` | `web-coverage.mjs` | Estima qué operaciones de la API menciona la web y escribe `docs/validation/cobertura-web.md`. |
+| (manual) | `contrast.mjs` | Verifica el contraste WCAG 4,5:1 de los tokens de `globals.css`. |
+
+`docs.mjs` define los grupos y roles de la página `/documentacion` y construye su JSON desde el contrato.
+
+## Endpoints y tablas
+
+No expone endpoints ni usa tablas. Lee el contrato y escribe archivos generados.
+
+## Reglas
+
+- Cualquier cambio de la API se refleja primero en el OpenAPI y luego se regenera (`generate`); `check` lo exige.
+- `web-coverage.mjs` es una heurística informal: indica dónde buscar, no prueba que la pantalla funcione.
+
+## Dependencias
+
+Contrato OpenAPI; produce archivos para [web](web.qmd) y [mobile](mobile.qmd). Paquetes: `openapi-typescript`,
+`@apidevtools/swagger-parser`, `ajv`, `ajv-formats`.
+
+## Configuración
+
+Sin variables de entorno.
+
+## Pruebas
+
+No tiene suite propia: `validate` y `check` son los controles (se ejecutan en el pipeline de CI).

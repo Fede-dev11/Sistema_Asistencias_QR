@@ -5,7 +5,9 @@
   "scripts": {
     "validate": "node validate.mjs",
     "generate": "node generate.mjs",
-    "check": "node generate.mjs --check"
+    "check": "node generate.mjs --check",
+    "coverage:web": "node web-coverage.mjs",
+    "docs:coverage": "node docs-coverage.mjs"
   },
   "engines": {
     "node": ">=22.13.0"

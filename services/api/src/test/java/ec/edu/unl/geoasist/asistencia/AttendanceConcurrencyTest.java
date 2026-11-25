@@ -35,7 +35,8 @@ class AttendanceConcurrencyTest extends PostgresFixture {
             ScenarioFixtures.id(102));
         start(ids[1], owner);
         String qr = qr(ids[1], owner);
-        String body = json.writeValueAsString(Map.of("qr_token", qr));
+        String body =
+            json.writeValueAsString(Map.of("qr_token", qr, "dispositivo_id", UUID.randomUUID()));
         var ready = new java.util.concurrent.CountDownLatch(1);
         List<java.util.concurrent.Future<Integer>> requests = new ArrayList<>();
         for (int i = 0; i < 100; i++)

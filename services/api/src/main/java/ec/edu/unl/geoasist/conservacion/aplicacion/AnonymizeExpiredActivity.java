@@ -20,8 +20,14 @@ public class AnonymizeExpiredActivity {
 
   @Transactional
   public int processBatch() {
+    Timestamp cutoff = Timestamp.from(clock.instant());
+    db.update(
+        "UPDATE intentos_asistencia i SET dispositivo_hash=NULL FROM sesiones s JOIN actividades a ON a.id=s.actividad_id WHERE i.sesion_id=s.id AND a.anonimizar_en<=?",
+        cutoff);
+    db.update(
+        "UPDATE asistencias x SET dispositivo_hash=NULL FROM sesiones s JOIN actividades a ON a.id=s.actividad_id WHERE x.sesion_id=s.id AND a.anonimizar_en<=?",
+        cutoff);
     return Objects.requireNonNull(
-        db.queryForObject(
-            "SELECT anonimizar_vencidas(?,100)", Integer.class, Timestamp.from(clock.instant())));
+        db.queryForObject("SELECT anonimizar_vencidas(?,100)", Integer.class, cutoff));
   }
 }

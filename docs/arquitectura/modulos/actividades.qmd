@@ -1,0 +1,61 @@
+---
+title: "Módulo actividades"
+---
+
+## Responsabilidad
+
+Gestionar clases (con horario semanal) y eventos (cerrados o abiertos): creación, edición, cancelación y cierre,
+lista de estudiantes autorizados, configuración de invitados y auditoría de la actividad.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `ActivityCommandController`, `ActivityQueryController`, `GuestManagementController` |
+| aplicacion | `CreateActivity`, `EditActivity`, `CloseActivity`, `FindVisibleActivities`, `ReadActivityConfiguration`, `ReplaceSchedule`, `ManageAuthorizedStudents`, `ConfigureGuests`, `ReplaceGuestList`, `ActivityAuthorization`, `ActivityAuditWriter`, `SpaceMethodRules` |
+| dominio | `Activity`, `WeeklySchedule` |
+| persistencia | `ActivityRepository`, `ActividadEntity` |
+
+## Endpoints
+
+| Método y ruta | Roles |
+|---|---|
+| `GET /api/v1/activities`, `GET /api/v1/activities/{activityId}` | Responsable; directores según ámbito (`ActivityAuthorization.canRead`) |
+| `POST /api/v1/activities` | DOCENTE, ENCARGADO (la clase exige DOCENTE) |
+| `PATCH /api/v1/activities/{activityId}`, `POST .../cancel`, `POST .../close` | Responsable de la actividad |
+| `GET, PUT /api/v1/activities/{activityId}/schedule` | Responsable |
+| `GET, POST /api/v1/activities/{activityId}/students`; `DELETE .../students/{personId}`; `POST .../students/sync` | Responsable |
+| `GET, PUT /api/v1/activities/{activityId}/guest-settings` y `/guest-list` | Responsable |
+
+## Tablas
+
+`actividades`, `actividad_carreras`, `actividad_paralelos`, `horarios_clase`, `estudiantes_autorizados`,
+`configuracion_invitados`, `invitados_evento`, `auditoria_actividad`; lee `sesiones`, `espacios`,
+`direcciones_carrera`, `matriculas`, `docentes_paralelo`.
+Migraciones: V002, V003, V004, V010, V014, V016.
+
+## Reglas de negocio
+
+- Solo el responsable escribe (`ActivityAuthorization.write`); `DIRECTOR_INSTITUCIONAL` y `DIRECTOR_CARRERA` (de su carrera) solo leen.
+- Un horario semanal genera como máximo 200 sesiones (`WeeklySchedule.MAX_SESSIONS`).
+- Al cerrar se calcula la fecha de anonimización (cierre + 5 años, `RetentionPolicy`) y se registran las ausencias (`RecordAbsences`).
+- Los cambios usan bloqueos (`AttendanceLocks`) para no competir con registros de asistencia.
+- Las altas usan idempotencia y cada cambio se audita (`ActivityAuditWriter`).
+- Método de verificación y espacio deben ser compatibles (`SpaceMethodRules`); la actividad guarda umbral de asistencia y ciclo automático.
+
+## Dependencias
+
+`espacios`, `identidades` (`UserSession`), `compartido`.
+
+## Configuración
+
+Sin variables propias.
+
+## Pruebas
+
+`ActivityContractTest`, `ActivityClosureTest`, `ActivityScopeTest`, `AuthorizedListTest`, `CreateClassTest`,
+`CreateEventTest`, `GuestConfigurationContractTest`, `GuestReadTest`, `ScheduleExpansionTest`, `ScheduleReadTest`.
+
+## Diagrama de clases
+
+[Actividades en el nivel 4](../04-codigo.qmd#fig-actividades) (`puml/actividades.puml`).

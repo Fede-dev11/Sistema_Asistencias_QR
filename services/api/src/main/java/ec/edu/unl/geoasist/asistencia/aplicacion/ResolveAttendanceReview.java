@@ -23,7 +23,13 @@ public class ResolveAttendanceReview {
   public record Command(String decision, String reason) {}
 
   private record Pending(
-      UUID session, UUID person, UUID guestStart, String channel, String result, String name) {}
+      UUID session,
+      UUID person,
+      UUID guestStart,
+      String channel,
+      String result,
+      String name,
+      String deviceHash) {}
 
   private final JdbcTemplate db;
   private final Clock clock;
@@ -31,7 +37,7 @@ public class ResolveAttendanceReview {
   private final ActivityAuthorization scope;
   private final SessionRepository sessions;
   private final AttendanceLocks locks;
-  private final AttendanceRecording recording;
+  private final CorrectionWindow window;
   private final AttemptRepository attempts;
   private final GuestStartRepository guestStarts;
   private final IdempotencyService replay;
@@ -44,7 +50,7 @@ public class ResolveAttendanceReview {
       ActivityAuthorization scope,
       SessionRepository sessions,
       AttendanceLocks locks,
-      AttendanceRecording recording,
+      CorrectionWindow window,
       AttemptRepository attempts,
       GuestStartRepository guestStarts,
       IdempotencyService replay,
@@ -55,7 +61,7 @@ public class ResolveAttendanceReview {
     this.scope = scope;
     this.sessions = sessions;
     this.locks = locks;
-    this.recording = recording;
+    this.window = window;
     this.attempts = attempts;
     this.guestStarts = guestStarts;
     this.replay = replay;
@@ -95,15 +101,26 @@ public class ResolveAttendanceReview {
     UUID attendanceId = null;
     if ("APROBAR".equals(command.decision())) {
       if (pending.person() == null) throw ApiFailure.conflict();
-      var activity = activities.find(activityId);
-      recording.requireActive(activity, sessions.find(pending.session()));
+      window.require(sessions.find(pending.session()));
       Person person = eligible(pending, activityId);
       var existing = attempts.existing(pending.session(), pending.person());
       if (existing.isEmpty()) {
-        attempts.confirm(pending.session(), person, attemptId, reviewedAt, "REVISION");
+        var deviceAttendance = attempts.existingDevice(pending.session(), pending.deviceHash());
+        if (deviceAttendance.isPresent()
+            && !deviceAttendance.get().person().equals(pending.person()))
+          throw AttendanceRecording.deviceConflict();
+        boolean confirmed =
+            attempts.confirm(
+                pending.session(), person, attemptId, reviewedAt, "REVISION", pending.deviceHash());
+        if (!confirmed && attempts.existing(pending.session(), pending.person()).isEmpty())
+          throw AttendanceRecording.deviceConflict();
         existing = attempts.existing(pending.session(), pending.person());
       }
       attendanceId = existing.orElseThrow(ApiFailure::conflict).id();
+      db.update(
+          "DELETE FROM ausencias WHERE sesion_id=? AND persona_id=?",
+          pending.session(),
+          pending.person());
       if (pending.guestStart() != null)
         guestStarts.consume(pending.guestStart(), person.id(), attendanceId, reviewedAt);
     }
@@ -178,7 +195,7 @@ public class ResolveAttendanceReview {
   private Pending find(UUID attemptId) {
     return db
         .query(
-            "SELECT sesion_id,persona_id,inicio_invitado_id,canal,resultado,nombres_referencia FROM intentos_asistencia WHERE id=?",
+            "SELECT sesion_id,persona_id,inicio_invitado_id,canal,resultado,nombres_referencia,dispositivo_hash FROM intentos_asistencia WHERE id=?",
             (r, n) ->
                 new Pending(
                     r.getObject(1, UUID.class),
@@ -186,7 +203,8 @@ public class ResolveAttendanceReview {
                     r.getObject(3, UUID.class),
                     r.getString(4),
                     r.getString(5),
-                    r.getString(6)),
+                    r.getString(6),
+                    r.getString(7)),
             attemptId)
         .stream()
         .findFirst()

@@ -1,0 +1,128 @@
+@startuml actividades
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/actividades
+!include _estilo.iuml
+title Actividades (casos de uso, autorización y horario semanal)
+
+package "presentacion" {
+  class ActivityCommandController
+  class ActivityQueryController
+  class GuestManagementController
+}
+package "aplicacion" {
+  class ActivityAuthorization {
+    +responsible(UserSession, Activity): boolean
+    +canRead(UserSession, Activity): boolean
+    +read(UserSession, id): Activity
+    +write(UserSession, id): Activity
+  }
+  class CreateActivity {
+    +create(user, key, Command): Receipt
+  }
+  class EditActivity {
+    +edit(user, id, Changes): Map
+    +cancel(user, id): Map
+  }
+  class CloseActivity {
+    +close(user, id, key): Receipt
+  }
+  class FindVisibleActivities {
+    +dto(Activity): Map
+    +get(user, id): Map
+    +list(user, page, size, mode, career): Map
+  }
+  class ManageAuthorizedStudents {
+    +list(user, id, page, size)
+    +add(user, id, key, cedula): Receipt
+    +remove(user, id, person)
+    +sync(user, id): Map
+  }
+  class ConfigureGuests {
+    +set(user, id, enabled, duration): Map
+  }
+  class ReplaceGuestList {
+    +replace(user, id, List<Entry>): Map
+  }
+  class ReadActivityConfiguration {
+    +guestList(user, id, page, size)
+    +guestSettings(user, id)
+    +schedule(user, id)
+  }
+  class ReplaceSchedule {
+    +generate(activity, WeeklySchedule, space, method): int
+    +replace(user, id, WeeklySchedule): Map
+  }
+  class SpaceMethodRules {
+    {static} METHODS: Set<String>
+    +check(space, method)
+  }
+  class ActivityAuditWriter
+}
+package "dominio" {
+  class Activity <<record>> {
+    id; name; mode; responsible; state
+    closedAt: Instant
+    anonymizeAt: Instant
+  }
+  class WeeklySchedule <<record>> {
+    days: List<Integer>
+    start; end: LocalTime
+    from; to: LocalDate
+    zone: ZoneId
+    {static} MAX_SESSIONS = 200
+    +expand(): List<Window>
+  }
+}
+package "persistencia" {
+  class ActivityRepository {
+    +find(id): Activity
+    +activityOfSession(session): UUID
+    +directs(account, activity): boolean
+  }
+  class ActividadEntity
+}
+package "otros módulos (usado)" {
+  class SpaceRepository
+  class RecordAbsences
+  class AttendanceLocks
+  class IdempotencyService
+  class NominalAccessGuard
+}
+
+ActivityCommandController --> CloseActivity
+ActivityCommandController --> CreateActivity
+ActivityCommandController --> EditActivity
+ActivityCommandController --> ReplaceSchedule
+ActivityCommandController --> ManageAuthorizedStudents
+ActivityQueryController --> FindVisibleActivities
+GuestManagementController --> ConfigureGuests
+GuestManagementController --> ReplaceGuestList
+GuestManagementController --> ReadActivityConfiguration
+ActivityAuthorization --> ActivityRepository
+ActivityAuthorization --> NominalAccessGuard
+FindVisibleActivities --> ActivityAuthorization
+FindVisibleActivities --> ActivityRepository
+CreateActivity --> ActivityRepository
+CreateActivity --> SpaceMethodRules
+CreateActivity --> ReplaceSchedule
+CreateActivity --> FindVisibleActivities
+CreateActivity --> ActivityAuditWriter
+CreateActivity --> IdempotencyService
+EditActivity --> ActivityAuthorization
+EditActivity --> SpaceMethodRules
+EditActivity --> FindVisibleActivities
+EditActivity --> AttendanceLocks
+CloseActivity --> ActivityAuthorization
+CloseActivity --> RecordAbsences
+CloseActivity --> FindVisibleActivities
+CloseActivity --> AttendanceLocks
+CloseActivity --> IdempotencyService
+ManageAuthorizedStudents --> ActivityAuthorization
+ConfigureGuests --> ActivityAuthorization
+ReplaceGuestList --> ActivityAuthorization
+ReadActivityConfiguration --> ActivityAuthorization
+ReplaceSchedule --> ActivityAuthorization
+ReplaceSchedule ..> WeeklySchedule
+SpaceMethodRules --> SpaceRepository
+ActivityRepository ..> Activity
+ActivityRepository ..> ActividadEntity
+@enduml

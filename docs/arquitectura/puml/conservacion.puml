@@ -1,0 +1,37 @@
+@startuml conservacion
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/conservacion
+!include _estilo.iuml
+title Conservación (anonimización y retención de datos)
+
+package "aplicacion" {
+  class RetentionScheduler {
+    +run()
+  }
+  class AnonymizeExpiredActivity {
+    +processBatch(): int
+  }
+  class CopySanitizationService {
+    +completeVerifiedTreatments(): int
+    +pendingTreatments(): long
+  }
+  class BuildAnonymousStatistics {
+    +sealedCells(): List<Cell>
+  }
+  class "BuildAnonymousStatistics.Cell" as Cell <<record>> {
+    year: int
+    mode: String
+    participants: long
+  }
+  class RetentionMonitoring {
+    +succeeded(processed, pending)
+    +failed()
+    +batches(): long
+    +failures(): long
+  }
+}
+
+RetentionScheduler --> AnonymizeExpiredActivity
+RetentionScheduler --> CopySanitizationService
+RetentionScheduler --> RetentionMonitoring
+BuildAnonymousStatistics +-- Cell
+@enduml

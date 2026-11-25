@@ -1,0 +1,61 @@
+---
+title: "Módulo académico"
+---
+
+## Responsabilidad
+
+Simula el sistema académico: personas, cuentas con roles, carreras, paralelos, matrículas y docentes por
+paralelo, con importación masiva por CSV. Es exclusivo del administrador salvo el catálogo del docente.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `AdminController`, `AdminImportController`, `TeacherCatalogController` |
+| aplicacion | `ManagePeopleAndAccounts`, `ManageCareersAndParallels`, `CsvImport` |
+| persistencia | `AcademicRepository` |
+
+No tiene capa de dominio propia (usa `compartido.dominio.Cedula`).
+
+## Endpoints
+
+| Método y ruta | Roles |
+|---|---|
+| `GET, POST /api/v1/admin/people`; `GET, PATCH /api/v1/admin/people/{personId}` | ADMINISTRADOR |
+| `POST /api/v1/admin/accounts`; `PATCH /api/v1/admin/accounts/{accountId}` | ADMINISTRADOR |
+| `GET, POST /api/v1/admin/careers`; `PATCH /api/v1/admin/careers/{careerId}` | ADMINISTRADOR |
+| `GET, POST /api/v1/admin/careers/{careerId}/parallels` | ADMINISTRADOR |
+| `GET, PUT /api/v1/admin/parallels/{parallelId}/enrollments` | ADMINISTRADOR |
+| `GET, PUT /api/v1/admin/parallels/{parallelId}/teachers` | ADMINISTRADOR |
+| `POST /api/v1/admin/imports/{kind}` (CSV multipart) | ADMINISTRADOR |
+| `GET /api/v1/me/parallels` | DOCENTE, ENCARGADO |
+
+## Tablas
+
+`personas`, `cuentas`, `roles_cuenta`, `carreras`, `paralelos`, `matriculas`, `docentes_paralelo`,
+`sesiones_acceso` (al desactivar cuentas); escribe `auditoria_academica` vía `AcademicAudit`.
+Migraciones: V001, V009, V012.
+
+## Reglas de negocio
+
+- La cédula se valida con `Cedula`; el correo con un patrón fijo; los roles permitidos están en `ManagePeopleAndAccounts.ROLES`.
+- Importación CSV: máximo 2 MB y 5000 filas, con cabeceras fijas por tipo (`kind`).
+- Reemplazar matriculados o docentes de un paralelo usa idempotencia (`IdempotencyService`).
+- Cada cambio queda en `auditoria_academica`.
+
+## Dependencias
+
+`identidades` (`UserSession`), `compartido` (idempotencia, auditoría, `Cedula`, Problem Details).
+
+## Configuración
+
+Multipart: `spring.servlet.multipart.max-file-size=2MB`, `max-request-size=3MB`.
+
+## Pruebas
+
+`AdminContractTest`, `AdminPeopleAccountsTest`, `CsvImportTest`, `EnrollmentTest`, `ParallelReadTest`
+(soporte: `AdminSupport`).
+
+## Diagrama de clases
+
+[Académico en el nivel 4](../04-codigo.qmd#fig-academico) (`puml/academico.puml`).

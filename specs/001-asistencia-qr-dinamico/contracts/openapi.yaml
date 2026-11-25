@@ -2,6 +2,11 @@ openapi: 3.0.3
 info:
   title: UNL GeoAsist — contrato de planificación condicionado
   version: 0.2.0-draft
+  contact:
+    name: Equipo GeoAsist · Universidad Nacional de Loja
+    url: https://github.com/Fede-dev11/Sistema_Asistencias_QR
+  license:
+    name: Uso académico UNL
   description: 'BORRADOR: diseño técnico condicionado a la revisión de la excepción constitucional para invitados
     identificados solo por cédula contra listado. No declara superado el Constitution Check ni autoriza implementar.
     YAML fuente de verdad. Backend común para web y móvil. Todas las reglas y ámbitos se verifican en servidor.
@@ -14,23 +19,39 @@ info:
 servers:
 - url: /api/v1
   description: Mismo origen por defecto; configurar URL HTTPS del backend común en cada entorno.
+externalDocs:
+  description: Documentación completa del API generada con Quarto (parámetros, cuerpos, respuestas y ejemplos).
+  url: https://fede-dev11.github.io/Sistema_Asistencias_QR/api/
 security:
 - SessionBearer: []
 tags:
 - name: auth
+  description: 'Inicio de sesión (SSO CAS o credenciales locales de desarrollo), renovación, cierre de sesión y perfil propio.'
 - name: activities
+  description: 'Clases y eventos: creación, consulta, cierre, horarios, listas autorizadas y auditoría.'
 - name: sessions
+  description: 'Ciclo de vida de las sesiones, proyección del QR, configuración GPS y consulta/exportación de asistencias.'
 - name: attendance
+  description: 'Registro de asistencia del participante con cuenta y sesiones activas disponibles.'
 - name: guest-registrations
+  description: 'Flujo sin cuenta para invitados precargados (evento cerrado) y autorregistro (evento abierto).'
 - name: attempts
+  description: 'Revisión de intentos de asistencia pendientes por ubicación imprecisa.'
+- name: corrections
+  description: 'Asistencia manual, justificación de ausencias y solicitudes de justificación.'
+- name: admin
+  description: 'Administración académica simulada: personas, cuentas, carreras, paralelos e importación CSV.'
+- name: spaces
+  description: 'Espacios con coordenadas, tolerancia geográfica y evidencia de campo.'
+- name: stats
+  description: 'Estadísticas e historial de asistencia por actividad, paralelo, carrera y estudiante.'
 paths:
   /auth/login:
     post:
       operationId: login
       summary: Iniciar sesión con credenciales
-      description: Proveedor local semilla solo en desarrollo; CAS detrás del proveedor de identidad queda pendiente
-        de confirmación institucional. Bearer opaco revocable respaldado en PostgreSQL; sin JWT ni almacenamiento
-        web persistente.
+      description: Solo para pruebas o desarrollo sin red. Devuelve 404 cuando
+        geoasist.auth.local-login=false (valor predeterminado). Bearer opaco revocable respaldado en PostgreSQL.
       tags:
       - auth
       responses:
@@ -50,15 +71,80 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '429':
           $ref: '#/components/responses/RateLimited'
       security: []
       requestBody:
+        description: "Credenciales locales de desarrollo (solo si `GEOASIST_LOCAL_LOGIN=true`)."
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/LoginRequest'
+  /auth/cas:
+    post:
+      operationId: loginWithCas
+      summary: Canjear un ticket universitario por una sesión de GeoAsist
+      description: Valida y consume el ticket CAS para el mismo service, sincroniza la cuenta y emite un bearer opaco.
+      tags: [auth]
+      security: []
+      requestBody:
+        description: "Ticket CAS y servicio para canjear por una sesión."
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/CasLoginRequest'}
+      responses:
+        '200':
+          description: Ticket válido y sesión creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResult'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401':
+          description: Ticket inválido, usado, vencido o de otro servicio (TICKET_INVALIDO).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:ticket-invalido', title: Ticket inválido, status: 401, code: TICKET_INVALIDO, mensaje: Ticket inválido.}
+        '403':
+          description: Cuenta universitaria inactiva (CUENTA_INACTIVA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:cuenta-inactiva', title: Cuenta inactiva, status: 403, code: CUENTA_INACTIVA, mensaje: Cuenta inactiva.}
+        '422':
+          description: Identidad no provisionable (IDENTIDAD_INVALIDA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:identidad-invalida', title: Identidad inválida, status: 422, code: IDENTIDAD_INVALIDA, mensaje: Identidad inválida.}
+        '502':
+          description: Servicio universitario no disponible (SSO_NO_DISPONIBLE).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:sso-no-disponible', title: SSO no disponible, status: 502, code: SSO_NO_DISPONIBLE, mensaje: SSO no disponible.}
+  /auth/sso-config:
+    get:
+      operationId: getSsoConfiguration
+      summary: Obtener las URLs públicas del SSO
+      description: Devuelve las URLs de login y logout del servicio CAS y los prefijos de servicio web y móvil. Es pública para que la web y la app construyan la redirección sin credenciales.
+      tags: [auth]
+      security: []
+      responses:
+        '200':
+          description: Configuración para clientes web y móvil.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SsoConfiguration'}
+              example:
+                login_url: https://sso.unl.edu.ec/cas/login
+                logout_url: https://sso.unl.edu.ec/cas/logout
+                web_service: https://asistencias.unl.edu.ec/auth/callback
+                mobile_service_prefix: geoasist-mobile://auth/callback
   /auth/logout:
     post:
       operationId: logout
@@ -67,12 +153,73 @@ paths:
       tags:
       - auth
       responses:
-        '204':
-          description: Sesión revocada.
+        '200':
+          description: Sesión revocada; incluye la URL para cerrar también la sesión universitaria.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required: [sso_logout_url]
+                properties:
+                  sso_logout_url: {type: string, format: uri}
         '401':
           $ref: '#/components/responses/Unauthorized'
         '429':
           $ref: '#/components/responses/RateLimited'
+  /auth/renew:
+    post:
+      operationId: renewSession
+      summary: Renovar la sesión por 8 horas rotando el secreto
+      description: Con el bearer vigente emite uno nuevo por 8 horas y revoca el anterior. Rechaza con 401
+        RENOVACION_VENCIDA si pasaron más de 30 días desde el login original. Para cuentas CAS consulta al SSO
+        si la cuenta sigue activa; si no, revoca la sesión y responde 403 CUENTA_INACTIVA; si el SSO no responde
+        falla cerrado con 502 SSO_NO_DISPONIBLE.
+      tags: [auth]
+      responses:
+        '200':
+          description: Sesión renovada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/LoginResult'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403':
+          description: Cuenta universitaria inactiva (CUENTA_INACTIVA).
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+              example: {type: 'urn:unl:problem:cuenta-inactiva', title: Cuenta inactiva, status: 403, code: CUENTA_INACTIVA, mensaje: Cuenta inactiva.}
+        '502':
+          description: SSO no disponible (SSO_NO_DISPONIBLE); no se renueva.
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /me:
+    get:
+      operationId: getMe
+      summary: Perfil propio sin secretos
+      description: Devuelve la identidad, los roles y el ámbito de la sesión autenticada. No expone tokens, contraseñas ni datos de contacto innecesarios.
+      tags: [auth]
+      responses:
+        '200':
+          description: Perfil.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MeProfile'}
+              example:
+                cuenta_id: 11111111-1111-4111-8111-111111111111
+                persona_id: 22222222-2222-4222-8222-222222222222
+                nombres: Ana Pérez
+                correo: ana.perez@unl.edu.ec
+                roles: [DOCENTE]
+                paralelos:
+                - paralelo_id: 33333333-3333-4333-8333-333333333333
+                  codigo: A
+                  carrera_id: 44444444-4444-4444-8444-444444444444
+                  carrera_codigo: COMP
+                  carrera_nombre: Computación
+                debe_cambiar_password: false
+        '401': {$ref: '#/components/responses/Unauthorized'}
   /activities:
     get:
       operationId: listActivities
@@ -121,6 +268,65 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/RateLimited'
+    post:
+      operationId: createActivity
+      summary: Crear una clase o un evento
+      description: DOCENTE. Con modalidad CLASE exige paralelos asignados y vigentes (403 PARALELO_NO_ASIGNADO), crea la lista autorizada con los matriculados vigentes y, si hay horario, genera sesiones PROGRAMADA en America/Guayaquil (máximo 200; 400 HORARIO_DEMASIADO_LARGO). Con modalidad EVENTO (DOCENTE o ENCARGADO) exige acceso CERRADO o ABIERTO, inicio y fin, y crea una sesión programada y la configuración de invitados (tolerancia_invitado_segundos, por defecto 120).
+      tags:
+      - activities
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        description: Datos de la clase o evento. Para CLASE, paralelo_ids es obligatorio; para EVENTO, acceso e inicio/fin definen el flujo de invitados.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateActivityRequest'
+            example:
+              modalidad: CLASE
+              nombre: Programación I
+              espacio_id: 55555555-5555-4555-8555-555555555555
+              metodo_verificacion: QR_Y_GPS
+              paralelo_ids: [33333333-3333-4333-8333-333333333333]
+              horario:
+                dias: [LUNES, MIERCOLES]
+                inicio: '08:00'
+                fin: '10:00'
+              acceso: CERRADO
+      responses:
+        '201':
+          description: Actividad creada con sus sesiones generadas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedActivity'
+              example:
+                id: 66666666-6666-4666-8666-666666666666
+                nombre: Programación I
+                tipo: CLASE
+                estado: ABIERTA
+                espacio_id: 55555555-5555-4555-8555-555555555555
+                metodo_verificacion: QR_Y_GPS
+                estudiantes_autorizados: 30
+                paralelo_ids: [33333333-3333-4333-8333-333333333333]
+                sesiones: []
+        '200':
+          description: Replay idempotente de una actividad ya creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreatedActivity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
   /activities/{activityId}:
     get:
       operationId: getActivity
@@ -152,6 +358,40 @@ paths:
           $ref: '#/components/responses/Conflict'
         '410':
           $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+    patch:
+      operationId: updateActivity
+      summary: Editar nombre, espacio o método por defecto
+      description: Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.
+      tags:
+      - activities
+      requestBody:
+        description: "Cambios editables de una actividad."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateActivityRequest'
+      responses:
+        '200':
+          description: Actividad actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '429':
           $ref: '#/components/responses/RateLimited'
       parameters:
@@ -191,6 +431,23 @@ paths:
       - $ref: '#/components/parameters/activityId'
       - $ref: '#/components/parameters/IdempotencyKey'
   /activities/{activityId}/guest-settings:
+    get:
+      operationId: getGuestSettings
+      summary: Consultar acceso de invitados
+      description: 'Responsable de la actividad; los directores leen dentro de su ámbito.'
+      tags: [activities]
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GuestSettings'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: setGuestSettings
       summary: Configurar acceso de invitados
@@ -227,12 +484,32 @@ paths:
       parameters:
       - $ref: '#/components/parameters/activityId'
       requestBody:
+        description: "Configuración de invitados de una actividad."
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/GuestSettings'
   /activities/{activityId}/guest-list:
+    get:
+      operationId: listGuests
+      summary: Consultar listado de invitados
+      description: 'Responsable de la actividad; los directores leen dentro de su ámbito. Paginado; evento abierto o clase devuelven página vacía.'
+      tags: [activities]
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GuestPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: replaceGuestList
       summary: Reemplazar listado de invitados
@@ -272,6 +549,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/activityId'
       requestBody:
+        description: "Lista completa de invitados que reemplaza la anterior."
         required: true
         content:
           application/json:
@@ -293,6 +571,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Session'
+              example:
+                id: 77777777-7777-4777-8777-777777777777
+                activity_id: 66666666-6666-4666-8666-666666666666
+                estado: ACTIVA
+                iniciada_en: '2026-11-07T13:00:00Z'
+                cerrada_en: null
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -327,6 +611,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Session'
+              example:
+                id: 77777777-7777-4777-8777-777777777777
+                activity_id: 66666666-6666-4666-8666-666666666666
+                estado: CERRADA
+                iniciada_en: '2026-11-07T13:00:00Z'
+                cerrada_en: '2026-11-07T15:00:00Z'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -385,6 +675,23 @@ paths:
       parameters:
       - $ref: '#/components/parameters/sessionId'
   /sessions/{sessionId}/geolocation:
+    get:
+      operationId: getSessionGeolocation
+      summary: Consultar configuración GPS de la sesión
+      description: 'Responsable de la actividad; los directores leen dentro de su ámbito. Legible en cualquier estado de la sesión. Sin configuración guardada devuelve habilitada=false, modo OFF y nulos.'
+      tags: [sessions]
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GeolocationConfig'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
     put:
       operationId: setSessionGeolocation
       summary: Configurar GPS opcional
@@ -419,6 +726,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/sessionId'
       requestBody:
+        description: "Al habilitar, radio_m y precision_max_m son opcionales y heredan los valores por defecto del espacio de la sesión; antiguedad_max_s por defecto es 60. Si está apagada no se pide permiso ni se conserva ubicación."
         required: true
         content:
           application/json:
@@ -491,6 +799,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
+        description: "Intento de asistencia con QR o sesión y ubicación."
         required: true
         content:
           application/json:
@@ -520,6 +829,7 @@ paths:
                 registro_invitado_token: ejemplo-formulario-opaco-no-real-00000001
                 inicio_en: '2026-10-19T16:00:20Z'
                 vence_en: '2026-10-19T16:02:20Z'
+                evento_abierto: true
         '400':
           $ref: '#/components/responses/BadRequest'
         '403':
@@ -534,6 +844,7 @@ paths:
           $ref: '#/components/responses/RateLimited'
       security: []
       requestBody:
+        description: "Inicio del flujo de invitado con QR o sesión."
         required: true
         content:
           application/json:
@@ -611,11 +922,35 @@ paths:
       - $ref: '#/components/parameters/IdempotencyKey'
       security: []
       requestBody:
+        description: "Datos del invitado para completar su registro."
         required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/GuestSubmitRequest'
+  /events/open/{sessionId}:
+    get:
+      operationId: getOpenEvent
+      summary: Consultar datos publicos minimos de un evento abierto activo
+      description: Público. Devuelve solo los datos mínimos para que un invitado sin cuenta se autorregistre en un evento abierto activo (nombre, ámbito y estado); no expone listados ni datos personales.
+      tags:
+      - guest-registrations
+      security: []
+      parameters:
+      - name: sessionId
+        in: path
+        required: true
+        description: Identificador de la sesión del evento abierto.
+        schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Evento abierto activo.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OpenEvent'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /sessions/{sessionId}/attendances:
     get:
       operationId: listAttendances
@@ -706,8 +1041,8 @@ paths:
       summary: Resolver intento pendiente
       description: Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación
         por su permiso de lectura. Solo intento de su actividad pendiente de revisión. Razón no vacía, auditoría
-        con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA y actividad
-        abierta; si están cerradas devolver 409. Una aprobación no duplica asistencia. Rechazar una revisión no
+        con responsable, fecha, anterior y nuevo. Aprobar para crear una asistencia requiere sesión ACTIVA o CERRADA dentro del plazo de
+        corrección (geoasist.correccion.dias, 7); fuera de plazo 409 PLAZO_CORRECCION_VENCIDO. Aprobar tras el cierre elimina la ausencia. Una aprobación no duplica asistencia. Rechazar una revisión no
         crea asistencia y puede resolver un pendiente después del cierre, mientras los datos sigan dentro de su
         conservación. Revisiones concurrentes y cierre comparten protocolo transaccional.
       tags:
@@ -740,10 +1075,213 @@ paths:
       - $ref: '#/components/parameters/IdempotencyKey'
       requestBody:
         required: true
+        description: Decisión y razón; la razón es obligatoria y queda auditada.
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/ReviewRequest'
+            example:
+              decision: APROBAR
+              razon: La ubicación reportada está dentro del radio del aula; error de precisión del GPS.
+  /sessions/{sessionId}/manual-attendances:
+    post:
+      operationId: registerManualAttendance
+      summary: Registrar asistencia manual
+      description: Solo RESPONSABLE de la actividad. Estudiante autorizado vigente (422 NO_AUTORIZADO_EN_SESION). Sesión ACTIVA o CERRADA dentro de geoasist.correccion.dias (7) días; después 409 PLAZO_CORRECCION_VENCIDO. Duplicado 409 ASISTENCIA_DUPLICADA. Elimina la ausencia, resuelve como rechazado un intento pendiente del estudiante y audita. No aplica la regla de dispositivo.
+      tags:
+      - corrections
+      responses:
+        '201':
+          description: Asistencia MANUAL creada (o repetida con la misma clave).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManualAttendanceResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {$ref: '#/components/parameters/sessionId'}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        required: true
+        description: Razón de la asistencia manual; queda en la auditoría.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManualAttendanceRequest'
+            example:
+              persona_id: 22222222-2222-4222-8222-222222222222
+              razon: El estudiante presentó el carné físico. Falla de la cámara del dispositivo.
+  /sessions/{sessionId}/absences/{personId}/justify:
+    post:
+      operationId: justifyAbsence
+      summary: Justificar una ausencia
+      description: Solo RESPONSABLE, mismo plazo de corrección. Crea una justificación origen RESPONSABLE aprobada y la ausencia pasa a JUSTIFICADA. 409 SIN_AUSENCIA si no hay ausencia; 409 JUSTIFICACION_PENDIENTE_EXISTE si hay una solicitud pendiente.
+      tags:
+      - corrections
+      responses:
+        '201':
+          description: Justificación registrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JustificationSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {$ref: '#/components/parameters/sessionId'}
+      - {name: personId, in: path, required: true, description: Identificador de la persona cuya ausencia se justifica., schema: {type: string, format: uuid}}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        description: "Razón para justificar una ausencia."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustifyAbsenceRequest'
+  /me/absences/{sessionId}/justification-requests:
+    post:
+      operationId: requestJustification
+      summary: Solicitar justificación de la propia ausencia
+      description: Solo ESTUDIANTE con ausencia propia en la sesión, dentro del plazo de corrección. Una solicitud pendiente por ausencia (409 JUSTIFICACION_PENDIENTE_EXISTE); sin ausencia 409 SIN_AUSENCIA. El motivo no se copia a la auditoría ni al CSV.
+      tags:
+      - corrections
+      responses:
+        '201':
+          description: Solicitud pendiente creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JustificationSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {$ref: '#/components/parameters/sessionId'}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        description: "Motivo de la solicitud de justificación del estudiante."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustificationRequestBody'
+  /activities/{activityId}/justification-requests:
+    get:
+      operationId: listJustificationRequests
+      summary: Bandeja de justificaciones
+      description: Responsable y directores según el ámbito de consulta. Incluye el motivo, que solo se muestra a quien puede leer la actividad.
+      tags:
+      - corrections
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JustificationPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {$ref: '#/components/parameters/activityId'}
+      - {name: estado, in: query, description: Filtra por estado de la solicitud., schema: {type: string, enum: [PENDIENTE, APROBADA, RECHAZADA]}}
+      - {$ref: '#/components/parameters/Page'}
+      - {$ref: '#/components/parameters/Size'}
+  /justification-requests/{requestId}/decision:
+    post:
+      operationId: decideJustification
+      summary: Decidir una solicitud de justificación
+      description: Solo RESPONSABLE de la actividad. Razón obligatoria; la decisión es inmutable (409 si ya fue decidida). APROBAR pasa la ausencia a JUSTIFICADA.
+      tags:
+      - corrections
+      responses:
+        '200':
+          description: Decisión registrada o repetida.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JustificationSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '422':
+          $ref: '#/components/responses/BusinessRejected'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {name: requestId, in: path, required: true, description: Identificador de la solicitud de justificación., schema: {type: string, format: uuid}}
+      - {$ref: '#/components/parameters/IdempotencyKey'}
+      requestBody:
+        description: "Decisión y razón sobre una solicitud de justificación."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JustificationDecisionRequest'
   /activities/{activityId}/audit:
     get:
       operationId: listActivityAudit
@@ -782,6 +1320,1149 @@ paths:
       - $ref: '#/components/parameters/activityId'
       - $ref: '#/components/parameters/Page'
       - $ref: '#/components/parameters/Size'
+  /admin/people:
+    get:
+      operationId: adminListPeople
+      summary: Listar personas (ADMINISTRADOR)
+      description: Búsqueda paginada de personas por cédula, nombres o correo. Solo ADMINISTRADOR; los filtros nunca amplían el ámbito.
+      tags: [admin]
+      parameters:
+      - name: q
+        in: query
+        description: Texto parcial de cédula, nombres o correo.
+        schema: {type: string}
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de personas.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPersonPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+    post:
+      operationId: adminCreatePerson
+      summary: Crear persona (ADMINISTRADOR)
+      description: Registra una persona con rol académico (ESTUDIANTE, DOCENTE o ENCARGADO). Solo ADMINISTRADOR; admite Idempotency-Key para reintentos seguros.
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        description: "Datos para crear una persona."
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminPersonCreate'}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '201':
+          description: Persona creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/people/{personId}:
+    parameters:
+    - {name: personId, in: path, required: true, description: Identificador de la persona., schema: {type: string, format: uuid}}
+    get:
+      operationId: adminGetPerson
+      summary: Ver persona (ADMINISTRADOR)
+      description: Devuelve los datos académicos de la persona y su cuenta asociada, si existe. Solo ADMINISTRADOR.
+      tags: [admin]
+      responses:
+        '200':
+          description: Persona.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    patch:
+      operationId: adminRenamePerson
+      summary: Editar nombres de una persona (ADMINISTRADOR)
+      description: Actualiza únicamente nombres y apellidos. Solo ADMINISTRADOR; no modifica cédula, correo ni roles.
+      tags: [admin]
+      requestBody:
+        description: "Cuerpo de la solicitud."
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [nombres]
+              properties:
+                nombres: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Persona actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/accounts:
+    post:
+      operationId: adminCreateAccount
+      summary: Crear cuenta de una persona (ADMINISTRADOR)
+      description: La contraseña inicial tiene mínimo 12 caracteres y no se devuelve ni se audita.
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        description: "Datos para crear una cuenta."
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminAccountCreate'}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '201':
+          description: Cuenta creada; devuelve la persona con su cuenta.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/accounts/{accountId}:
+    patch:
+      operationId: adminUpdateAccount
+      summary: Cambiar roles, activar o desactivar, cambiar contraseña (ADMINISTRADOR)
+      description: Desactivar revoca las sesiones y conserva el historial de asistencias. Un administrador no puede
+        desactivarse ni quitarse su propio rol (409).
+      tags: [admin]
+      parameters:
+      - {name: accountId, in: path, required: true, description: Identificador de la cuenta., schema: {type: string, format: uuid}}
+      requestBody:
+        description: "Cambios de rol o estado de una cuenta."
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AdminAccountPatch'}
+      responses:
+        '200':
+          description: Persona con su cuenta actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminPerson'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/careers:
+    get:
+      operationId: adminListCareers
+      summary: Listar carreras (ADMINISTRADOR)
+      description: Lista todas las carreras registradas con su código y nombre. Solo ADMINISTRADOR.
+      tags: [admin]
+      responses:
+        '200':
+          description: Carreras.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminCareer'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+    post:
+      operationId: adminCreateCareer
+      summary: Crear carrera (ADMINISTRADOR)
+      description: Crea una carrera con código único. Solo ADMINISTRADOR; un código duplicado responde 409.
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        description: "Cuerpo de la solicitud."
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [codigo, nombre]
+              properties:
+                codigo: {type: string, minLength: 1, maxLength: 40}
+                nombre: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '201':
+          description: Carrera creada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/careers/{careerId}:
+    patch:
+      operationId: adminRenameCareer
+      summary: Editar nombre de carrera (ADMINISTRADOR)
+      description: Cambia el nombre de una carrera existente. Solo ADMINISTRADOR; el código no se modifica.
+      tags: [admin]
+      parameters:
+      - {name: careerId, in: path, required: true, description: Identificador de la carrera., schema: {type: string, format: uuid}}
+      requestBody:
+        description: "Cuerpo de la solicitud."
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [nombre]
+              properties:
+                nombre: {type: string, minLength: 1, maxLength: 200}
+      responses:
+        '200':
+          description: Carrera actualizada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminCareer'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/careers/{careerId}/parallels:
+    parameters:
+    - {name: careerId, in: path, required: true, description: Identificador de la carrera., schema: {type: string, format: uuid}}
+    get:
+      operationId: adminListParallels
+      summary: Paralelos de una carrera (ADMINISTRADOR)
+      description: Lista los paralelos de la carrera con el número de matriculados y docentes. Solo ADMINISTRADOR.
+      tags: [admin]
+      responses:
+        '200':
+          description: Paralelos con número de matriculados y docentes.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminParallel'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: adminCreateParallel
+      summary: Crear paralelo (ADMINISTRADOR)
+      description: Crea un paralelo dentro de la carrera indicada. Solo ADMINISTRADOR; el código es único dentro de la carrera.
+      tags: [admin]
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        description: "Cuerpo de la solicitud."
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [codigo]
+              properties:
+                codigo: {type: string, minLength: 1, maxLength: 40}
+      responses:
+        '200':
+          description: Reintento idempotente.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminParallel'}
+        '201':
+          description: Paralelo creado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AdminParallel'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409': {$ref: '#/components/responses/Conflict'}
+  /admin/parallels/{parallelId}/enrollments:
+    get:
+      operationId: adminListEnrollments
+      summary: Listar matriculados de un paralelo (ADMINISTRADOR)
+      description: 'Paginado, incluye matrículas no vigentes.'
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, description: Identificador del paralelo., schema: {type: string, format: uuid}}
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/EnrollmentPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      operationId: adminReplaceEnrollments
+      summary: Reemplazar matriculados de un paralelo (ADMINISTRADOR)
+      description: Lista de cédulas; solo personas con rol ESTUDIANTE. Las demás vuelven en rechazadas.
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, description: Identificador del paralelo., schema: {type: string, format: uuid}}
+      requestBody:
+        description: "Cuerpo de la solicitud."
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [cedulas]
+              properties:
+                cedulas:
+                  type: array
+                  maxItems: 5000
+                  items: {type: string}
+      responses:
+        '200':
+          description: Resultado del reemplazo.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [matriculados, rechazadas]
+                properties:
+                  matriculados: {type: integer, minimum: 0}
+                  rechazadas:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminRejectedEntry'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/parallels/{parallelId}/teachers:
+    get:
+      operationId: adminListTeachers
+      summary: Listar docentes de un paralelo (ADMINISTRADOR)
+      description: 'Paginado, incluye asignaciones no vigentes.'
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, description: Identificador del paralelo., schema: {type: string, format: uuid}}
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/TeacherPage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      operationId: adminReplaceTeachers
+      summary: Reemplazar docentes de un paralelo (ADMINISTRADOR)
+      description: Lista de correos de cuentas con rol DOCENTE o ENCARGADO.
+      tags: [admin]
+      parameters:
+      - {name: parallelId, in: path, required: true, description: Identificador del paralelo., schema: {type: string, format: uuid}}
+      requestBody:
+        description: "Cuerpo de la solicitud."
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [correos]
+              properties:
+                correos:
+                  type: array
+                  maxItems: 5000
+                  items: {type: string}
+      responses:
+        '200':
+          description: Resultado del reemplazo.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [docentes, rechazadas]
+                properties:
+                  docentes: {type: integer, minimum: 0}
+                  rechazadas:
+                    type: array
+                    items: {$ref: '#/components/schemas/AdminRejectedEntry'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/imports/{kind}:
+    post:
+      operationId: adminImportCsv
+      summary: Importar CSV de estudiantes, docentes o matrículas (ADMINISTRADOR)
+      description: 'multipart/form-data, campo file, UTF-8, separador coma o punto y coma, máximo 2 MB y 5 000 filas.
+        students: cedula,nombres,correo; teachers: cedula,nombres,correo,rol; enrollments: cedula,carrera,paralelo.
+        Idempotente. Encabezado inválido: 400 sin cambios.'
+      tags: [admin]
+      parameters:
+      - name: kind
+        in: path
+        required: true
+        description: Tipo de importación; determina las columnas esperadas del CSV.
+        schema: {type: string, enum: [students, teachers, enrollments]}
+      requestBody:
+        description: "Archivo y campos del formulario."
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '200':
+          description: Informe de importación.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ImportReport'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '413':
+          description: Archivo de más de 2 MB o de más de 5 000 filas.
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /me/parallels:
+    get:
+      operationId: listMyParallels
+      summary: Paralelos asignados al docente o encargado
+      description: Devuelve los paralelos vigentes asignados al docente o encargado autenticado, con el número de matriculados. No incluye paralelos de otras personas.
+      tags: [admin]
+      responses:
+        '200':
+          description: Paralelos vigentes con número de matriculados.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/MyParallel'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+  /me/active-sessions:
+    get:
+      operationId: listMyActiveSessions
+      summary: Sesiones activas donde el participante puede registrar asistencia
+      description: Clases donde está autorizado (vigente) y eventos abiertos o cerrados con cuenta. Nunca incluye
+        sesiones PROGRAMADA, CERRADA ni CANCELADA.
+      tags: [attendance]
+      parameters:
+      - {name: page, in: query, description: 'Página solicitada, comenzando en 0.', schema: {type: integer, minimum: 0, default: 0}}
+      - {name: size, in: query, description: Cantidad de elementos por página (1 a 100)., schema: {type: integer, minimum: 1, maximum: 100, default: 25}}
+      responses:
+        '200':
+          description: Página de sesiones activas.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveSessionPage'
+              example:
+                items:
+                - sesion_id: 77777777-7777-4777-8777-777777777777
+                  actividad:
+                    id: 66666666-6666-4666-8666-666666666666
+                    nombre: Programación I
+                    modalidad: CLASE
+                  espacio:
+                    id: 55555555-5555-4555-8555-555555555555
+                    nombre: Laboratorio de Computación 1
+                  metodo_verificacion: QR_Y_GPS
+                  requiere_ubicacion: true
+                  inicio: '2026-11-07T13:00:00Z'
+                  fin: '2026-11-07T15:00:00Z'
+                page: 0
+                size: 25
+                total: 1
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /spaces:
+    get:
+      operationId: searchSpaces
+      summary: Buscar espacios
+      description: Búsqueda paginada por código (normalizado) o nombre. Disponible para DOCENTE, ENCARGADO y ADMINISTRADOR.
+      tags:
+      - spaces
+      parameters:
+      - name: q
+        in: query
+        description: Texto parcial del código o del nombre.
+        schema:
+          type: string
+          maxLength: 200
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Página de espacios.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SpacePage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+    post:
+      operationId: createSpace
+      summary: Crear espacio
+      description: Crea un espacio compartido. El código se normaliza (mayúsculas, sin espacios ni guiones); si ya existe responde 409 ESPACIO_CODIGO_EXISTE con el espacio_id existente. Latitud y longitud van juntas o ninguna.
+      tags:
+      - spaces
+      requestBody:
+        required: true
+        description: Datos del espacio. Latitud y longitud deben enviarse juntas o ninguna.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSpaceRequest'
+            example:
+              codigo: LAB-01
+              nombre: Laboratorio de Computación 1
+              tipo: LABORATORIO
+              latitud: -4.0331
+              longitud: -79.2004
+              radio_defecto_m: 25
+              precision_defecto_m: 10
+      responses:
+        '201':
+          description: Espacio creado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /spaces/{spaceId}:
+    patch:
+      operationId: updateSpace
+      summary: Editar espacio
+      description: Solo el creador o un ADMINISTRADOR. El código no cambia. Las sesiones ya configuradas conservan sus valores geográficos.
+      tags:
+      - spaces
+      parameters:
+      - name: spaceId
+        in: path
+        required: true
+        description: Identificador del espacio.
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        description: "Datos editables de un espacio; el código no cambia."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSpaceRequest'
+      responses:
+        '200':
+          description: Espacio actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Space'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /spaces/{spaceId}/geo-evidence:
+    parameters:
+    - name: spaceId
+      in: path
+      required: true
+      description: Identificador del espacio.
+      schema: {type: string, format: uuid}
+    get:
+      operationId: listGeoEvidence
+      summary: Consultar evidencias geográficas de un espacio
+      description: Historial inmutable ordenado desde la versión más reciente.
+      tags: [spaces]
+      responses:
+        '200':
+          description: Evidencias del espacio.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/GeoEvidence'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '429': {$ref: '#/components/responses/RateLimited'}
+    post:
+      operationId: createGeoEvidence
+      summary: Registrar evidencia geográfica de campo
+      description: Solo ADMINISTRADOR. Crea la versión siguiente; no se puede editar ni eliminar. Requiere que el espacio tenga coordenadas.
+      tags: [spaces]
+      requestBody:
+        description: "Datos para registrar una nueva versión de evidencia geográfica."
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/GeoEvidenceCreate'}
+      responses:
+        '201':
+          description: Evidencia registrada y auditada.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/GeoEvidence'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '409':
+          description: ESPACIO_SIN_UBICACION.
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+        '429': {$ref: '#/components/responses/RateLimited'}
+  /activities/{activityId}/cancel:
+    post:
+      operationId: cancelActivity
+      summary: Cancelar actividad
+      description: Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Actividad cancelada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activity'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/schedule:
+    get:
+      operationId: getSchedule
+      summary: Consultar el horario recurrente
+      description: 'Responsable de la actividad; los directores leen dentro de su ámbito. Clase sin horario: 404 SIN_HORARIO.'
+      tags: [activities]
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      responses:
+        '200':
+          description: Estado actual.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ScheduleCurrent'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      operationId: replaceSchedule
+      summary: Reemplazar el horario recurrente
+      description: Solo RESPONSABLE de una clase ABIERTA. Borra y regenera únicamente las sesiones PROGRAMADA futuras del horario sin intentos ni tokens QR; conserva las demás.
+      tags:
+      - activities
+      requestBody:
+        description: "Horario semanal de una clase."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Schedule'
+      responses:
+        '200':
+          description: Horario reemplazado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleReplaced'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/students:
+    get:
+      operationId: listAuthorizedStudents
+      summary: Lista autorizada
+      description: Estudiantes autorizados (vigentes o quitados), paginada.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Página de estudiantes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedStudentPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+    post:
+      operationId: addAuthorizedStudent
+      summary: Añadir estudiante por cédula
+      description: La cédula debe pertenecer a una persona con cuenta ESTUDIANTE; reactiva a quien fue quitado.
+      tags:
+      - activities
+      requestBody:
+        description: "Datos para añadir un estudiante autorizado."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStudentRequest'
+      responses:
+        '201':
+          description: Estudiante autorizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthorizedStudent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+  /activities/{activityId}/students/{personId}:
+    delete:
+      operationId: removeAuthorizedStudent
+      summary: Quitar estudiante de la lista autorizada
+      description: Marca vigente=false; las asistencias existentes no se tocan y la sincronización no lo reincorpora.
+      tags:
+      - activities
+      responses:
+        '204':
+          description: Estudiante quitado.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - name: personId
+        in: path
+        required: true
+        description: Identificador de la persona a retirar de la lista autorizada.
+        schema:
+          type: string
+          format: uuid
+  /activities/{activityId}/students/sync:
+    post:
+      operationId: syncAuthorizedStudents
+      summary: Sincronizar con los paralelos
+      description: Añade los matriculados vigentes de los paralelos de la clase sin reincorporar a quienes fueron quitados.
+      tags:
+      - activities
+      responses:
+        '200':
+          description: Estudiantes añadidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/sessions:
+    get:
+      operationId: listActivitySessions
+      summary: Sesiones de la actividad
+      description: Paginado por inicio de ventana.
+      tags:
+      - sessions
+      responses:
+        '200':
+          description: Página de sesiones.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+    post:
+      operationId: createLooseSession
+      summary: Crear una sesión suelta
+      description: Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.
+      tags:
+      - sessions
+      requestBody:
+        description: "Datos para crear una sesión."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSessionRequest'
+      responses:
+        '201':
+          description: Sesión creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/IdempotencyKey'
+  /sessions/{sessionId}:
+    patch:
+      operationId: updateScheduledSession
+      summary: Editar hora, espacio o método de una sesión programada
+      description: Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+      tags:
+      - sessions
+      requestBody:
+        description: "Cambios editables de una sesión."
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSessionRequest'
+      responses:
+        '200':
+          description: Sesión actualizada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
+  /sessions/{sessionId}/cancel:
+    post:
+      operationId: cancelScheduledSession
+      summary: Cancelar una sesión programada
+      description: Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.
+      tags:
+      - sessions
+      responses:
+        '200':
+          description: Sesión cancelada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduledSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
+  /activities/{activityId}/stats:
+    get:
+      operationId: getActivityStats
+      summary: Estadísticas de asistencia por estudiante de una clase
+      description: Solo sesiones CERRADAS. Responsable, DIRECTOR_INSTITUCIONAL y DIRECTOR_CARRERA de su carrera (mismo ámbito que la consulta de asistencias). porcentaje es null (sin datos) sin sesiones computables. 409 si la actividad no es una CLASE.
+      tags:
+      - stats
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityStatsPage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+  /stats/parallels:
+    get:
+      operationId: getParallelStats
+      summary: Estadísticas por paralelo en un periodo
+      description: Responsable (sus clases), DIRECTOR_CARRERA (carreras que dirige) y DIRECTOR_INSTITUCIONAL (todas). Cuenta las asistencias y ausencias de los estudiantes matriculados vigentes del paralelo. 403 si careerId no está en el ámbito.
+      tags:
+      - stats
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsGroupList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {name: careerId, in: query, description: Filtra por carrera; solo dentro del ámbito autorizado., schema: {type: string, format: uuid}}
+      - {name: desde, in: query, schema: {type: string, format: date-time}, description: Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión.}
+      - {name: hasta, in: query, schema: {type: string, format: date-time}, description: Fin del periodo (exclusivo); debe ser posterior a desde.}
+  /stats/careers:
+    get:
+      operationId: getCareerStats
+      summary: Estadísticas por carrera en un periodo
+      description: Mismo ámbito que las estadísticas por paralelo.
+      tags:
+      - stats
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatsGroupList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - {name: desde, in: query, schema: {type: string, format: date-time}, description: Inicio del periodo (inclusive) sobre el inicio de ventana de la sesión.}
+      - {name: hasta, in: query, schema: {type: string, format: date-time}, description: Fin del periodo (exclusivo); debe ser posterior a desde.}
+  /sessions/{sessionId}/absences:
+    get:
+      operationId: listSessionAbsences
+      summary: Ausencias registradas al cerrar una sesión
+      description: Responsable y directores según el ámbito de consulta. Lista vigente al momento del cierre.
+      tags:
+      - stats
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AbsencePage'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '410':
+          $ref: '#/components/responses/Gone'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+      parameters:
+      - $ref: '#/components/parameters/sessionId'
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Size'
+  /me/attendances:
+    get:
+      operationId: listMyAttendances
+      summary: Historial propio por sesión cerrada
+      description: Solo datos de la persona autenticada. Sesiones cerradas con su resultado y el estado de su última solicitud de justificación; las actividades anonimizadas no aparecen.
+      tags: [stats]
+      parameters:
+      - {$ref: '#/components/parameters/Page'}
+      - {$ref: '#/components/parameters/Size'}
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MyAttendancePage'}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+  /me/stats:
+    get:
+      operationId: getMyStats
+      summary: Porcentajes propios por actividad de clase
+      description: Devuelve los porcentajes de asistencia del estudiante autenticado por actividad de clase. No incluye datos de otras personas.
+      tags: [stats]
+      responses:
+        '200':
+          description: Resultado.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/MyStatsList'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
 components:
   securitySchemes:
     SessionBearer:
@@ -794,6 +2475,7 @@ components:
       name: activityId
       in: path
       required: true
+      description: Identificador de la actividad (clase o evento).
       schema:
         type: string
         format: uuid
@@ -801,6 +2483,7 @@ components:
       name: sessionId
       in: path
       required: true
+      description: Identificador de la sesión.
       schema:
         type: string
         format: uuid
@@ -808,6 +2491,7 @@ components:
       name: attemptId
       in: path
       required: true
+      description: Identificador del intento de asistencia.
       schema:
         type: string
         format: uuid
@@ -824,6 +2508,7 @@ components:
     Page:
       name: page
       in: query
+      description: Página solicitada, comenzando en 0.
       schema:
         type: integer
         minimum: 0
@@ -831,6 +2516,7 @@ components:
     Size:
       name: size
       in: query
+      description: Cantidad de elementos por página (1 a 100).
       schema:
         type: integer
         minimum: 1
@@ -839,6 +2525,7 @@ components:
     AttendanceState:
       name: estado
       in: query
+      description: Filtra por estado de la asistencia.
       schema:
         type: string
         enum:
@@ -956,6 +2643,7 @@ components:
             minimum: 1
   schemas:
     Problem:
+      description: "Error en formato Problem Details (RFC 7807) con un código estable en `code`."
       type: object
       additionalProperties: false
       properties:
@@ -978,7 +2666,7 @@ components:
           format: uri-reference
         code:
           type: string
-          description: Código estable para el cliente; no contiene cédulas ni secretos.
+          description: Código estable para el cliente; no contiene cédulas ni secretos. 002 añade DISPOSITIVO_REQUERIDO, DISPOSITIVO_YA_REGISTRADO, CEDULA_INVALIDA, ESPACIO_CODIGO_EXISTE, ESPACIO_SIN_UBICACION, METODO_NO_ADMITE_QR, QR_REQUERIDO, PARALELO_NO_ASIGNADO, SESION_NO_EDITABLE y HORARIO_DEMASIADO_LARGO. 003 añade PLAZO_CORRECCION_VENCIDO, NO_AUTORIZADO_EN_SESION, JUSTIFICACION_PENDIENTE_EXISTE, SIN_AUSENCIA, PASSWORD_ACTUAL_INCORRECTA, PASSWORD_DEBIL, CAMBIO_PASSWORD_REQUERIDO y RENOVACION_VENCIDA.
           example: SESION_CERRADA
         mensaje:
           type: string
@@ -986,6 +2674,10 @@ components:
         attempt_id:
           type: string
           format: uuid
+        espacio_id:
+          type: string
+          format: uuid
+          description: Espacio existente en ESPACIO_CODIGO_EXISTE.
         correlation_id:
           type: string
       required:
@@ -994,7 +2686,224 @@ components:
       - status
       - code
       - mensaje
+    VerificationMethod:
+      description: "Método de verificación de asistencia de una actividad o sesión."
+      type: string
+      enum:
+      - QR_Y_GPS
+      - SOLO_QR
+      - SOLO_GPS
+      - NINGUNO
+    DeviceId:
+      type: string
+      format: uuid
+      description: Identificador de instalación generado por la app; el servidor solo guarda su HMAC.
+    Space:
+      description: "Espacio físico (aula, laboratorio, auditorio, exterior u otro) con coordenadas y tolerancia."
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+          maxLength: 40
+        nombre:
+          type: string
+          maxLength: 200
+        tipo:
+          type: string
+          enum:
+          - AULA
+          - LABORATORIO
+          - AUDITORIO
+          - EXTERIOR
+          - OTRO
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        editable:
+          type: boolean
+      required:
+      - id
+      - codigo
+      - nombre
+      - tipo
+      - radio_defecto_m
+      - precision_defecto_m
+      - editable
+    SpacePage:
+      description: "Página de espacios."
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Space'
+        page:
+          type: integer
+          minimum: 0
+        size:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+      required:
+      - items
+      - page
+      - size
+      - total
+    GeoEvidence:
+      description: "Versión inmutable de la evidencia geográfica de campo de un espacio."
+      type: object
+      additionalProperties: false
+      properties:
+        id: {type: string, format: uuid}
+        espacio_id: {type: string, format: uuid}
+        version: {type: integer, minimum: 1}
+        referencia: {type: string, minLength: 1, maxLength: 500}
+        realizada_en: {type: string, format: date-time}
+        responsable_id: {type: string, format: uuid}
+        falsos_positivos: {type: number, minimum: 0, maximum: 1}
+        falsos_negativos: {type: number, minimum: 0, maximum: 1}
+        verificada_en: {type: string, format: date-time}
+      required: [id, espacio_id, version, referencia, realizada_en, responsable_id, falsos_positivos, falsos_negativos, verificada_en]
+    GeoEvidenceCreate:
+      description: "Datos para registrar una nueva versión de evidencia geográfica."
+      type: object
+      additionalProperties: false
+      properties:
+        referencia: {type: string, minLength: 1, maxLength: 500}
+        realizada_en: {type: string, format: date-time}
+        falsos_positivos: {type: number, minimum: 0, maximum: 1}
+        falsos_negativos: {type: number, minimum: 0, maximum: 1}
+      required: [referencia, realizada_en, falsos_positivos, falsos_negativos]
+    CreateSpaceRequest:
+      description: "Datos para crear un espacio."
+      type: object
+      additionalProperties: false
+      properties:
+        codigo:
+          type: string
+          minLength: 1
+          maxLength: 40
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 200
+        tipo:
+          $ref: '#/components/schemas/SpaceType'
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+      required:
+      - codigo
+      - nombre
+    UpdateSpaceRequest:
+      description: "Datos editables de un espacio; el código no cambia."
+      type: object
+      additionalProperties: false
+      properties:
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 200
+        tipo:
+          $ref: '#/components/schemas/SpaceType'
+        latitud:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitud:
+          type: number
+          minimum: -180
+          maximum: 180
+        radio_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+        precision_defecto_m:
+          type: number
+          minimum: 0
+          exclusiveMinimum: true
+    SpaceType:
+      description: "Tipo de espacio."
+      type: string
+      enum:
+      - AULA
+      - LABORATORIO
+      - AUDITORIO
+      - EXTERIOR
+      - OTRO
+    ImportReport:
+      description: "Resultado de una importación CSV con conteos y filas rechazadas."
+      type: object
+      additionalProperties: false
+      properties:
+        procesadas:
+          type: integer
+          minimum: 0
+        creadas:
+          type: integer
+          minimum: 0
+        actualizadas:
+          type: integer
+          minimum: 0
+        sin_cambios:
+          type: integer
+          minimum: 0
+        rechazadas:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              fila:
+                type: integer
+                minimum: 1
+              motivo:
+                type: string
+            required:
+            - fila
+            - motivo
+      required:
+      - procesadas
+      - creadas
+      - actualizadas
+      - sin_cambios
+      - rechazadas
     LoginRequest:
+      description: "Credenciales locales de desarrollo (solo si `GEOASIST_LOCAL_LOGIN=true`)."
       type: object
       additionalProperties: false
       properties:
@@ -1009,7 +2918,35 @@ components:
       required:
       - correo
       - password
+    CasLoginRequest:
+      description: "Ticket CAS y servicio para canjear por una sesión."
+      type: object
+      additionalProperties: false
+      required: [ticket, service]
+      properties:
+        ticket:
+          type: string
+          minLength: 1
+          maxLength: 256
+          writeOnly: true
+          description: Ticket CAS de un solo uso; nunca se registra.
+        service:
+          type: string
+          format: uri
+          minLength: 1
+          maxLength: 2048
+    SsoConfiguration:
+      description: "URLs públicas del SSO para clientes web y móvil."
+      type: object
+      additionalProperties: false
+      required: [login_url, logout_url, web_service, mobile_service_prefix]
+      properties:
+        login_url: {type: string, format: uri}
+        logout_url: {type: string, format: uri}
+        web_service: {type: string, format: uri}
+        mobile_service_prefix: {type: string, format: uri}
     LoginResult:
+      description: "Sesión emitida: bearer opaco, vencimiento y roles."
       type: object
       additionalProperties: false
       properties:
@@ -1035,11 +2972,39 @@ components:
             - ESTUDIANTE
             - DIRECTOR_INSTITUCIONAL
             - DIRECTOR_CARRERA
+            - ADMINISTRADOR
+        debe_cambiar_password:
+          type: boolean
+          description: Siempre false para cuentas CAS (conservado por compatibilidad).
       required:
       - access_token
       - token_type
       - vence_en
       - roles
+    MeProfile:
+      description: "Perfil de la sesión actual sin secretos."
+      type: object
+      additionalProperties: false
+      required: [cuenta_id, persona_id, nombres, correo, roles, paralelos, debe_cambiar_password]
+      properties:
+        cuenta_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        nombres: {type: string}
+        correo: {type: string}
+        roles: {type: array, items: {type: string}}
+        debe_cambiar_password: {type: boolean}
+        paralelos:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [paralelo_id, codigo, carrera_id, carrera_codigo, carrera_nombre]
+            properties:
+              paralelo_id: {type: string, format: uuid}
+              codigo: {type: string}
+              carrera_id: {type: string, format: uuid}
+              carrera_codigo: {type: string}
+              carrera_nombre: {type: string}
     Activity:
       type: object
       additionalProperties: false
@@ -1059,6 +3024,7 @@ components:
           enum:
           - ABIERTA
           - CERRADA
+          - CANCELADA
         cerrada_en:
           type: string
           format: date-time
@@ -1082,19 +3048,38 @@ components:
           items:
             type: string
             format: uuid
+        acceso:
+          type: string
+          enum: [CERRADO, ABIERTO]
+          nullable: true
+          description: Solo los eventos tienen acceso; las clases devuelven null.
+        espacio_id:
+          type: string
+          format: uuid
+        metodo_verificacion:
+          type: string
+          enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]
+        ciclo_automatico: {type: boolean}
+        umbral_asistencia: {type: number, minimum: 0, maximum: 100}
       required:
       - id
       - nombre
       - tipo
       - estado
       - cerrada_en
+      - acceso
+      - espacio_id
+      - metodo_verificacion
       - anonimizar_en
       - responsable_id
       - carrera_ids
       - paralelo_ids
+      - ciclo_automatico
+      - umbral_asistencia
       description: Los eventos pueden vincular varias carreras y paralelos. El servidor calcula los ámbitos mediante
         estos vínculos y responsable_id; los filtros de lectura no los sustituyen.
     ActivityPage:
+      description: "Página de actividades."
       type: object
       additionalProperties: false
       properties:
@@ -1118,6 +3103,7 @@ components:
       - size
       - total
     GuestSettings:
+      description: "Configuración de invitados de una actividad."
       type: object
       additionalProperties: false
       properties:
@@ -1132,6 +3118,7 @@ components:
       - habilitado
       - tolerancia_invitado_segundos
     GuestEntry:
+      description: "Entrada de la lista autorizada de invitados."
       type: object
       additionalProperties: false
       properties:
@@ -1148,6 +3135,7 @@ components:
       - cedula
       - nombres
     GuestListReplacement:
+      description: "Lista completa de invitados que reemplaza la anterior."
       type: object
       additionalProperties: false
       properties:
@@ -1162,6 +3150,7 @@ components:
       required:
       - invitados
     GuestListResult:
+      description: "Resultado de reemplazar la lista de invitados."
       type: object
       additionalProperties: false
       properties:
@@ -1179,6 +3168,7 @@ components:
       - total
       - actualizada_en
     Session:
+      description: "Sesión de una actividad y su estado."
       type: object
       additionalProperties: false
       properties:
@@ -1209,6 +3199,7 @@ components:
       - iniciada_en
       - cerrada_en
     Qr:
+      description: "Token QR vigente y sus tiempos de rotación y vencimiento."
       type: object
       additionalProperties: false
       properties:
@@ -1259,9 +3250,11 @@ components:
           minimum: 1
       required:
       - habilitada
-      description: Al habilitar se requieren los tres parámetros; el servidor los valida conjuntamente. Si está
-        apagada no se pide permiso ni se conserva ubicación.
+      description: Al habilitar, radio_m y precision_max_m son opcionales y heredan los valores por defecto del
+        espacio de la sesión; antiguedad_max_s por defecto es 60. Si está apagada no se pide permiso ni se conserva
+        ubicación.
     GeolocationStatus:
+      description: "Estado de la configuración geográfica de una sesión."
       type: object
       additionalProperties: false
       properties:
@@ -1283,6 +3276,7 @@ components:
       - modo_efectivo
       - evidencia_campo_verificada
     Location:
+      description: "Ubicación reportada por el dispositivo."
       type: object
       additionalProperties: false
       properties:
@@ -1306,6 +3300,7 @@ components:
       - precision_m
       - medido_en
     AttendanceAttemptRequest:
+      description: "Intento de asistencia con QR o sesión y ubicación."
       type: object
       additionalProperties: false
       properties:
@@ -1316,10 +3311,18 @@ components:
           description: 'Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente
             y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento
             tras leerlo.'
+        dispositivo_id:
+          $ref: '#/components/schemas/DeviceId'
+        sesion_id:
+          type: string
+          format: uuid
+          description: Identifica la sesión cuando su método no incluye QR (SOLO_GPS, NINGUNO). Se envía exactamente
+            uno de qr_token o sesion_id; qr_token en método sin QR responde 400 METODO_NO_ADMITE_QR y sesion_id en
+            método con QR responde 400 QR_REQUERIDO.
         ubicacion:
           $ref: '#/components/schemas/Location'
       required:
-      - qr_token
+      - dispositivo_id
     AttendanceReceipt:
       type: object
       additionalProperties: false
@@ -1351,6 +3354,7 @@ components:
       - mensaje
       description: Recibo mínimo compartido por ambos flujos. Sin cédula, nombres ni datos del listado.
     PendingReceipt:
+      description: "Comprobante de intento pendiente de revisión."
       type: object
       additionalProperties: false
       properties:
@@ -1372,6 +3376,7 @@ components:
       - code
       - mensaje
     GuestStartRequest:
+      description: "Inicio del flujo de invitado con QR o sesión."
       type: object
       additionalProperties: false
       properties:
@@ -1382,9 +3387,12 @@ components:
           description: 'Secreto QR opaco. Puede representarse en una URL con fragmento #qr=token, leído por el cliente
             y enviado solo en el cuerpo al backend. No incluirlo en ruta, query, logs o telemetría; retirar el fragmento
             tras leerlo.'
-      required:
-      - qr_token
+        sesion_id:
+          type: string
+          format: uuid
+          description: Alternativa a qr_token solo para sesiones cuyo método no incluye QR.
     GuestStartResult:
+      description: "Token temporal para completar el registro de invitado."
       type: object
       additionalProperties: false
       properties:
@@ -1399,11 +3407,15 @@ components:
         vence_en:
           type: string
           format: date-time
+        evento_abierto:
+          type: boolean
       required:
       - registro_invitado_token
       - inicio_en
       - vence_en
+      - evento_abierto
     GuestSubmitRequest:
+      description: "Datos del invitado para completar su registro."
       type: object
       additionalProperties: false
       properties:
@@ -1415,11 +3427,28 @@ components:
         cedula:
           type: string
           pattern: ^[0-9]{10}$
+        nombres:
+          type: string
+          minLength: 1
+          maxLength: 200
+        dispositivo_id:
+          $ref: '#/components/schemas/DeviceId'
         ubicacion:
           $ref: '#/components/schemas/Location'
       required:
       - registro_invitado_token
       - cedula
+      - dispositivo_id
+    OpenEvent:
+      description: "Datos públicos mínimos de un evento abierto activo."
+      type: object
+      additionalProperties: false
+      required: [sesion_id, nombre, metodo_verificacion]
+      properties:
+        sesion_id: {type: string, format: uuid}
+        nombre: {type: string}
+        espacio: {type: string, nullable: true}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
     AttendanceRow:
       type: object
       additionalProperties: false
@@ -1456,6 +3485,15 @@ components:
         mensaje:
           type: string
           description: Motivo comprensible del resultado mostrado.
+        forma:
+          type: string
+          nullable: true
+          enum: [CREDENCIALES, INVITADO_LISTADO, REVISION, AUTORREGISTRO, MANUAL]
+          description: Forma de la asistencia confirmada; null sin asistencia.
+        razon_manual:
+          type: string
+          nullable: true
+          description: Razón del responsable cuando forma es MANUAL.
       required:
       - asistencia_id
       - persona_id
@@ -1466,10 +3504,13 @@ components:
       - attempt_id
       - code
       - mensaje
+      - forma
+      - razon_manual
       description: Una fila por persona identificada en la sesión. Prevalece su asistencia confirmada; si no existe,
         mostrar su último intento identificado pendiente o rechazado. Nunca exponer intentos sin persona identificada
         ni cédulas desconocidas. El filtro estado se aplica después de esta proyección.
     AttendancePage:
+      description: "Página de asistencias."
       type: object
       additionalProperties: false
       properties:
@@ -1493,6 +3534,7 @@ components:
       - size
       - total
     ReviewRequest:
+      description: "Decisión y razón de la revisión de un intento."
       type: object
       additionalProperties: false
       properties:
@@ -1509,6 +3551,7 @@ components:
       - decision
       - razon
     ReviewResult:
+      description: "Resultado de la revisión de un intento."
       type: object
       additionalProperties: false
       properties:
@@ -1532,9 +3575,91 @@ components:
       - asistencia_id
       - decision
       - revisada_en
-    AuditValues:
+    ManualAttendanceRequest:
+      description: "Datos para registrar una asistencia manual."
       type: object
       additionalProperties: false
+      properties:
+        persona_id: {type: string, format: uuid}
+        razon: {type: string, minLength: 1, maxLength: 2000}
+      required: [persona_id, razon]
+    ManualAttendanceResult:
+      description: "Resultado de la asistencia manual."
+      type: object
+      additionalProperties: false
+      properties:
+        asistencia_id: {type: string, format: uuid}
+        attempt_id: {type: string, format: uuid}
+        session_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        forma: {type: string, enum: [MANUAL]}
+        registrada_en: {type: string, format: date-time}
+      required: [asistencia_id, attempt_id, session_id, persona_id, forma, registrada_en]
+    JustifyAbsenceRequest:
+      description: "Razón para justificar una ausencia."
+      type: object
+      additionalProperties: false
+      properties:
+        razon: {type: string, minLength: 1, maxLength: 2000}
+      required: [razon]
+    JustificationRequestBody:
+      description: "Motivo de la solicitud de justificación del estudiante."
+      type: object
+      additionalProperties: false
+      properties:
+        motivo: {type: string, minLength: 1, maxLength: 2000}
+      required: [motivo]
+    JustificationDecisionRequest:
+      description: "Decisión y razón sobre una solicitud de justificación."
+      type: object
+      additionalProperties: false
+      properties:
+        decision: {type: string, enum: [APROBAR, RECHAZAR]}
+        razon: {type: string, minLength: 1, maxLength: 2000}
+      required: [decision, razon]
+    JustificationSummary:
+      description: "Resumen de una solicitud de justificación."
+      type: object
+      additionalProperties: false
+      properties:
+        id: {type: string, format: uuid}
+        sesion_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        estado: {type: string, enum: [PENDIENTE, APROBADA, RECHAZADA]}
+        instante: {type: string, format: date-time}
+      required: [id, sesion_id, persona_id, estado, instante]
+    Justification:
+      description: "Justificación de una ausencia."
+      type: object
+      additionalProperties: false
+      properties:
+        id: {type: string, format: uuid}
+        sesion_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        origen: {type: string, enum: [ESTUDIANTE, RESPONSABLE]}
+        motivo: {type: string}
+        estado: {type: string, enum: [PENDIENTE, APROBADA, RECHAZADA]}
+        razon_decision: {type: string, nullable: true}
+        solicitada_en: {type: string, format: date-time}
+        decidida_en: {type: string, format: date-time, nullable: true}
+      required: [id, sesion_id, persona_id, cedula, nombres, origen, motivo, estado, razon_decision, solicitada_en, decidida_en]
+    JustificationPage:
+      description: "Página de justificaciones."
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Justification'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+      required: [items, page, size, total]
+    AuditValues:
+      type: object
+      additionalProperties: true
       properties:
         estado:
           type: string
@@ -1547,9 +3672,19 @@ components:
         cantidad_invitados:
           type: integer
           minimum: 0
+        sesion_id: {type: string, format: uuid}
+        persona_id: {type: string, format: uuid}
+        forma: {type: string}
+        nombre: {type: string}
+        metodo_verificacion: {type: string}
+        codigo: {type: string}
+        ciclo_automatico: {type: boolean}
+        umbral_asistencia: {type: number, minimum: 0, maximum: 100}
       description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas o
-        copias completas de listados.
+        copias completas de listados. Las claves listadas son las habituales; la fila puede incluir otras
+        claves propias de la acción auditada.
     AuditRow:
+      description: "Fila de auditoría de una actividad."
       type: object
       additionalProperties: false
       properties:
@@ -1562,6 +3697,8 @@ components:
         responsable_id:
           type: string
           format: uuid
+          nullable: true
+          description: Nulo cuando la acción la ejecuta el sistema (acciones SISTEMA_*).
         accion:
           type: string
         ocurrida_en:
@@ -1584,6 +3721,10 @@ components:
             cantidad_invitados:
               type: integer
               minimum: 0
+            sesion_id: {type: string, format: uuid}
+            codigo: {type: string}
+            ciclo_automatico: {type: boolean}
+            umbral_asistencia: {type: number, minimum: 0, maximum: 100}
           description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas
             o copias completas de listados.
           nullable: true
@@ -1602,6 +3743,10 @@ components:
             cantidad_invitados:
               type: integer
               minimum: 0
+            sesion_id: {type: string, format: uuid}
+            codigo: {type: string}
+            ciclo_automatico: {type: boolean}
+            umbral_asistencia: {type: number, minimum: 0, maximum: 100}
           description: Valores anteriores/nuevos pertinentes; no incluir credenciales, tokens, coordenadas exactas
             o copias completas de listados.
           nullable: true
@@ -1614,6 +3759,7 @@ components:
       - anterior
       - nuevo
     AuditPage:
+      description: "Página de auditoría."
       type: object
       additionalProperties: false
       properties:
@@ -1636,3 +3782,497 @@ components:
       - page
       - size
       - total
+    AdminAccount:
+      description: "Cuenta de acceso de una persona."
+      type: object
+      required: [id, correo, activa, roles]
+      properties:
+        id: {type: string, format: uuid}
+        correo: {type: string}
+        activa: {type: boolean}
+        roles:
+          type: array
+          items: {type: string}
+    AdminPerson:
+      description: "Persona con sus roles y cuenta."
+      type: object
+      required: [id, cedula, nombres, tipo, cuenta]
+      properties:
+        id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        tipo: {type: string, enum: [INSTITUCIONAL, EXTERNA]}
+        cuenta:
+          nullable: true
+          allOf:
+          - $ref: '#/components/schemas/AdminAccount'
+    AdminPersonPage:
+      description: "Página de personas."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/AdminPerson'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    AdminPersonCreate:
+      description: "Datos para crear una persona."
+      type: object
+      additionalProperties: false
+      required: [cedula, nombres]
+      properties:
+        cedula: {type: string, pattern: '^[0-9]{10}$'}
+        nombres: {type: string, minLength: 1, maxLength: 200}
+    AdminAccountCreate:
+      description: "Datos para crear una cuenta."
+      type: object
+      additionalProperties: false
+      required: [persona_id, correo, roles]
+      properties:
+        persona_id: {type: string, format: uuid}
+        correo: {type: string, maxLength: 254}
+        roles:
+          type: array
+          minItems: 1
+          items: {type: string, enum: [DOCENTE, ENCARGADO, ESTUDIANTE, DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA, ADMINISTRADOR]}
+    AdminAccountPatch:
+      description: "Cambios de rol o estado de una cuenta."
+      type: object
+      additionalProperties: false
+      properties:
+        roles:
+          type: array
+          minItems: 1
+          items: {type: string, enum: [DOCENTE, ENCARGADO, ESTUDIANTE, DIRECTOR_INSTITUCIONAL, DIRECTOR_CARRERA, ADMINISTRADOR]}
+        activa: {type: boolean}
+    AdminCareer:
+      description: "Carrera académica."
+      type: object
+      required: [id, codigo, nombre]
+      properties:
+        id: {type: string, format: uuid}
+        codigo: {type: string}
+        nombre: {type: string}
+    AdminParallel:
+      description: "Paralelo de una carrera con conteos."
+      type: object
+      required: [id, codigo, matriculados, docentes]
+      properties:
+        id: {type: string, format: uuid}
+        codigo: {type: string}
+        matriculados: {type: integer, minimum: 0}
+        docentes: {type: integer, minimum: 0}
+    AdminRejectedEntry:
+      description: "Fila rechazada durante una importación o reemplazo."
+      type: object
+      required: [entrada, motivo]
+      properties:
+        entrada: {type: string}
+        motivo: {type: string}
+    ActiveSession:
+      description: "Sesión activa donde el participante puede registrar asistencia."
+      type: object
+      required: [sesion_id, actividad, metodo_verificacion, requiere_ubicacion, inicio, fin]
+      properties:
+        sesion_id: {type: string, format: uuid}
+        actividad:
+          type: object
+          required: [id, nombre, modalidad]
+          properties:
+            id: {type: string, format: uuid}
+            nombre: {type: string}
+            modalidad: {type: string, enum: [CLASE, EVENTO]}
+        espacio:
+          type: object
+          nullable: true
+          required: [id, nombre]
+          properties:
+            id: {type: string, format: uuid}
+            nombre: {type: string}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        requiere_ubicacion: {type: boolean}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+    ActiveSessionPage:
+      description: "Página de sesiones activas."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/ActiveSession'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1}
+        total: {type: integer, minimum: 0}
+    MyParallel:
+      description: "Paralelo asignado al docente o encargado."
+      type: object
+      required: [paralelo_id, codigo, carrera_id, carrera_codigo, carrera_nombre, matriculados]
+      properties:
+        paralelo_id: {type: string, format: uuid}
+        codigo: {type: string}
+        carrera_id: {type: string, format: uuid}
+        carrera_codigo: {type: string}
+        carrera_nombre: {type: string}
+        matriculados: {type: integer, minimum: 0}
+    CreateActivityRequest:
+      description: "Datos para crear una clase o evento."
+      type: object
+      required: [modalidad, nombre, espacio_id]
+      properties:
+        modalidad: {type: string, enum: [CLASE, EVENTO]}
+        nombre: {type: string, minLength: 1, maxLength: 200}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        paralelo_ids:
+          type: array
+          minItems: 1
+          items: {type: string, format: uuid}
+        horario: {$ref: '#/components/schemas/Schedule'}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        tolerancia_invitado_segundos: {type: integer, minimum: 41, default: 120}
+        carrera_ids:
+          type: array
+          uniqueItems: true
+          items: {type: string, format: uuid}
+    Schedule:
+      description: "Horario semanal de una clase."
+      type: object
+      required: [dias, hora_inicio, hora_fin, desde, hasta]
+      properties:
+        dias:
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          items: {type: integer, minimum: 1, maximum: 7}
+        hora_inicio: {type: string, example: '08:00'}
+        hora_fin: {type: string, example: '10:00'}
+        desde: {type: string, format: date}
+        hasta: {type: string, format: date}
+    UpdateActivityRequest:
+      description: "Cambios editables de una actividad."
+      type: object
+      properties:
+        nombre: {type: string, minLength: 1, maxLength: 200}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        ciclo_automatico: {type: boolean}
+        umbral_asistencia: {type: number, minimum: 0, maximum: 100}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
+    SessionSummary:
+      description: "Resumen de una sesión dentro de una actividad."
+      type: object
+      required: [id, estado, inicio, fin]
+      properties:
+        id: {type: string, format: uuid}
+        estado: {type: string, enum: [PROGRAMADA, ACTIVA, CERRADA, CANCELADA]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+    CreatedActivity:
+      description: "Actividad creada con sus sesiones generadas."
+      type: object
+      required: [id, nombre, tipo, estado, espacio_id, metodo_verificacion, sesiones]
+      properties:
+        id: {type: string, format: uuid}
+        nombre: {type: string}
+        tipo: {type: string, enum: [CLASE, EVENTO]}
+        estado: {type: string, enum: [ABIERTA, CERRADA, CANCELADA]}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        estudiantes_autorizados: {type: integer, minimum: 0}
+        acceso: {type: string, enum: [CERRADO, ABIERTO]}
+        tolerancia_invitado_segundos: {type: integer, minimum: 41}
+        paralelo_ids:
+          type: array
+          items: {type: string, format: uuid}
+        carrera_ids:
+          type: array
+          items: {type: string, format: uuid}
+        sesiones:
+          type: array
+          items: {$ref: '#/components/schemas/SessionSummary'}
+    GuestPage:
+      description: "Página de invitados de una actividad."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/GuestRow'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    GuestRow:
+      description: "Fila de invitado con su estado."
+      type: object
+      required: [persona_id, cedula, nombres, activo]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        activo: {type: boolean}
+    GeolocationConfig:
+      description: "Configuración geográfica aplicada a una sesión."
+      type: object
+      required: [habilitada, radio_m, precision_max_m, antiguedad_max_s, modo, evidencia_id, evidencia_vigente]
+      properties:
+        habilitada: {type: boolean}
+        radio_m: {type: number, nullable: true}
+        precision_max_m: {type: number, nullable: true}
+        antiguedad_max_s: {type: integer, nullable: true}
+        modo: {type: string, enum: [OFF, REVIEW_ONLY, AUTO]}
+        evidencia_id: {type: string, format: uuid, nullable: true}
+        evidencia_vigente:
+          type: boolean
+          description: El espacio de la sesión tiene al menos una evidencia de campo registrada.
+    ScheduleCurrent:
+      description: "Horario vigente de una actividad."
+      allOf:
+      - $ref: '#/components/schemas/Schedule'
+      - type: object
+        required: [espacio_id, zona]
+        properties:
+          espacio_id: {type: string, format: uuid, nullable: true}
+          zona: {type: string, example: America/Guayaquil}
+    EnrollmentPage:
+      description: "Página de matriculados de un paralelo."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/EnrollmentRow'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    EnrollmentRow:
+      description: "Fila de matrícula de un paralelo."
+      type: object
+      required: [persona_id, cedula, nombres, vigente]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        vigente: {type: boolean}
+    TeacherPage:
+      description: "Página de docentes de un paralelo."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/TeacherRow'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    TeacherRow:
+      description: "Fila de docente asignado a un paralelo."
+      type: object
+      required: [cuenta_id, correo, nombres, vigente]
+      properties:
+        cuenta_id: {type: string, format: uuid}
+        correo: {type: string}
+        nombres: {type: string}
+        vigente: {type: boolean}
+    ScheduleReplaced:
+      description: "Resultado de reemplazar el horario."
+      type: object
+      required: [eliminadas, generadas]
+      properties:
+        activity_id: {type: string, format: uuid}
+        eliminadas: {type: integer, minimum: 0}
+        generadas: {type: integer, minimum: 0}
+    AddStudentRequest:
+      description: "Datos para añadir un estudiante autorizado."
+      type: object
+      required: [cedula]
+      properties:
+        cedula: {type: string, pattern: '^[0-9]{10}$'}
+    AuthorizedStudent:
+      description: "Estudiante autorizado en una actividad."
+      type: object
+      required: [persona_id, vigente]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        vigente: {type: boolean}
+        activity_id: {type: string, format: uuid}
+    AuthorizedStudentPage:
+      description: "Página de estudiantes autorizados."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/AuthorizedStudent'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    SyncResult:
+      description: "Resultado de sincronizar estudiantes desde los paralelos."
+      type: object
+      required: [agregados]
+      properties:
+        activity_id: {type: string, format: uuid}
+        agregados: {type: integer, minimum: 0}
+    CreateSessionRequest:
+      description: "Datos para crear una sesión."
+      type: object
+      required: [inicio, fin]
+      properties:
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid}
+    UpdateSessionRequest:
+      description: "Cambios editables de una sesión."
+      type: object
+      properties:
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+    ScheduledSession:
+      description: "Sesión programada de una actividad."
+      type: object
+      required: [id, activity_id, estado, inicio, fin, metodo_verificacion]
+      properties:
+        id: {type: string, format: uuid}
+        activity_id: {type: string, format: uuid}
+        estado: {type: string, enum: [PROGRAMADA, ACTIVA, CERRADA, CANCELADA]}
+        inicio: {type: string, format: date-time}
+        fin: {type: string, format: date-time}
+        espacio_id: {type: string, format: uuid, nullable: true}
+        metodo_verificacion: {type: string, enum: [QR_Y_GPS, SOLO_QR, SOLO_GPS, NINGUNO]}
+        horario_id: {type: string, format: uuid, nullable: true}
+    SessionPage:
+      description: "Página de sesiones."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/ScheduledSession'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    AbsenceState: {type: string, enum: [AUSENTE, JUSTIFICADA], description: "Estado de una ausencia."}
+    AttendanceStats:
+      description: "Estadísticas agregadas de asistencia."
+      type: object
+      required: [sesiones_computables, asistencias, ausencias, ausencias_justificadas, porcentaje]
+      properties:
+        sesiones_computables: {type: integer, minimum: 0}
+        asistencias: {type: integer, minimum: 0}
+        ausencias: {type: integer, minimum: 0, description: Incluye las justificadas.}
+        ausencias_justificadas: {type: integer, minimum: 0}
+        porcentaje: {type: number, nullable: true, minimum: 0, maximum: 100, description: 'asistencias / computables con 2 decimales; null = sin datos.'}
+        bajo_umbral: {type: boolean, description: Solo por estudiante.}
+    StudentStats:
+      description: "Estadísticas de un estudiante."
+      allOf:
+      - $ref: '#/components/schemas/AttendanceStats'
+      - type: object
+        required: [persona_id, cedula, nombres, bajo_umbral]
+        properties:
+          persona_id: {type: string, format: uuid}
+          cedula: {type: string}
+          nombres: {type: string}
+    ActivityStatsPage:
+      description: "Página de estadísticas de una actividad."
+      type: object
+      required: [umbral_asistencia, resumen, items, page, size, total]
+      properties:
+        umbral_asistencia: {type: number, minimum: 0, maximum: 100}
+        resumen: {$ref: '#/components/schemas/AttendanceStats'}
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/StudentStats'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    GroupStats:
+      description: "Estadísticas agregadas de un grupo (paralelo o carrera)."
+      allOf:
+      - $ref: '#/components/schemas/AttendanceStats'
+      - type: object
+        required: [carrera]
+        properties:
+          paralelo_id: {type: string, format: uuid, description: Solo en estadísticas por paralelo.}
+          carrera_id: {type: string, format: uuid}
+          carrera: {type: string, description: Código de la carrera.}
+          paralelo: {type: string, description: Código del paralelo.}
+          nombre: {type: string, description: Nombre de la carrera.}
+    StatsGroupList:
+      description: "Lista de estadísticas por grupo."
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/GroupStats'}
+    Absence:
+      description: "Ausencia de una persona en una sesión."
+      type: object
+      required: [persona_id, cedula, nombres, estado]
+      properties:
+        persona_id: {type: string, format: uuid}
+        cedula: {type: string}
+        nombres: {type: string}
+        estado: {$ref: '#/components/schemas/AbsenceState'}
+    AbsencePage:
+      description: "Página de ausencias."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/Absence'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    MyAttendance:
+      description: "Asistencia propia del estudiante."
+      type: object
+      required: [sesion_id, actividad_id, actividad, inicio, resultado, justificacion]
+      properties:
+        sesion_id: {type: string, format: uuid}
+        actividad_id: {type: string, format: uuid}
+        actividad: {type: string}
+        inicio: {type: string, format: date-time}
+        resultado: {type: string, enum: [ASISTIO, AUSENTE, JUSTIFICADA, PENDIENTE_REVISION]}
+        justificacion: {type: string, nullable: true, enum: [PENDIENTE, APROBADA, RECHAZADA]}
+    MyAttendancePage:
+      description: "Página de asistencias propias."
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/MyAttendance'}
+        page: {type: integer, minimum: 0}
+        size: {type: integer, minimum: 1, maximum: 100}
+        total: {type: integer, minimum: 0}
+    MyActivityStats:
+      description: "Estadísticas propias por actividad."
+      allOf:
+      - $ref: '#/components/schemas/AttendanceStats'
+      - type: object
+        required: [actividad_id, actividad, umbral_asistencia]
+        properties:
+          actividad_id: {type: string, format: uuid}
+          actividad: {type: string}
+          umbral_asistencia: {type: number, minimum: 0, maximum: 100}
+    MyStatsList:
+      description: "Lista de estadísticas propias."
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items: {$ref: '#/components/schemas/MyActivityStats'}

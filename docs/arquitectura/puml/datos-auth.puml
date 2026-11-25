@@ -1,0 +1,77 @@
+@startuml datos-auth
+' Fuente: services/auth/src/main/resources/db/migration/V001__usuarios_y_servicios.sql (base geoasist_auth).
+skinparam shadowing false
+skinparam linetype ortho
+hide circle
+title Base geoasist_auth - usuarios, servicios y tickets CAS
+
+entity usuarios {
+  * id : uuid <<PK>>
+  --
+  * correo : varchar(254) <<UQ>>
+  * cedula : char(10) <<UQ>>
+  * nombres
+  * password_hash
+  * activo, debe_cambiar_password
+  * creado_en, actualizado_en
+}
+entity usuario_roles {
+  * usuario_id : uuid <<PK, FK>>
+  * rol : <<PK>>
+}
+entity usuario_carreras {
+  * usuario_id : uuid <<PK, FK>>
+  * carrera_codigo : <<PK>>
+}
+entity servicios {
+  * id : uuid <<PK>>
+  --
+  * nombre <<UQ>>
+  * retornos : text[]
+  * clave_hash
+  * activo
+}
+entity sesiones_sso {
+  * id : uuid <<PK>>
+  --
+  * usuario_id : uuid <<FK>>
+  * secreto_hash <<UQ>>
+  * creada_en, ultimo_uso_en, vence_absoluto_en
+  cerrada_en
+}
+entity tickets {
+  * id : uuid <<PK>>
+  --
+  * hash <<UQ>>
+  * sesion_id : uuid <<FK>>
+  * servicio_id : uuid <<FK>>
+  * service, emitido_en, vence_en
+  usado_en : un solo uso
+}
+entity registro_ingresos {
+  * id : uuid <<PK>>
+  --
+  * correo, origen, en
+  * resultado : OK | CREDENCIALES | INACTIVO | BLOQUEADO
+  servicio_id : uuid <<FK>>
+}
+entity auditoria_admin {
+  * id : uuid <<PK>>
+  --
+  * actor_id, accion, en
+  objetivo_id
+  anterior : jsonb, nuevo : jsonb
+}
+entity contadores_limite {
+  * ambito, ventana : <<PK>>
+  --
+  * conteo
+}
+
+usuarios ||--o{ usuario_roles
+usuarios ||--o{ usuario_carreras
+usuarios ||--o{ sesiones_sso
+sesiones_sso ||--o{ tickets
+servicios ||--o{ tickets
+servicios |o--o{ registro_ingresos
+@enduml

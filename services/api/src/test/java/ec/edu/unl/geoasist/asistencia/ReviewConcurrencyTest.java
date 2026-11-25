@@ -11,6 +11,59 @@ import java.util.concurrent.*;
 import org.junit.jupiter.api.Test;
 
 class ReviewConcurrencyTest extends PostgresFixture {
+  @org.springframework.beans.factory.annotation.Autowired
+  ec.edu.unl.geoasist.compartido.aplicacion.OpaqueSecrets secrets;
+
+  @Test
+  void approvalRejectsDeviceAlreadyUsedByAnotherPerson() throws Exception {
+    var ids = scenario("EVENTO", 201);
+    String owner = token("encargado@example.test");
+    start(ids[1], owner);
+    UUID personA =
+        db.queryForObject(
+            "SELECT persona_id FROM cuentas WHERE identificador=?",
+            UUID.class,
+            ScenarioFixtures.STUDENT);
+    UUID personB =
+        db.queryForObject(
+            "SELECT persona_id FROM cuentas WHERE identificador=?",
+            UUID.class,
+            ScenarioFixtures.DIRECTOR);
+    String deviceHash = secrets.hmac("device:" + UUID.randomUUID());
+    UUID accepted = UUID.randomUUID(), attendance = UUID.randomUUID();
+    db.update(
+        "INSERT INTO intentos_asistencia(id,sesion_id,persona_id,nombres_referencia,resultado,code,mensaje,dispositivo_hash,canal,recibido_en) VALUES (?,?,?,'Persona A','ACEPTADO','ASISTENCIA_CONFIRMADA','Registrada',?,'CREDENCIALES',?)",
+        accepted,
+        ids[1],
+        personA,
+        deviceHash,
+        Timestamp.from(clock.instant()));
+    db.update(
+        "INSERT INTO asistencias(id,sesion_id,persona_id,intento_id,registrada_en,forma,nombres_registro,dispositivo_hash) VALUES (?,?,?,?,?,'CREDENCIALES','Persona A',?)",
+        attendance,
+        ids[1],
+        personA,
+        accepted,
+        Timestamp.from(clock.instant()),
+        deviceHash);
+    UUID pending = UUID.randomUUID();
+    db.update(
+        "INSERT INTO intentos_asistencia(id,sesion_id,persona_id,nombres_referencia,resultado,code,mensaje,dispositivo_hash,canal,recibido_en) VALUES (?,?,?,'Persona B','PENDIENTE_REVISION','UBICACION_INCIERTA','Pendiente',?,'CREDENCIALES',?)",
+        pending,
+        ids[1],
+        personB,
+        deviceHash,
+        Timestamp.from(clock.instant()));
+
+    Response response = reviewResult(pending, owner, "APROBAR", UUID.randomUUID());
+    assertEquals(409, response.status());
+    assertTrue(response.body().contains("DISPOSITIVO_YA_REGISTRADO"));
+    assertEquals(
+        0,
+        db.queryForObject(
+            "SELECT count(*) FROM asistencias WHERE intento_id=?", Integer.class, pending));
+  }
+
   @Test
   void concurrentReviewersCreateOneImmutableDecisionAndAtMostOneAttendance() throws Exception {
     var ids = scenario("EVENTO", 201);
@@ -72,7 +125,8 @@ class ReviewConcurrencyTest extends PostgresFixture {
   }
 
   @Test
-  void approvalAfterCloseFailsButRejectionCanResolveWithoutAttendance() throws Exception {
+  void afterCloseApprovalWithinTheCorrectionWindowCreatesAttendanceAndRejectionDoesNot()
+      throws Exception {
     var ids = scenario("EVENTO", 201);
     String owner = token("encargado@example.test");
     start(ids[1], owner);
@@ -84,15 +138,17 @@ class ReviewConcurrencyTest extends PostgresFixture {
                 .header("Idempotency-Key", UUID.randomUUID().toString()))
         .andExpect(result -> assertEquals(200, result.getResponse().getStatus()));
 
-    assertEquals(409, reviewResult(approval, owner, "APROBAR", UUID.randomUUID()).status());
+    // 003 US1-2: dentro del plazo de corrección la aprobación posterior al cierre ya es válida.
     assertEquals(200, reviewResult(rejection, owner, "RECHAZAR", UUID.randomUUID()).status());
+    assertEquals(200, reviewResult(approval, owner, "APROBAR", UUID.randomUUID()).status());
+    assertEquals(
+        1,
+        db.queryForObject(
+            "SELECT count(*) FROM asistencias WHERE intento_id=?", Integer.class, approval));
     assertEquals(
         0,
         db.queryForObject(
-            "SELECT count(*) FROM asistencias WHERE intento_id IN (?,?)",
-            Integer.class,
-            approval,
-            rejection));
+            "SELECT count(*) FROM asistencias WHERE intento_id=?", Integer.class, rejection));
   }
 
   private int review(UUID attempt, String owner, String decision, UUID key, CountDownLatch ready)

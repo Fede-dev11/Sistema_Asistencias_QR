@@ -1,0 +1,56 @@
+---
+title: "Módulo sesiones"
+---
+
+## Responsabilidad
+
+Ciclo de vida de cada sesión de asistencia de una actividad (programada, activa, cerrada, cancelada), su
+inicio y cierre manual o automático, y la configuración geográfica (GPS) opcional.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `ActivitySessionController`, `SessionController`, `GeolocationController` |
+| aplicacion | `SessionLifecycle`, `ManageScheduledSessions`, `SessionCycle`, `SessionCycleScheduler`, `ConfigureSessionGeolocation`, `ReadSessionGeolocation` |
+| dominio | `GeographicCapability` (puerto: indica si hay soporte geográfico) |
+| persistencia | `SessionRepository` |
+
+## Endpoints
+
+| Método y ruta | Roles |
+|---|---|
+| `GET, POST /api/v1/activities/{activityId}/sessions` | Responsable de la actividad |
+| `PATCH /api/v1/sessions/{sessionId}`, `POST .../cancel` | Responsable (solo sesiones programadas) |
+| `POST /api/v1/sessions/{sessionId}/start`, `POST .../close` | Responsable |
+| `GET, PUT /api/v1/sessions/{sessionId}/geolocation` | Responsable |
+
+## Tablas
+
+`sesiones`, `configuracion_geografica`; lee `actividades`, `espacios`, `evidencias_geograficas`.
+Migraciones: V002, V006, V010, V016.
+
+## Reglas de negocio
+
+- El ciclo automático (`SessionCycle`) corre cada 60 s (`SessionCycleScheduler`): inicia las sesiones cuya ventana comenzó y cierra las vencidas, solo si la actividad tiene `ciclo_automatico`; cada transición va en su transacción y usa `FOR UPDATE SKIP LOCKED` para ser seguro con ejecuciones simultáneas.
+- Si el inicio falla se reintenta a los 60 s (`siguiente_intento_en`); una sesión que supera su ventana en 2 horas se cierra igualmente.
+- Al cerrar una sesión se registran las ausencias (`RecordAbsences`) y se audita en la actividad.
+- Método de verificación y espacio se validan con `SpaceMethodRules`.
+- La configuración GPS depende de `GeographicCapability`; sin PostGIS se informa que no está disponible.
+
+## Dependencias
+
+`actividades` (autorización, auditoría, reglas de método), `identidades`, `compartido`.
+
+## Configuración
+
+`geoasist.geography-enabled` (activa PostGIS).
+
+## Pruebas
+
+`SessionContractTest`, `SessionCycleTest`, `SessionCycleConcurrencyTest`, `SessionEditingTest`,
+`VerificationMethodTest`, `GeolocationReadTest`, `OptionalPostgisTest`.
+
+## Diagrama de clases
+
+[Sesiones en el nivel 4](../04-codigo.qmd#fig-sesiones) (`puml/sesiones.puml`).

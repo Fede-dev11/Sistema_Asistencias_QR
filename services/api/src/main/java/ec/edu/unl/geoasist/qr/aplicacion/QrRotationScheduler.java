@@ -22,7 +22,7 @@ public class QrRotationScheduler {
   public void rotate() {
     for (UUID id :
         db.queryForList(
-            "SELECT s.id FROM sesiones s JOIN actividades a ON a.id=s.actividad_id WHERE s.estado='ACTIVA' AND a.estado='ABIERTA'",
+            "SELECT s.id FROM sesiones s JOIN actividades a ON a.id=s.actividad_id WHERE s.estado='ACTIVA' AND a.estado='ABIERTA' AND s.metodo_verificacion IN ('SOLO_QR','QR_Y_GPS')",
             UUID.class)) {
       try {
         issuer.rotate(id);

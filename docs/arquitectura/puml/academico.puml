@@ -1,0 +1,86 @@
+@startuml academico
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/academico
+!include _estilo.iuml
+title Académico (personas, cuentas, carreras, paralelos e importación CSV)
+
+package "presentacion" {
+  class AdminController {
+    +careers(UserSession): Map
+    ..cuerpos de entrada..
+    PersonBody; NameBody; AccountBody; AccountPatch
+    CareerBody; CareerPatch; ParallelBody; Cedulas; Correos
+  }
+  class AdminImportController
+  class TeacherCatalogController {
+    +parallels(UserSession): Map
+  }
+}
+package "aplicacion" {
+  class ManagePeopleAndAccounts {
+    +list(user, q, page, size): Map
+    +person(user, id): Map
+    +createPerson(user, key, cedula, nombres): Receipt
+    +rename(user, id, nombres): Map
+    +{static} name(raw): String
+    +{static} email(raw): String
+  }
+  class ManageCareersAndParallels {
+    +careers(user): Map
+    +createCareer(user, key, codigo, nombre): Receipt
+    +renameCareer(user, id, nombre): Map
+    +parallels(user, career): Map
+    +createParallel(user, key, career, codigo): Receipt
+    +enrollmentPage(user, parallel, page, size): Map
+    +teacherPage(user, parallel, page, size): Map
+    +myParallels(user): Map
+  }
+  class CsvImport {
+    +run(user, kind, data): ImportReport
+  }
+  class "CsvImport.ImportReport" as ImportReport <<record>>
+  class "CsvImport.Rejection" as Rejection <<record>> {
+    fila: int
+    motivo: String
+  }
+}
+package "persistencia" {
+  class AcademicRepository {
+    +people(q, limit, offset)
+    +insertPerson(cedula, nombres): UUID
+    +insertAccount(person, email): UUID
+    +replaceRoles(account, roles)
+    +setActive(account, active)
+    +revokeSessions(account, now)
+    +careers()
+    +insertCareer(code, name): UUID
+    +parallels(career)
+    +insertParallel(career, code): UUID
+    +enroll(person, parallel): int
+    +assignTeacher(account, parallel)
+    +enrollments(parallel, limit, offset)
+    +teachers(parallel, limit, offset)
+    +parallelsOfTeacher(account)
+  }
+}
+package "compartido (usado)" {
+  class AcademicAudit
+  class IdempotencyService
+  class UserSession
+}
+
+AdminController --> ManagePeopleAndAccounts
+AdminController --> ManageCareersAndParallels
+AdminImportController --> CsvImport
+TeacherCatalogController --> ManageCareersAndParallels
+ManagePeopleAndAccounts --> AcademicRepository
+ManagePeopleAndAccounts --> AcademicAudit
+ManagePeopleAndAccounts --> IdempotencyService
+ManageCareersAndParallels --> AcademicRepository
+ManageCareersAndParallels --> AcademicAudit
+ManageCareersAndParallels --> IdempotencyService
+CsvImport --> AcademicRepository
+CsvImport --> AcademicAudit
+CsvImport *-- ImportReport
+ImportReport o-- Rejection
+ManagePeopleAndAccounts ..> UserSession
+@enduml

@@ -1,0 +1,52 @@
+project:
+  type: website
+  output-dir: _site
+  # Genera referencia/*.qmd, esquemas.qmd y openapi.yaml desde el contrato.
+  pre-render: python3 generar_referencia.py
+  resources:
+    - openapi.yaml
+
+website:
+  title: "GeoAsist · API"
+  site-url: "https://fede-dev11.github.io/Sistema_Asistencias_QR/api/"
+  repo-url: "https://github.com/Fede-dev11/Sistema_Asistencias_QR"
+  repo-actions: [edit, issue]
+  page-navigation: true
+  sidebar:
+    style: docked
+    search: true
+    contents:
+      - href: index.qmd
+        text: Introducción
+      - href: referencia/index.qmd
+        text: Referencia por funcionalidad
+      - section: "Endpoints"
+        contents:
+          - referencia/auth.qmd
+          - referencia/activities.qmd
+          - referencia/sessions.qmd
+          - referencia/attendance.qmd
+          - referencia/guest-registrations.qmd
+          - referencia/attempts.qmd
+          - referencia/corrections.qmd
+          - referencia/admin.qmd
+          - referencia/spaces.qmd
+          - referencia/stats.qmd
+      - href: esquemas.qmd
+        text: Esquemas
+      - href: swagger.qmd
+        text: Swagger UI
+      - href: https://fede-dev11.github.io/Sistema_Asistencias_QR/arquitectura/
+        text: Arquitectura C4
+
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    lang: es
+    theme: cosmo
+    css: styles.css
+    code-fold: true
+    code-summary: "Ver ejemplo"
+    code-copy: true
+    link-external-newwindow: true

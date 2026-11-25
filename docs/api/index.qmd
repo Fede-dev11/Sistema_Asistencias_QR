@@ -1,0 +1,75 @@
+---
+title: "API GeoAsist"
+---
+
+# API GeoAsist
+
+Documentación del API REST de **GeoAsist** (Sistema de Asistencias QR de la Universidad
+Nacional de Loja), generada automáticamente desde el contrato
+[`specs/001-asistencia-qr-dinamico/contracts/openapi.yaml`](https://github.com/Fede-dev11/Sistema_Asistencias_QR/blob/main/specs/001-asistencia-qr-dinamico/contracts/openapi.yaml),
+que es la **fuente única de verdad** y se valida en cada integración continua.
+
+| Dato | Valor |
+|---|---|
+| Contrato | OpenAPI 3.0.3 · versión `0.2.0-draft` |
+| URL base | `/api/v1` (mismo origen por defecto; HTTPS fuera de local) |
+| Autenticación | `Authorization: Bearer <token>` con el esquema `SessionBearer` |
+| Formato de errores | `application/problem+json` (Problem Details con `code` estable) |
+| Idempotencia | cabecera `Idempotency-Key` en los `POST` que crean registros |
+
+## Qué contiene esta documentación
+
+- **Referencia por funcionalidad:** cada operación con su resumen, descripción, roles,
+  parámetros (nombre, ubicación, tipo, obligatoriedad), cuerpo de la solicitud, tabla de
+  respuestas, ejemplos JSON y una llamada `curl` lista para adaptar.
+- **Esquemas:** todos los modelos reutilizables del contrato con sus campos, tipos, reglas
+  de validación y ejemplo.
+- **Swagger UI:** la misma información en la interfaz interactiva de Swagger, publicada
+  junto con este sitio.
+
+## Autenticación
+
+1. La web o la app redirigen al servicio universitario (SSO, subconjunto simulado de CAS 3.0).
+2. Al volver, el cliente envía el ticket a `POST /auth/cas` y recibe un bearer opaco.
+3. El bearer se envía en cada solicitud protegida: `Authorization: Bearer <token>`.
+4. `POST /auth/renew` rota el bearer por 8 horas; `POST /auth/logout` lo revoca.
+
+`POST /auth/login` solo existe en desarrollo o pruebas cuando
+`GEOASIST_LOCAL_LOGIN=true`; en producción responde `404`.
+
+## Convenciones de las respuestas
+
+- **Paginación:** `page` (desde 0) y `size` (1 a 100); las páginas incluyen `items`, `page`,
+  `size` y `total`.
+- **Errores:** Problem Details (`type`, `title`, `status`, `detail`, `code`, `mensaje`,
+  `correlation_id`). El campo `code` es estable y apto para lógica de cliente.
+- **Fechas:** ISO 8601 en UTC (`date-time`).
+- **Privacidad:** las respuestas con datos personales o secretos usan
+  `Cache-Control: no-store`; el QR y la cédula no prueban titularidad ni presencia física.
+- **Retención:** un recurso nominal vencido aún reconocible devuelve `410`; tras sanear sus
+  encabezados, `404`.
+
+## Cómo regenerar este sitio
+
+El contenido de `referencia/` y `esquemas.qmd` se genera en el `pre-render` de Quarto a
+partir del contrato. Desde `docs/api`:
+
+```bash
+pip install pyyaml
+quarto render     # genera _site/
+quarto preview    # servidor local con recarga
+```
+
+En la integración continua, el flujo `.github/workflows/pages.yml` renderiza este sitio y el
+de arquitectura, y los publica en GitHub Pages:
+
+- API: <https://fede-dev11.github.io/Sistema_Asistencias_QR/api/>
+- Arquitectura C4: <https://fede-dev11.github.io/Sistema_Asistencias_QR/arquitectura/>
+
+## Enlaces
+
+- [Referencia por funcionalidad](referencia/index.qmd)
+- [Esquemas](esquemas.qmd)
+- [Swagger UI](swagger.qmd)
+- [Arquitectura C4](https://fede-dev11.github.io/Sistema_Asistencias_QR/arquitectura/)
+- [Repositorio](https://github.com/Fede-dev11/Sistema_Asistencias_QR)

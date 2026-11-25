@@ -1,0 +1,50 @@
+---
+title: "Módulo reportes"
+---
+
+## Responsabilidad
+
+Consultar las asistencias de una sesión (paginadas), exportarlas a CSV y consultar la auditoría de una actividad.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `AttendanceQueryController`, `AttendanceExportController`, `AuditQueryController` |
+| aplicacion | `FindAttendances`, `ExportAttendancesCsv` |
+| persistencia | `AttendanceReadRepository` |
+
+## Endpoints
+
+| Método y ruta | Roles |
+|---|---|
+| `GET /api/v1/sessions/{sessionId}/attendances` | Responsable o director con ámbito |
+| `GET /api/v1/sessions/{sessionId}/attendances/export` (`text/csv`) | Responsable o director con ámbito |
+| `GET /api/v1/activities/{activityId}/audit` | Responsable o director con ámbito |
+
+## Tablas
+
+Lee `asistencias`, `intentos_asistencia`, `revisiones_asistencia`, `personas`, `auditoria_actividad`.
+Índices: V007.
+
+## Reglas de negocio
+
+- El alcance se resuelve con `ActivityAuthorization` (ver [actividades](actividades.qmd)).
+- La exportación CSV se genera en el servidor; las consultas son paginadas.
+- Los datos nominales no están disponibles tras vencer la retención (`NominalAccessGuard`).
+
+## Dependencias
+
+`actividades`, `identidades`, `compartido`.
+
+## Configuración
+
+Sin variables propias.
+
+## Pruebas
+
+`ReportingContractTest`, `ReportingAuthorizationTest`, `AdministrativeAuditTest`.
+
+## Diagrama de clases
+
+[Reportes en el nivel 4](../04-codigo.qmd#fig-reportes) (`puml/reportes.puml`).

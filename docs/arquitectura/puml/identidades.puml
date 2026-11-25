@@ -1,0 +1,119 @@
+@startuml identidades
+' Fuente: services/api/src/main/java/ec/edu/unl/geoasist/identidades
+!include _estilo.iuml
+title Identidades (autenticación, sesiones opacas y cuentas)
+
+package "presentacion" {
+  class AuthController {
+    +cas(CasLogin): Map
+    +ssoConfig(): Map
+    +login(Login, req): Map
+    +renew(UserSession): Map
+    +logout(UserSession): Map
+  }
+  class AccountController {
+    +me(UserSession): Map
+  }
+  class ApiProblemHandler {
+    +failure(ApiFailure)
+    +fields(MethodArgumentNotValidException)
+    +invalid(Exception)
+    +tooLarge(Exception)
+  }
+  class ApiSecurityConfig {
+    +noDefaultUser(): UserDetailsService
+    +passwords(): PasswordEncoder
+  }
+  class JsonContractConfig
+}
+package "aplicacion" {
+  class AuthenticationService {
+    +login(email, password): Map
+    +cas(ticket, service): Map
+    +renew(UserSession): Map
+    +authenticate(token): UserSession
+    +logout(UserSession)
+  }
+  class AccountProvisioning {
+    +provision(VerifiedIdentity): UUID
+  }
+  class AccountAssociationService {
+    +associate(person, provider, identifier, encodedPassword): UUID
+  }
+  class AccountSelfService {
+    +profile(UserSession): Map
+  }
+  class RequestBudget {
+    +check(scope, limit)
+  }
+  interface IdentityProvider {
+    +verifyTicket(ticket, service): VerifiedIdentity
+    +isActive(correo): boolean
+  }
+  interface LocalCredentials {
+    +authenticate(email, password): UUID
+  }
+  class CasIdentityProvider
+  class DevelopmentIdentityProvider
+  class DevelopmentSeed {
+    +run(ApplicationArguments)
+  }
+  class VerifiedIdentity <<record>> {
+    correo; cedula; nombres
+    roles: List<String>
+    carreras: List<String>
+    activo: boolean
+  }
+}
+package "dominio" {
+  class UserSession <<record>> {
+    sessionId; accountId; personId
+    roles: Set<String>
+    mustChangePassword: boolean
+    +has(role): boolean
+    +requireAnyRole(String...)
+    +responsibleRole(): boolean
+  }
+}
+package "persistencia" {
+  class IdentityRepository {
+    +account(email): Optional<Map>
+    +roles(id): Set<String>
+    +session(hash, now): Optional<UserSession>
+    +revoke(id, now)
+    +mustChangePassword(account): boolean
+    +parallels(account, person): List<Map>
+  }
+  class CuentaEntity
+  class PersonaEntity
+}
+package "compartido (usado)" {
+  class OpaqueSecrets
+  class AcademicAudit
+  class AttendanceLocks
+  class ApiFailure
+}
+
+AuthController --> AuthenticationService
+AuthController --> RequestBudget
+AccountController --> AccountSelfService
+ApiProblemHandler ..> ApiFailure
+AuthenticationService --> IdentityRepository
+AuthenticationService --> IdentityProvider
+AuthenticationService --> LocalCredentials : ObjectProvider
+AuthenticationService --> AccountProvisioning
+AuthenticationService --> OpaqueSecrets
+AuthenticationService ..> UserSession
+AccountSelfService --> IdentityRepository
+AccountProvisioning --> AcademicAudit
+AccountProvisioning ..> VerifiedIdentity
+AccountAssociationService --> AttendanceLocks
+RequestBudget --> OpaqueSecrets
+CasIdentityProvider ..|> IdentityProvider
+DevelopmentIdentityProvider ..|> LocalCredentials
+DevelopmentIdentityProvider --> IdentityRepository
+IdentityProvider ..> VerifiedIdentity
+IdentityRepository ..> UserSession
+IdentityRepository ..> CuentaEntity
+IdentityRepository ..> PersonaEntity
+@enduml

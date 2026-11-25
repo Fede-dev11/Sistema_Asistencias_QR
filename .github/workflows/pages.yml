@@ -1,0 +1,80 @@
+name: Documentación (GitHub Pages)
+
+# Publica en GitHub Pages:
+#   /api/          sitio Quarto con la referencia completa del API
+#   /api/swagger   Swagger UI sobre el contrato OpenAPI
+#   /arquitectura/ sitio Quarto C4 (Mermaid + PlantUML)
+#
+# Requisito único en el repositorio: Settings → Pages → Build and deployment →
+# Source: "GitHub Actions".
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'specs/001-asistencia-qr-dinamico/contracts/openapi.yaml'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Renderizar documentación del API
+        working-directory: docs/api
+        run: quarto render
+
+      - name: Renderizar arquitectura C4
+        working-directory: docs/arquitectura
+        run: quarto render
+
+      - name: Ensamblar el sitio publicado
+        run: |
+          mkdir -p _site/api _site/arquitectura
+          cp -r docs/api/_site/. _site/api/
+          cp -r docs/arquitectura/_site/. _site/arquitectura/
+          # El contrato siempre se publica junto a Swagger UI.
+          cp specs/001-asistencia-qr-dinamico/contracts/openapi.yaml _site/api/openapi.yaml
+          # Portada con enlaces a las tres secciones.
+          cp docs/pagina-inicio.html _site/index.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

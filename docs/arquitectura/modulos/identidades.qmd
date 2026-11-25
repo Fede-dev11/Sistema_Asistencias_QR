@@ -1,0 +1,63 @@
+---
+title: "Módulo identidades"
+---
+
+## Responsabilidad
+
+Autenticar usuarios y representar la sesión autenticada (`UserSession`) que usan todos los demás módulos.
+Canjea tickets del SSO CAS por una sesión propia de 8 horas, permite renovarla y expone el perfil propio.
+
+## Capas y clases clave
+
+| Capa | Clases |
+|---|---|
+| presentacion | `AuthController`, `AccountController`, `ApiSecurityConfig` (filtros, CORS, reglas de acceso) |
+| aplicacion | `AuthenticationService`, `IdentityProvider` (puerto), `CasIdentityProvider`, `DevelopmentIdentityProvider`, `LocalCredentials`, `AccountAssociationService`, `AccountProvisioning`, `AccountSelfService`, `RequestBudget`, `VerifiedIdentity`, `DevelopmentSeed` |
+| dominio | `UserSession` (cuenta, roles, `requireAnyRole`, `has`) |
+| persistencia | `IdentityRepository`, `PersonaEntity`, `CuentaEntity` |
+
+## Endpoints
+
+| Método y ruta | Acceso |
+|---|---|
+| `POST /api/v1/auth/cas` | Público (canjea ticket CAS) |
+| `GET /api/v1/auth/sso-config` | Público |
+| `POST /api/v1/auth/login` | Público; solo si `GEOASIST_LOCAL_LOGIN=true` |
+| `POST /api/v1/auth/renew` | Sesión vigente |
+| `POST /api/v1/auth/logout` | Autenticado |
+| `GET /api/v1/me` | Autenticado (perfil sin secretos) |
+
+`ApiSecurityConfig` deja públicos además `/guest-registrations`, `/guest-registrations/submit` y
+`/events/open/*`; `/api/v1/admin/**` exige el rol `ADMINISTRADOR`; el resto exige autenticación.
+
+## Tablas
+
+`personas`, `cuentas`, `roles_cuenta`, `sesiones_acceso`, `contadores_limite` (límite de solicitudes);
+lee además `matriculas`, `docentes_paralelo`, `direcciones_carrera` para el ámbito del perfil.
+Migraciones: V001, V017 (cuenta y renovación), V019 (cuentas SSO).
+
+## Reglas de negocio
+
+- La sesión dura 8 horas y solo puede renovarse dentro de 30 días desde la emisión original, rotando el secreto.
+- Los secretos se guardan como hash (`OpaqueSecrets`); el perfil nunca los devuelve.
+- La cuenta se asocia al usuario del SSO (`AccountAssociationService`).
+- Límite de solicitudes por ámbito y ventana (`RequestBudget`, respuesta 429 `LIMITE_SOLICITUDES`).
+- Solo este módulo usa `CasIdentityProvider` o `RestClient` (lo verifica `ArchitectureDependencyTest`).
+
+## Dependencias
+
+`compartido` (Problem Details, secretos, tiempo). Llama por HTTP al servicio [auth](auth.qmd) (`serviceValidate`).
+
+## Configuración
+
+`SSO_INTERNAL_URL`, `SSO_PUBLIC_URL`, `SSO_SERVICE_KEY`, `SSO_WEB_SERVICE`, `SSO_MOBILE_SERVICE_PREFIX`,
+`GEOASIST_LOCAL_LOGIN`, `DEV_SEED_PASSWORD`, `WEB_ORIGIN` (CORS), `GEOASIST_HMAC_KEY`,
+`geoasist.rate-limit-multiplier` (por defecto 1). Tiempo de espera hacia el SSO: 2 s.
+
+## Pruebas
+
+`AuthContractTest`, `CasLoginTest`, `LocalLoginDisabledTest`, `SessionRenewalTest`, `AccountSelfServiceTest`.
+
+## Diagrama de clases
+
+[Identidades en el nivel 4](../04-codigo.qmd#fig-identidades) (`puml/identidades.puml`).
