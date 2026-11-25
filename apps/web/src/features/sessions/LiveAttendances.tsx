@@ -7,6 +7,7 @@ import { Paginated } from '../common/Paginated';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { usePage } from '../common/usePage';
 import { Button } from '../ui/Button';
+import styles from './sessions.module.css';
 
 type Row = components['schemas']['AttendanceRow'];
 const STATES = ['', 'CONFIRMADA', 'PENDIENTE_REVISION', 'RECHAZADA'];
@@ -32,15 +33,26 @@ export function LiveAttendances({ sessionId, active }: { sessionId: string; acti
     } catch (e) { setExportError(e); }
   }
 
-  return <section className="panel" aria-label="Asistencias">
-    <h2>Asistencias{active ? ' (en vivo)' : ''}</h2>
-    <label>Estado<select value={estado} onChange={e => setEstado(e.target.value)}>
-      {STATES.map(s => <option key={s} value={s}>{s ? s.replaceAll('_', ' ') : 'Todos'}</option>)}
-    </select></label>
-    <Button variant="secondary" type="button" onClick={() => void exportCsv()}>Exportar CSV</Button>
+  return <section className={styles.innerPanel} aria-label="Asistencias">
+    <div className={styles.toolbar}>
+      <h2>Asistencias{active ? ' (en vivo)' : ''}</h2>
+      <div className={styles.toolbarControls}>
+        <div className={styles.compactField}>
+          <label>Estado<select className={styles.select} value={estado} onChange={e => setEstado(e.target.value)}>
+            {STATES.map(s => <option key={s} value={s}>{s ? s.replaceAll('_', ' ') : 'Todos'}</option>)}
+          </select></label>
+        </div>
+        <Button variant="secondary" type="button" onClick={() => void exportCsv()}>Exportar CSV</Button>
+      </div>
+    </div>
     <ProblemMessage error={error ?? exportError} />
     <Paginated items={data?.items ?? null} total={data?.total ?? 0} page={page} size={data?.size ?? 20} onPage={setPage}
       empty="Aún no hay asistencias."
-      renderItem={r => <>{r.nombres} ({r.cedula}) — {r.estado.replaceAll('_', ' ')} — {r.mensaje}</>} />
+      renderItem={r => <div className={styles.listItem}>
+        <div className={styles.listMain}>
+          <span className={styles.listTitle}>{r.nombres} ({r.cedula})</span>
+          <span className={styles.listMeta}>{r.estado.replaceAll('_', ' ')} — {r.mensaje}</span>
+        </div>
+      </div>} />
   </section>;
 }
