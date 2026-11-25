@@ -18,10 +18,22 @@ describe('importación CSV', () => {
   it('muestra el informe con las filas rechazadas', async () => {
     vi.mocked(request).mockResolvedValue({ procesadas: 2, creadas: 1, actualizadas: 0, sin_cambios: 0, rechazadas: [{ fila: 3, motivo: 'Cédula inválida.' }] });
     const { container } = render(<ImportPanel />);
+    expect(screen.getByText('cedula,nombres,correo')).toBeTruthy();
     const input = container.querySelector('input[type=file]') as HTMLInputElement;
     fireEvent.change(input, { target: { files: [new File(['cedula,nombres,correo\n'], 'a.csv', { type: 'text/csv' })] } });
     fireEvent.click(screen.getByText('Importar', { selector: 'button' }));
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('1 rechazadas'));
     expect(screen.getByText('Cédula inválida.')).toBeTruthy();
+  });
+
+  it('muestra encabezados según el tipo y bloquea archivos mayores a 2 MB', async () => {
+    render(<ImportPanel />);
+    fireEvent.change(screen.getByLabelText('Tipo'), { target: { value: 'teachers' } });
+    expect(screen.getByText('cedula,nombres,correo,rol')).toBeTruthy();
+    const input = screen.getByLabelText(/Archivo CSV/);
+    fireEvent.change(input, { target: { files: [new File([new Uint8Array(2 * 1024 * 1024 + 1)], 'grande.csv', { type: 'text/csv' })] } });
+    fireEvent.click(screen.getByRole('button', { name: 'Importar' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('supera 2 MB');
+    expect(request).not.toHaveBeenCalled();
   });
 });
