@@ -9,6 +9,17 @@ export function onUnauthorized(callback:()=>void){unauthorized.add(callback);ret
 export function setBearer(value: string | null) { bearer = value; }
 const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8080/api/v1';
 export type ApiRequestInit = RequestInit & { authentication?: 'account' | 'none' };
+
+async function problemFrom(response: Response, fallback: string): Promise<Problem> {
+ try {
+  const raw = await response.json() as Partial<Problem> & { message?: string; error?: boolean };
+  const mensaje = raw.mensaje ?? raw.message ?? fallback;
+  return { ...raw, type: raw.type ?? 'urn:unl:problem:api-error', title: raw.title ?? mensaje, status: response.status, code: raw.code ?? `HTTP_${response.status}`, mensaje } as Problem;
+ } catch {
+  return { type: 'urn:unl:problem:red', title: 'Respuesta no disponible', status: response.status, code: 'RESPUESTA_INVALIDA', mensaje: fallback };
+ }
+}
+
 export async function request<T>(path: string, options: ApiRequestInit = {}): Promise<T> {
  const { authentication = 'account', ...fetchOptions } = options;
  const bearerUsed = authentication === 'account' ? bearer : null;
@@ -17,8 +28,7 @@ export async function request<T>(path: string, options: ApiRequestInit = {}): Pr
  if (bearerUsed) headers.set('Authorization', `Bearer ${bearerUsed}`);
  const response = await fetch(base + path, { ...fetchOptions, headers, credentials: 'omit', cache: 'no-store' });
  if (!response.ok) {
-  let problem: Problem;
-  try { problem = await response.json() as Problem; } catch { problem = { type: 'urn:unl:problem:red', title: 'Respuesta no disponible', status: response.status, code: 'RESPUESTA_INVALIDA', mensaje: 'No se pudo leer la respuesta. Reintenta con la misma operación.' }; }
+  const problem = await problemFrom(response, 'No se pudo completar la operación. Reintenta con la misma operación.');
   if (response.status === 401 && bearerUsed && bearer === bearerUsed) { setBearer(null); unauthorized.forEach(callback=>callback()); }
   throw new ApiError(problem, response.status);
  }
@@ -33,8 +43,7 @@ export async function requestText(path: string, options: ApiRequestInit = {}): P
  if (bearerUsed) headers.set('Authorization', `Bearer ${bearerUsed}`);
  const response = await fetch(base + path, { ...fetchOptions, headers, credentials: 'omit', cache: 'no-store' });
  if (!response.ok) {
-  let problem: Problem;
-  try { problem = await response.json() as Problem; } catch { problem = { type: 'urn:unl:problem:red', title: 'Respuesta no disponible', status: response.status, code: 'RESPUESTA_INVALIDA', mensaje: 'No se pudo leer la respuesta.' }; }
+  const problem = await problemFrom(response, 'No se pudo completar la operación.');
   if (response.status === 401 && bearerUsed && bearer === bearerUsed) { setBearer(null); unauthorized.forEach(callback=>callback()); }
   throw new ApiError(problem, response.status);
  }

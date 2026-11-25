@@ -39,16 +39,22 @@ class ScheduleExpansionTest {
 
   @Test
   void rejectsInvalidShapes() {
-    assertThrows(
-        ApiFailure.class, () -> of(List.of(1), "2026-11-02", "2026-11-03", "10:00", "10:00"));
+    var hours =
+        assertThrows(
+            ApiFailure.class, () -> of(List.of(1), "2026-11-02", "2026-11-03", "10:00", "10:00"));
+    assertEquals("HORAS_INVALIDAS", hours.code());
     assertThrows(
         ApiFailure.class, () -> of(List.of(1, 1), "2026-11-02", "2026-11-03", "08:00", "10:00"));
     assertThrows(
         ApiFailure.class, () -> of(List.of(8), "2026-11-02", "2026-11-03", "08:00", "10:00"));
-    assertThrows(
-        ApiFailure.class, () -> of(List.of(), "2026-11-02", "2026-11-03", "08:00", "10:00"));
-    assertThrows(
-        ApiFailure.class, () -> of(List.of(1), "2026-11-03", "2026-11-02", "08:00", "10:00"));
+    var noDays =
+        assertThrows(
+            ApiFailure.class, () -> of(List.of(), "2026-11-02", "2026-11-03", "08:00", "10:00"));
+    assertEquals("HORARIO_SIN_DIAS", noDays.code());
+    var dates =
+        assertThrows(
+            ApiFailure.class, () -> of(List.of(1), "2026-11-03", "2026-11-02", "08:00", "10:00"));
+    assertEquals("FECHAS_INVALIDAS", dates.code());
   }
 
   @Test
