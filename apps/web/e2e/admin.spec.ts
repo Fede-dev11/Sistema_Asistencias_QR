@@ -3,7 +3,7 @@ import { ssoLogin } from './sso';
 
 test('administrador registra evidencia GPS de un espacio y abre los miembros de un paralelo', async ({ page }) => {
   await ssoLogin(page, 'admin@dev.geoasist.local');
-  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Espacios' }).click();
+  await page.getByRole('navigation', { name: 'Accesos de administración' }).getByRole('link', { name: /Espacios/ }).click();
   await page.getByRole('row', { name: /^Editar espacio / }).first().click();
   await page.getByRole('tab', { name: 'Evidencias GPS' }).click();
   const reference = `Medición e2e ${crypto.randomUUID().slice(0, 8)}`;
@@ -17,7 +17,7 @@ test('administrador registra evidencia GPS de un espacio y abre los miembros de 
   await expect(page.getByRole('cell', { name: reference })).toBeVisible();
 
   await page.getByRole('dialog').getByRole('button', { name: 'Cerrar' }).click();
-  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Carreras y paralelos' }).click();
+  await page.getByRole('navigation', { name: 'Principal' }).getByRole('link', { name: 'Administración' }).click();
   await page.getByRole('row', { name: /^Seleccionar / }).first().click();
   await page.getByRole('row', { name: /^Gestionar paralelo / }).first().click();
   await expect(page.getByRole('region', { name: 'Matriculados' })).toBeVisible();

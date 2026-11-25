@@ -15,11 +15,17 @@ import { Tabs } from '../ui/Tabs';
 import { GeolocationSettingsPanel } from './GeolocationSettingsPanel';
 import { LiveAttendances } from './LiveAttendances';
 import { loadSession, type SessionInfo } from './loadSession';
+<<<<<<< HEAD
 import styles from './sessions.module.css';
+=======
+import { useSession } from '../auth/SessionProvider';
+>>>>>>> origin/main
 
 const total = (path: string) => request<{ total: number }>(path).then(p => p.total);
 
 export function SessionSummary({ id }: { id: string }) {
+  const { session } = useSession();
+  const adminOnly = session?.roles.includes('ADMINISTRADOR');
   const router = useRouter();
   const [info, setInfo] = useState<SessionInfo | null>(null);
   const [counts, setCounts] = useState<{ asistencias: number; ausencias: number; pendientes: number } | null>(null);
@@ -39,7 +45,7 @@ export function SessionSummary({ id }: { id: string }) {
   async function run(kind: 'start' | 'close' | 'activity') {
     setConfirm(null); setError(null);
     try {
-      if (kind === 'start') { await post(`/sessions/${id}/start`); router.push(`/sesiones/${id}/proyectar`); return; }
+      if (kind === 'start') { await post(`/sessions/${id}/start`); if (adminOnly) await load(); else router.push(`/sesiones/${id}/proyectar`); return; }
       if (kind === 'close') { await post(`/sessions/${id}/close`); router.replace(`/sesiones/${id}?tab=resumen`); await load(); return; }
       await post(`/activities/${info?.activity.id}/close`); setMessage('Actividad cerrada definitivamente. Se inició el plazo de conservación de cinco años.'); await load();
     } catch (e) { setError(e); }
@@ -72,6 +78,7 @@ export function SessionSummary({ id }: { id: string }) {
     {message && <p role="status">{message}</p>}
     {!info && !error && <p role="status" className={styles.loading}>Cargando la sesión…</p>}
     {confirm && <ConfirmInline danger message={confirm === 'session' ? '¿Cerrar la sesión? Ya no se admitirán registros.' : '¿Cerrar definitivamente esta actividad y todas sus sesiones?'} confirmLabel="Cerrar" onConfirm={() => void run(confirm === 'session' ? 'close' : 'activity')} onCancel={() => setConfirm(null)} />}
+<<<<<<< HEAD
 
     {state === 'PROGRAMADA' && <div className={styles.statePanel}>
       <p className={styles.subtitle}>Antes de iniciar, revisa la ubicación de la sesión. Al iniciar se abrirá la proyección del QR.</p>
@@ -79,11 +86,17 @@ export function SessionSummary({ id }: { id: string }) {
     </div>}
 
     {state === 'ACTIVA' && <div className={styles.statePanel}>
+=======
+    {state === 'PROGRAMADA' && <><Button onClick={() => void run('start')}>{adminOnly ? 'Iniciar sesión' : 'Iniciar y proyectar QR'}</Button><GeolocationSettingsPanel sessionId={id} /></>}
+    {state === 'ACTIVA' && <>
+      <div>{!adminOnly && <ButtonLink href={`/sesiones/${id}/proyectar`}>Proyectar QR</ButtonLink>} <Button variant="danger" onClick={() => setConfirm('session')}>Cerrar sesión</Button></div>
+>>>>>>> origin/main
       <LiveAttendances sessionId={id} active />
       <GeolocationSettingsPanel sessionId={id} />
     </div>}
 
     {state === 'CERRADA' && <>
+<<<<<<< HEAD
       {info?.activity.estado === 'ABIERTA' && <div className={styles.actionRow}><Button variant="danger" onClick={() => setConfirm('activity')}>Cerrar actividad definitivamente</Button></div>}
       <div className={styles.tabsCard}>
         <Tabs param="tab" tabs={[
@@ -96,6 +109,18 @@ export function SessionSummary({ id }: { id: string }) {
           { id: 'revisiones', label: 'Revisiones', content: <ReviewPanel /> },
         ]} />
       </div>
+=======
+      {info?.activity.estado === 'ABIERTA' && <Button variant="danger" onClick={() => setConfirm('activity')}>Cerrar actividad definitivamente</Button>}
+      <Tabs param="tab" tabs={[
+        { id: 'resumen', label: 'Resumen', content: <>
+          <dl className="panel"><div><dt>Asistencias</dt><dd>{counts?.asistencias ?? '…'}</dd></div><div><dt>Ausencias</dt><dd>{counts?.ausencias ?? '…'}</dd></div><div><dt>Pendientes de revisión</dt><dd>{counts?.pendientes ?? '…'}</dd></div></dl>
+          {!adminOnly && <AbsencesPanel sessionId={id} />}
+        </> },
+        { id: 'asistencias', label: 'Asistencias', content: <LiveAttendances sessionId={id} active={false} /> },
+        ...(!adminOnly ? [{ id: 'manual', label: 'Asistencia manual', content: <ManualAttendanceForm activityId={activityId} sessionId={id} /> },
+          { id: 'revisiones', label: 'Revisiones', content: <ReviewPanel /> }] : []),
+      ]} />
+>>>>>>> origin/main
     </>}
   </section>;
 }

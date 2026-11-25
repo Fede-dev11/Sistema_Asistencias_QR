@@ -24,6 +24,7 @@ public class ActivityAuthorization {
 
   public boolean canRead(UserSession u, Activity a) {
     return responsible(u, a)
+        || u.has("ADMINISTRADOR")
         || u.has("DIRECTOR_INSTITUCIONAL")
         || (u.has("DIRECTOR_CARRERA") && activities.directs(u.accountId(), a.id()));
   }
@@ -38,6 +39,13 @@ public class ActivityAuthorization {
   public Activity write(UserSession user, UUID id) {
     Activity a = activities.find(id);
     if (!responsible(user, a)) throw ApiFailure.forbidden();
+    retention.check(a.anonymizeAt());
+    return a;
+  }
+
+  public Activity manage(UserSession user, UUID id) {
+    Activity a = activities.find(id);
+    if (!responsible(user, a) && !user.has("ADMINISTRADOR")) throw ApiFailure.forbidden();
     retention.check(a.anonymizeAt());
     return a;
   }

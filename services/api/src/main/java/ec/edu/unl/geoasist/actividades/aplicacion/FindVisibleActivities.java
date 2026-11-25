@@ -70,9 +70,10 @@ public class FindVisibleActivities {
         || size > 100
         || (mode != null && !Set.of("CLASE", "EVENTO").contains(mode))) throw ApiFailure.invalid();
     if (!user.responsibleRole()
+        && !user.has("ADMINISTRADOR")
         && !user.has("DIRECTOR_INSTITUCIONAL")
         && !user.has("DIRECTOR_CARRERA")) throw ApiFailure.forbidden();
-    if (career != null && !user.has("DIRECTOR_INSTITUCIONAL")) {
+    if (career != null && !user.has("DIRECTOR_INSTITUCIONAL") && !user.has("ADMINISTRADOR")) {
       boolean allowed =
           Boolean.TRUE.equals(
                   db.queryForObject(
@@ -97,7 +98,7 @@ public class FindVisibleActivities {
         new ArrayList<>(
             List.of(
                 java.sql.Timestamp.from(clock.instant()),
-                user.has("DIRECTOR_INSTITUCIONAL"),
+                user.has("DIRECTOR_INSTITUCIONAL") || user.has("ADMINISTRADOR"),
                 user.responsibleRole(),
                 user.accountId(),
                 user.has("DIRECTOR_CARRERA"),

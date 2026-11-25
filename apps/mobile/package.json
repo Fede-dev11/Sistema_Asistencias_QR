@@ -15,15 +15,15 @@
     "node": ">=22.13.0"
   },
   "dependencies": {
-    "expo": "57.0.30",
-    "expo-camera": "57.0.6",
-    "expo-crypto": "57.0.4",
-    "expo-linking": "~57.0.13",
-    "expo-location": "57.0.21",
-    "expo-secure-store": "57.0.4",
-    "expo-web-browser": "~57.0.3",
-    "react": "19.2.3",
-    "react-native": "0.86.3"
+    "expo": "^58.0.0",
+    "expo-camera": "~58.0.14",
+    "expo-crypto": "~58.0.7",
+    "expo-linking": "~58.0.16",
+    "expo-location": "~58.0.20",
+    "expo-secure-store": "~58.0.2",
+    "expo-web-browser": "~58.0.7",
+    "react": "19.3.0",
+    "react-native": "0.88.1"
   },
   "main": "index.ts",
   "devDependencies": {
@@ -31,9 +31,9 @@
     "@types/jest": "30.0.0",
     "@types/react": "19.3.0",
     "eslint": "10.13.0",
-    "jest": "29.7.0",
-    "jest-expo": "57.0.6",
-    "react-test-renderer": "19.2.3",
+    "jest": "~30.5.2",
+    "jest-expo": "~58.0.14",
+    "react-test-renderer": "19.3.0",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.0"
   }

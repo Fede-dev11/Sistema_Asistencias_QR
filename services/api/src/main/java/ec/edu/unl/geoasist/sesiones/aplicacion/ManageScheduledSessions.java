@@ -91,9 +91,9 @@ public class ManageScheduledSessions {
   }
 
   private Map<String, Object> createOnce(UserSession user, UUID activityId, Changes c) {
-    scope.write(user, activityId);
+    scope.manage(user, activityId);
     locks.activity(activityId, true);
-    var activity = scope.write(user, activityId);
+    var activity = scope.manage(user, activityId);
     if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
     if (c.inicio() == null || c.fin() == null || !c.fin().isAfter(c.inicio()))
       throw ApiFailure.invalid();
@@ -185,10 +185,10 @@ public class ManageScheduledSessions {
 
   private Map<String, Object> lockScheduled(UserSession user, UUID session) {
     UUID id = activities.activityOfSession(session);
-    scope.write(user, id);
+    scope.manage(user, id);
     locks.activity(id, false);
     locks.session(session);
-    var activity = scope.write(user, id);
+    var activity = scope.manage(user, id);
     var row = find(session);
     if (!activity.state().equals("ABIERTA") || !row.get("estado").equals("PROGRAMADA"))
       throw new ApiFailure(409, "SESION_NO_EDITABLE", "La sesión ya inició o fue cancelada.");

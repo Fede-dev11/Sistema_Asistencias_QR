@@ -8,12 +8,14 @@ import { previewDates } from './schedulePreview';
 
 const replace = vi.fn(); const push = vi.fn();
 let query = '';
+let roles = ['DOCENTE'];
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace, push }),
   usePathname: () => '/actividades',
   useSearchParams: () => new URLSearchParams(query),
 }));
 vi.mock('../../lib/api/client', () => ({ ApiError: class extends Error {}, request: vi.fn() }));
+vi.mock('../auth/SessionProvider', () => ({ useSession: () => ({ session: { roles } }) }));
 vi.mock('../spaces/SpacePicker', () => ({
   SpacePicker: ({ onSelect }: { onSelect: (s: unknown) => void }) => <button type="button" onClick={() => onSelect({ id: 's1', codigo: 'A1', nombre: 'Aula' })}>elegir</button>
 }));
@@ -28,7 +30,7 @@ const act = (id: string, nombre: string, tipo: string, estado = 'ABIERTA') => ({
 let activities: unknown[] = [];
 
 beforeEach(() => {
-  vi.clearAllMocks(); query = ''; localStorage.clear();
+  vi.clearAllMocks(); query = ''; roles = ['DOCENTE']; localStorage.clear();
   vi.stubGlobal('crypto', { randomUUID: () => 'key' });
   vi.mocked(request).mockImplementation((async (path: string) => {
     if (path === '/me/parallels') return { items: [{ paralelo_id: 'p1', codigo: 'A', carrera_id: 'c', carrera_codigo: 'COMP', carrera_nombre: 'X', matriculados: 2 }] };
@@ -49,6 +51,13 @@ describe('previewDates', () => {
 });
 
 describe('ActivityList', () => {
+  it('permite al administrador consultar sin ofrecer creación docente', async () => {
+    roles = ['ADMINISTRADOR'];
+    activities = [act('1', 'Redes', 'CLASE')];
+    render(<ActivityList />);
+    expect(await screen.findByText('Redes')).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Nueva actividad' })).toBeNull();
+  });
   it('filtra por la URL y muestra estado vacío', async () => {
     activities = [act('1', 'Redes', 'CLASE'), act('2', 'Feria', 'EVENTO', 'CERRADA')];
     query = 'tipo=EVENTO';
@@ -121,6 +130,18 @@ describe('ActivityWizard', () => {
 });
 
 describe('ActivityDetail', () => {
+  it('muestra al administrador la gestión de sesiones sin acciones nominales de responsable', async () => {
+    roles = ['ADMINISTRADOR'];
+    render(<ActivityDetail id="a1" />);
+    expect(await screen.findByRole('tab', { name: 'Sesiones' })).toBeTruthy();
+    expect(screen.queryByRole('tab', { name: 'Participantes' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Más acciones' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Más acciones' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Editar nombre' }));
+    fireEvent.change(screen.getByLabelText('Nombre de la actividad'), { target: { value: 'Redes actualizada' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }));
+    await waitFor(() => expect(request).toHaveBeenCalledWith('/activities/a1', expect.objectContaining({ method: 'PATCH', body: JSON.stringify({ nombre: 'Redes actualizada' }) })));
+  });
   it('muestra pestañas de clase y cancela con ConfirmInline', async () => {
     render(<ActivityDetail id="a1" />);
     expect(await screen.findByRole('tab', { name: 'Participantes' })).toBeTruthy();

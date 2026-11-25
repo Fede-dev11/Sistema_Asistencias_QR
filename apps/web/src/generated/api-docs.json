@@ -340,7 +340,7 @@
       "method": "GET",
       "path": "/activities",
       "summary": "Descubrir actividades autorizadas",
-      "desc": "Lista paginada y filtrada en servidor. RESPONSABLE solo descubre sus actividades; DIRECTOR_INSTITUCIONAL todas; DIRECTOR_CARRERA solo las vinculadas a su carrera y paralelos. Los filtros restringen el ámbito autorizado y nunca lo amplían. Una carrera fuera del ámbito devuelve 403. Excluir actividades cuyo plazo nominal de cinco años calendario ya venció; los agregados anónimos no se exponen aquí. Sin filtros, devolver solo actividades autorizadas.",
+      "desc": "Lista paginada y filtrada en servidor. RESPONSABLE solo descubre sus actividades; ADMINISTRADOR y DIRECTOR_INSTITUCIONAL descubren todas; DIRECTOR_CARRERA solo las vinculadas a su carrera y paralelos. Los filtros restringen el ámbito autorizado y nunca lo amplían. Una carrera fuera del ámbito devuelve 403. Excluir actividades cuyo plazo nominal de cinco años calendario ya venció; los agregados anónimos no se exponen aquí. Sin filtros, devolver solo actividades autorizadas.",
       "group": "activities",
       "roles": [
         "doc",
@@ -594,7 +594,7 @@
       "method": "GET",
       "path": "/activities/{activityId}",
       "summary": "Consultar actividad",
-      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer cinco años calendario desde su cierre definitivo, la consulta nominal devuelve 410; estadísticas anónimas no se exponen aquí. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
+      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer cinco años calendario desde su cierre definitivo, la consulta nominal devuelve 410; estadísticas anónimas no se exponen aquí. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
       "group": "activities",
       "roles": [
         "doc",
@@ -661,7 +661,7 @@
       "method": "PATCH",
       "path": "/activities/{activityId}",
       "summary": "Editar nombre, espacio o método por defecto",
-      "desc": "Solo RESPONSABLE de una actividad ABIERTA. Los valores son por defecto; las sesiones ya creadas no cambian.",
+      "desc": "RESPONSABLE de una actividad ABIERTA o ADMINISTRADOR. Los valores son por defecto; las sesiones ya creadas no cambian.",
       "group": "activities",
       "roles": [
         "doc",
@@ -769,7 +769,7 @@
       "method": "POST",
       "path": "/activities/{activityId}/close",
       "summary": "Cerrar definitivamente una actividad",
-      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Cierre definitivo distinto del cierre de una sesión. Cierra las sesiones activas, invalida QR e inicios invitados y fija cerrada_en y anonimizar_en a cinco años calendario. No permite reabrir ni crear nuevas sesiones.",
+      "desc": "RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación por su permiso de lectura. Cierre definitivo distinto del cierre de una sesión. Cierra las sesiones activas, invalida QR e inicios invitados y fija cerrada_en y anonimizar_en a cinco años calendario. No permite reabrir ni crear nuevas sesiones.",
       "group": "activities",
       "roles": [
         "doc",
@@ -1140,7 +1140,7 @@
       "method": "POST",
       "path": "/sessions/{sessionId}/start",
       "summary": "Iniciar sesión de asistencia",
-      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Transición PROGRAMADA a ACTIVA solo si la actividad permanece abierta. Transacción coordinada con sus cierres.",
+      "desc": "RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación por su permiso de lectura. Transición PROGRAMADA a ACTIVA solo si la actividad permanece abierta. Transacción coordinada con sus cierres.",
       "group": "sessions",
       "roles": [
         "doc",
@@ -1214,7 +1214,7 @@
       "method": "POST",
       "path": "/sessions/{sessionId}/close",
       "summary": "Cerrar sesión de asistencia",
-      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Invalida inmediatamente nuevos registros e inicios de invitados, aunque QR o formularios tengan plazo restante. No inicia por sí mismo los cinco años: el origen es el cierre definitivo de la actividad.",
+      "desc": "RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación por su permiso de lectura. Invalida inmediatamente nuevos registros e inicios de invitados, aunque QR o formularios tengan plazo restante. No inicia por sí mismo los cinco años: el origen es el cierre definitivo de la actividad.",
       "group": "sessions",
       "roles": [
         "doc",
@@ -1406,7 +1406,7 @@
       "method": "PUT",
       "path": "/sessions/{sessionId}/geolocation",
       "summary": "Configurar GPS opcional",
-      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo PROGRAMADA. Habilitar exige capacidad geográfica disponible y radio_m, precision_max_m y antiguedad_max_s válidos. El servidor determina el modo: piloto/revisión permitido; rechazo automático solo con evidencia de campo verificada, sin aceptar una declaración del cliente como prueba. Sin GPS no se solicitan permisos ni se almacenan coordenadas. Capacidad ausente: 409 CAPACIDAD_GPS_NO_DISPONIBLE.",
+      "desc": "RESPONSABLE vinculado a esta actividad o ADMINISTRADOR. Los directores no reciben facultades de modificación por su permiso de lectura. Solo PROGRAMADA. Habilitar exige capacidad geográfica disponible y radio_m, precision_max_m y antiguedad_max_s válidos. El servidor determina el modo: piloto/revisión permitido; rechazo automático solo con evidencia de campo verificada, sin aceptar una declaración del cliente como prueba. Sin GPS no se solicitan permisos ni se almacenan coordenadas. Capacidad ausente: 409 CAPACIDAD_GPS_NO_DISPONIBLE.",
       "group": "sessions",
       "roles": [
         "doc",
@@ -1899,7 +1899,7 @@
       "method": "GET",
       "path": "/sessions/{sessionId}/attendances",
       "summary": "Consultar asistencias paginadas",
-      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer retención de la actividad: 410 sin datos nominales; estadísticas agregadas se definirán por separado. Una fila por persona identificada: confirmación prevalece; sin asistencia, último intento identificado. Excluir intentos sin persona identificada y cédulas desconocidas. Aplicar estado después de esta proyección. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
+      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Al vencer retención de la actividad: 410 sin datos nominales; estadísticas agregadas se definirán por separado. Una fila por persona identificada: confirmación prevalece; sin asistencia, último intento identificado. Excluir intentos sin persona identificada y cédulas desconocidas. Aplicar estado después de esta proyección. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
       "group": "sessions",
       "roles": [
         "doc",
@@ -2642,7 +2642,7 @@
       "method": "GET",
       "path": "/activities/{activityId}/audit",
       "summary": "Consultar auditoría paginada",
-      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Incluye acciones administrativas, cambios manuales, configuración, listados y exportaciones con sus valores pertinentes. No devuelve credenciales, tokens ni ubicación exacta. Auditoría nominal sujeta al mismo vencimiento: 410; evidencia estadística anónima fuera de este endpoint. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
+      "desc": "Lectura permitida a RESPONSABLE de su propia actividad, ADMINISTRADOR y DIRECTOR_INSTITUCIONAL en todas y DIRECTOR_CARRERA solo en actividades vinculadas en servidor a su carrera y sus paralelos. No confiar en carrera enviada por el cliente. Incluye acciones administrativas, cambios manuales, configuración, listados y exportaciones con sus valores pertinentes. No devuelve credenciales, tokens ni ubicación exacta. Auditoría nominal sujeta al mismo vencimiento: 410; evidencia estadística anónima fuera de este endpoint. El 410 de conservación aplica mientras el recurso nominal vencido sea reconocible; después de sanear/eliminar sus encabezados, devolver 404 sin conservar PII para mantener un 410.",
       "group": "activities",
       "roles": [
         "doc",
@@ -4236,7 +4236,7 @@
       "method": "POST",
       "path": "/activities/{activityId}/cancel",
       "summary": "Cancelar actividad",
-      "desc": "Solo RESPONSABLE y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.",
+      "desc": "RESPONSABLE o ADMINISTRADOR y solo si ninguna sesión salió de PROGRAMADA. Pasa a CANCELADA con cerrada_en y anonimizar_en (cinco años) y cancela las sesiones programadas.",
       "group": "activities",
       "roles": [
         "doc",
@@ -4800,7 +4800,7 @@
       "method": "POST",
       "path": "/activities/{activityId}/sessions",
       "summary": "Crear una sesión suelta",
-      "desc": "Solo RESPONSABLE de una actividad ABIERTA. Hereda espacio y método de la actividad.",
+      "desc": "RESPONSABLE de una actividad ABIERTA o ADMINISTRADOR. Hereda espacio y método de la actividad.",
       "group": "sessions",
       "roles": [
         "doc",
@@ -4895,7 +4895,7 @@
       "method": "PATCH",
       "path": "/sessions/{sessionId}",
       "summary": "Editar hora, espacio o método de una sesión programada",
-      "desc": "Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.",
+      "desc": "RESPONSABLE o ADMINISTRADOR; solo PROGRAMADA, si no, 409 SESION_NO_EDITABLE.",
       "group": "sessions",
       "roles": [
         "doc",
@@ -4989,7 +4989,7 @@
       "method": "POST",
       "path": "/sessions/{sessionId}/cancel",
       "summary": "Cancelar una sesión programada",
-      "desc": "Solo PROGRAMADA; si no, 409 SESION_NO_EDITABLE.",
+      "desc": "RESPONSABLE o ADMINISTRADOR; solo PROGRAMADA, si no, 409 SESION_NO_EDITABLE.",
       "group": "sessions",
       "roles": [
         "doc",

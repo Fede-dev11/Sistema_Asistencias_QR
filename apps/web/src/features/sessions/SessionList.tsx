@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { components } from '../../generated/api';
-import { request } from '../../lib/api/client';
+import { loadActivities } from '../activities/loadActivities';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { SessionPicker } from './SessionPicker';
 import styles from './sessions.module.css';
@@ -16,6 +16,7 @@ export function SessionList() {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [selected, setSelected] = useState('');
   const [error, setError] = useState<unknown>(null);
+<<<<<<< HEAD
   useEffect(() => { request<{ items: Activity[] }>('/activities?size=100').then(p => setActivities(p.items), setError); }, []);
   return <section className={styles.page}>
     <header className={styles.header}>
@@ -25,6 +26,11 @@ export function SessionList() {
         <p className={styles.subtitle}>Selecciona una actividad y abre la sesión que necesitas revisar, iniciar o proyectar.</p>
       </div>
     </header>
+=======
+  useEffect(() => { loadActivities().then(setActivities, setError); }, []);
+  return <section>
+    <h1>Sesiones</h1>
+>>>>>>> origin/main
     <ProblemMessage error={error} />
     <div className={styles.selectorCard}>
       <div className={styles.field}>

@@ -33,6 +33,10 @@ class ActivityScopeTest {
     assertFalse(policy.canRead(user(other, "DOCENTE"), activity));
     assertFalse(policy.canRead(user(other, "ENCARGADO"), activity));
     assertTrue(policy.canRead(user(other, "DIRECTOR_INSTITUCIONAL"), activity));
+    assertTrue(policy.canRead(user(other, "ADMINISTRADOR"), activity));
+    assertEquals(activity, policy.manage(user(other, "ADMINISTRADOR"), activityId));
+    assertThrows(ApiFailure.class, () -> policy.write(user(other, "ADMINISTRADOR"), activityId));
+    assertThrows(ApiFailure.class, () -> policy.manage(user(other, "DOCENTE"), activityId));
     assertFalse(policy.canRead(user(other, "DIRECTOR_CARRERA"), activity));
     when(repo.directs(other, activityId)).thenReturn(true);
     assertTrue(policy.canRead(user(other, "DIRECTOR_CARRERA"), activity));

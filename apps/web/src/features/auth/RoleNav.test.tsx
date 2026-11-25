@@ -30,7 +30,7 @@ describe('RoleNav', () => {
     expect(links()).toEqual(['Resumen', 'Estadísticas', 'Reportes']); unmount();
     session = { roles: ['ADMINISTRADOR'] };
     render(<RoleNav />);
-    expect(links()).toEqual(['Inicio', 'Personas', 'Carreras y paralelos', 'Espacios', 'Importar']);
+    expect(links()).toEqual(['Inicio', 'Actividades', 'Sesiones', 'Administración']);
   });
   it('la sección Pruebas aparece separada y solo con la bandera', () => {
     session = { roles: ['DOCENTE'] };
@@ -48,5 +48,14 @@ describe('RoleNav', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  });
+  it('Escape cierra el menú compacto y devuelve el foco al botón', () => {
+    session = { roles: ['DOCENTE'] };
+    render(<RoleNav />);
+    const toggle = screen.getByRole('button', { name: 'Menú' });
+    fireEvent.click(toggle);
+    fireEvent.keyDown(screen.getByRole('navigation', { name: 'Principal' }), { key: 'Escape' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveFocus();
   });
 });

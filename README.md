@@ -43,7 +43,7 @@ npm ci
 npm run dev
 # Móvil: dentro de apps/mobile
 npm ci
-npm start
+npm start -- --port 8082
 ```
 
 La API usa el puerto 8080 y PostgreSQL de desarrollo el 5433. La web usa 3000. Para un
@@ -51,6 +51,11 @@ dispositivo configura `EXPO_PUBLIC_API_URL` con una dirección accesible desde �
 ficticias: `docente@example.test`, `encargado@example.test`, `estudiante@example.test`,
 `director@example.test` y `director-carrera@example.test`; la contraseña proviene de
 `DEV_SEED_PASSWORD`, nunca del repositorio.
+
+La app móvil usa Expo SDK 58, React Native 0.88.1 y React 19.3.0. Utiliza Expo Go compatible
+con SDK 58 o reconstruye tu cliente de desarrollo después de actualizar. Metro usa el puerto
+8082 para evitar el puerto 8081 del SSO. Tras actualizar dependencias, inicia con
+`npm start -- --port 8082 --clear` para renovar la caché.
 
 Administrador de desarrollo: `admin@dev.geoasist.local` (misma contraseña local). Importación CSV
 de estudiantes: `POST /api/v1/admin/imports/students`; las cuentas creadas usan la contraseña de
