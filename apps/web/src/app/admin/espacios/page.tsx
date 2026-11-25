@@ -11,6 +11,7 @@ import { Button } from '../../../features/ui/Button';
 import { Drawer } from '../../../features/ui/Drawer';
 import { EmptyState } from '../../../features/ui/EmptyState';
 import { Tabs } from '../../../features/ui/Tabs';
+import styles from '../../../features/spaces/spaces.module.css';
 
 type Page = components['schemas']['SpacePage'];
 const SIZE = 20;
@@ -45,24 +46,31 @@ function Spaces() {
     setReload(n => n + 1);
   }
 
-  return <section>
-    <div className="page-heading"><div><h1>Espacios</h1><p>Administra los datos del lugar y su evidencia GPS.</p></div>
+  return <section className={styles.adminPage} aria-labelledby="spaces-title">
+    <div className={styles.pageHeading}><div>
+      <p className={styles.breadcrumb}>Gestión académica <span aria-hidden="true">›</span> Administración</p>
+      <h1 id="spaces-title">Espacios</h1>
+      <p>Administra los datos del lugar y su evidencia GPS.</p>
+    </div>
       <Button onClick={() => { setError(null); setSelected('new'); }}>Nuevo espacio</Button></div>
     {status && <p role="status">{status}</p>}
-    <label>Buscar por código o nombre<input aria-label="Buscar espacios" value={q} onChange={e => { setPage(0); setQ(e.target.value); }} /></label>
+    <label className={styles.search}>Buscar por código o nombre<input aria-label="Buscar espacios" value={q} onChange={e => { setPage(0); setQ(e.target.value); }} /></label>
     <ProblemMessage error={selected ? null : error} />
     {loading && <p role="status">Cargando…</p>}
     {data && data.items.length === 0 && <EmptyState title="No hay espacios" text="Prueba otra búsqueda o crea un espacio." />}
-    {data && data.items.length > 0 && <div className="table-wrap"><table>
-      <thead><tr><th>Código</th><th>Nombre</th><th>Tipo</th><th>Ubicación</th></tr></thead>
+    {data && data.items.length > 0 && <div className={styles.tableWrap}><table className={styles.spaceTable}>
+      <thead><tr><th scope="col">Código</th><th scope="col">Nombre</th><th scope="col">Tipo</th><th scope="col">Ubicación</th></tr></thead>
       <tbody>{data.items.map(space => <tr key={space.id} tabIndex={0} aria-label={`Editar espacio ${space.nombre}`}
+        aria-haspopup="dialog"
         onClick={() => setSelected(space)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(space); } }}>
         <td>{space.codigo}</td><td>{space.nombre}</td><td>{space.tipo}</td><td>{space.latitud == null ? 'Sin coordenadas' : `${space.latitud}, ${space.longitud}`}</td>
       </tr>)}</tbody>
     </table></div>}
-    {data && <nav aria-label="Paginación de espacios"><p>Página {data.page + 1} de {Math.max(1, Math.ceil(data.total / data.size))} ({data.total} espacios)</p>
-      <Button variant="text" disabled={page === 0 || loading} onClick={() => setPage(p => p - 1)}>Anterior</Button>
-      <Button variant="text" disabled={(page + 1) * SIZE >= data.total || loading} onClick={() => setPage(p => p + 1)}>Siguiente</Button></nav>}
+    {data && <nav className={styles.pagination} aria-label="Paginación de espacios"><p>Página {data.page + 1} de {Math.max(1, Math.ceil(data.total / data.size))} ({data.total} espacios)</p>
+      <div className={styles.paginationButtons}>
+        <Button variant="secondary" disabled={page === 0 || loading} onClick={() => setPage(p => p - 1)}>Anterior</Button>
+        <Button variant="secondary" disabled={(page + 1) * SIZE >= data.total || loading} onClick={() => setPage(p => p + 1)}>Siguiente</Button>
+      </div></nav>}
     {selected === 'new' && <Drawer title="Nuevo espacio" onClose={() => setSelected(null)}><SpaceForm onSaved={saved} /></Drawer>}
     {selected && selected !== 'new' && <Drawer title={`${selected.codigo} · ${selected.nombre}`} onClose={() => setSelected(null)}>
       <Tabs tabs={[

@@ -13,16 +13,19 @@ public record WeeklySchedule(
   public record Window(Instant start, Instant end) {}
 
   public WeeklySchedule {
-    if (days == null
-        || days.isEmpty()
-        || new HashSet<>(days).size() != days.size()
-        || days.stream().anyMatch(d -> d == null || d < 1 || d > 7)
-        || start == null
-        || end == null
-        || !end.isAfter(start)
-        || from == null
-        || to == null
-        || to.isBefore(from)) throw ApiFailure.invalid();
+    if (days == null || days.isEmpty())
+      throw new ApiFailure(400, "HORARIO_SIN_DIAS", "Selecciona al menos un día del horario.");
+    if (new HashSet<>(days).size() != days.size()
+        || days.stream().anyMatch(d -> d == null || d < 1 || d > 7))
+      throw new ApiFailure(400, "DIAS_INVALIDOS", "Los días deben ser valores únicos entre 1 y 7.");
+    if (start == null || end == null || !end.isAfter(start))
+      throw new ApiFailure(
+          400, "HORAS_INVALIDAS", "La hora de fin debe ser posterior a la hora de inicio.");
+    if (from == null || to == null || to.isBefore(from))
+      throw new ApiFailure(
+          400,
+          "FECHAS_INVALIDAS",
+          "La fecha de fin debe ser posterior o igual a la fecha de inicio.");
     days = List.copyOf(days);
     zone = zone == null ? DEFAULT_ZONE : zone;
   }

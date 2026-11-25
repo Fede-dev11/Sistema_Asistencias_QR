@@ -6,6 +6,7 @@ import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { Button } from '../ui/Button';
+import styles from './spaces.module.css';
 
 export type Space = components['schemas']['Space'];
 
@@ -22,7 +23,7 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const mapNode = useRef<HTMLDivElement>(null);
-  const place = useRef<(lat: number, lng: number) => void>(() => {});
+  const place = useRef<(lat: number | null, lng: number | null) => void>(() => {});
 
   // El mapa es una ayuda: marcar un punto rellena los campos numéricos, que siguen siendo editables.
   useEffect(() => {
@@ -31,7 +32,8 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
     void import('leaflet').then(L => {
       if (cancelled || !mapNode.current) return;
       const lat0 = Number(latitud), lng0 = Number(longitud);
-      const start: [number, number] = latitud !== '' && longitud !== '' && Number.isFinite(lat0) && Number.isFinite(lng0) ? [lat0, lng0] : UNL;
+      const hasCoordinates = latitud !== '' && longitud !== '' && Number.isFinite(lat0) && Number.isFinite(lng0);
+      const start: [number, number] = hasCoordinates ? [lat0, lng0] : UNL;
       map = L.map(mapNode.current).setView(start, 17);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -40,10 +42,15 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
       let marker: import('leaflet').CircleMarker | undefined;
       place.current = (lat, lng) => {
         if (!map) return;
+        if (lat === null || lng === null) {
+          marker?.remove();
+          marker = undefined;
+          return;
+        }
         if (marker) marker.setLatLng([lat, lng]);
         else marker = L.circleMarker([lat, lng], { radius: 8 }).addTo(map);
       };
-      if (start !== UNL) place.current(start[0], start[1]);
+      if (hasCoordinates) place.current(start[0], start[1]);
       map.on('click', event => {
         const lat = Number(event.latlng.lat.toFixed(6)), lng = Number(event.latlng.lng.toFixed(6));
         setLatitud(String(lat));
@@ -61,7 +68,8 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
 
   function moveMarker(lat: string, lng: string) {
     const a = Number(lat), b = Number(lng);
-    if (lat !== '' && lng !== '' && Math.abs(a) <= 90 && Math.abs(b) <= 180) place.current(a, b);
+    if (lat !== '' && lng !== '' && Number.isFinite(a) && Number.isFinite(b) && Math.abs(a) <= 90 && Math.abs(b) <= 180) place.current(a, b);
+    else place.current(null, null);
   }
 
   async function submit(event: FormEvent) {
@@ -92,25 +100,35 @@ export function SpaceForm({ space, onSaved }: { space?: Space; onSaved?: (space:
   }
 
   return (
-    <form className="panel" onSubmit={submit}>
+    <form className={styles.spaceForm} onSubmit={submit}>
       <h2>{space ? 'Editar espacio' : 'Nuevo espacio'}</h2>
-      <label>Código<input aria-label="Código" required maxLength={40} disabled={!!space} value={codigo} onChange={e => setCodigo(e.target.value)} /></label>
-      <label>Nombre<input aria-label="Nombre" required maxLength={200} value={nombre} onChange={e => setNombre(e.target.value)} /></label>
-      <label>Tipo
-        <select aria-label="Tipo" value={tipo} onChange={e => setTipo(e.target.value as Space['tipo'])}>
-          {['AULA', 'LABORATORIO', 'AUDITORIO', 'EXTERIOR', 'OTRO'].map(t => <option key={t}>{t}</option>)}
-        </select>
-      </label>
-      <div
-        ref={mapNode}
-        role="application"
-        aria-label="Mapa para marcar el centro del espacio. Alternativa: escribe latitud y longitud en los campos siguientes."
-        style={{ height: 280 }}
-      />
-      <label>Latitud<input aria-label="Latitud" type="number" min="-90" max="90" step="any" value={latitud} onChange={e => { setLatitud(e.target.value); moveMarker(e.target.value, longitud); }} /></label>
-      <label>Longitud<input aria-label="Longitud" type="number" min="-180" max="180" step="any" value={longitud} onChange={e => { setLongitud(e.target.value); moveMarker(latitud, e.target.value); }} /></label>
-      <label>Radio por defecto (m)<input aria-label="Radio por defecto (m)" type="number" min="0.01" step="0.01" required value={radio} onChange={e => setRadio(e.target.value)} /></label>
-      <label>Precisión por defecto (m)<input aria-label="Precisión por defecto (m)" type="number" min="0.01" step="0.01" required value={precision} onChange={e => setPrecision(e.target.value)} /></label>
+      <div className={styles.formFields}>
+        <label>Código<input aria-label="Código" required maxLength={40} disabled={!!space} value={codigo} onChange={e => setCodigo(e.target.value)} /></label>
+        <label>Nombre<input aria-label="Nombre" required maxLength={200} value={nombre} onChange={e => setNombre(e.target.value)} /></label>
+        <label className={styles.wideField}>Tipo
+          <select aria-label="Tipo" value={tipo} onChange={e => setTipo(e.target.value as Space['tipo'])}>
+            {['AULA', 'LABORATORIO', 'AUDITORIO', 'EXTERIOR', 'OTRO'].map(t => <option key={t}>{t}</option>)}
+          </select>
+        </label>
+      </div>
+      <section className={styles.location} aria-labelledby="space-location-title">
+        <h3 id="space-location-title">Ubicación y geocerca</h3>
+        <p className={styles.mapHelp}>Marca el punto en el mapa o escribe sus coordenadas. Latitud y longitud deben indicarse juntas.</p>
+        <div
+          ref={mapNode}
+          className={styles.map}
+          role="application"
+          aria-label="Mapa para marcar el centro del espacio. Alternativa: escribe latitud y longitud en los campos siguientes."
+        />
+        <div className={styles.formFields}>
+          <label>Latitud<input aria-label="Latitud" type="number" min="-90" max="90" step="any" value={latitud} onChange={e => { setLatitud(e.target.value); moveMarker(e.target.value, longitud); }} /></label>
+          <label>Longitud<input aria-label="Longitud" type="number" min="-180" max="180" step="any" value={longitud} onChange={e => { setLongitud(e.target.value); moveMarker(latitud, e.target.value); }} /></label>
+        </div>
+      </section>
+      <div className={styles.formFields}>
+        <label>Radio por defecto (m)<input aria-label="Radio por defecto (m)" type="number" min="0.01" step="0.01" required value={radio} onChange={e => setRadio(e.target.value)} /></label>
+        <label>Precisión por defecto (m)<input aria-label="Precisión por defecto (m)" type="number" min="0.01" step="0.01" required value={precision} onChange={e => setPrecision(e.target.value)} /></label>
+      </div>
       <ProblemMessage error={error} />
       <Button type="submit" loading={busy}>Guardar espacio</Button>
     </form>

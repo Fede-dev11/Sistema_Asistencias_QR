@@ -8,6 +8,8 @@ import { MethodSelect } from '../sessions/MethodSelect';
 import { Button } from '../ui/Button';
 import { StatusTag } from '../ui/StatusTag';
 import styles from './activities.module.css';
+import { ProblemMessage } from '../common/ProblemMessage';
+import { validDateTimeLocal } from './dateValidation';
 
 type Page = components['schemas']['SessionPage'];
 type Session = components['schemas']['ScheduledSession'];
@@ -30,19 +32,23 @@ export function ClassSessions({ activityId }: { activityId: string }) {
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [method, setMethod] = useState('SOLO_QR');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
 
   const load = useCallback(() => {
-    request<Page>(`/activities/${activityId}/sessions?size=100`).then(setPage).catch(e => setError(e instanceof Error ? e.message : 'No se pudieron cargar las sesiones.'));
+    request<Page>(`/activities/${activityId}/sessions?size=100`).then(setPage).catch(setError);
   }, [activityId]);
   useEffect(load, [load]);
 
   async function run(action: () => Promise<unknown>) {
-    setError('');
-    try { await action(); setEditing(null); load(); } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo completar.'); }
+    setError(null);
+    try { await action(); setEditing(null); load(); } catch (cause) { setError(cause); }
   }
   const edit = (s: Session) => { setEditing(s.id); setStart(local(s.inicio)); setEnd(local(s.fin)); setMethod(s.metodo_verificacion); };
-  const save = (s: Session) => run(() => request(`/sessions/${s.id}`, { method: 'PATCH', body: JSON.stringify({ inicio: new Date(start).toISOString(), fin: new Date(end).toISOString(), metodo_verificacion: method }) }));
+  const save = (s: Session) => {
+    if (!validDateTimeLocal(start) || !validDateTimeLocal(end)) { setError(new Error('Indica fechas y horas válidas para la sesión.')); return; }
+    if (end <= start) { setError(new Error('La hora de fin debe ser posterior a la de inicio.')); return; }
+    void run(() => request(`/sessions/${s.id}`, { method: 'PATCH', body: JSON.stringify({ inicio: new Date(start).toISOString(), fin: new Date(end).toISOString(), metodo_verificacion: method }) }));
+  };
   const addLoose = () => run(() => {
     const begin = new Date(); begin.setHours(begin.getHours() + 1, 0, 0, 0);
     return request(`/activities/${activityId}/sessions`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ inicio: begin.toISOString(), fin: new Date(begin.getTime() + 3600000).toISOString() }) });
@@ -109,7 +115,7 @@ export function ClassSessions({ activityId }: { activityId: string }) {
           ))}</tbody>
         </table>
       </div>}
-      {error && <p role="alert">{error}</p>}
+      <ProblemMessage error={error} />
     </section>
   );
 }

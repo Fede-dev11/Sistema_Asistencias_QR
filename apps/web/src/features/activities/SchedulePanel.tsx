@@ -6,6 +6,7 @@ import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { MAX_SESSIONS, previewDates } from './schedulePreview';
+import { validDate } from './dateValidation';
 import { Button } from '../ui/Button';
 import styles from './activities.module.css';
 
@@ -38,12 +39,12 @@ export function SchedulePanel({ activityId }: { activityId: string }) {
   }, [activityId]);
 
   const dates = previewDates(days, from, to);
-  const invalid = days.length === 0 || !from || !to || to < from || end <= start || dates.length > MAX_SESSIONS;
+  const invalid = days.length === 0 || !validDate(from) || !validDate(to) || to < from || !/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end) || end <= start || dates.length > MAX_SESSIONS;
 
   function review(event: FormEvent) {
     event.preventDefault();
     setError(null); setMessage('');
-    if (invalid) return setError(new Error(dates.length > MAX_SESSIONS ? 'El horario genera más de 200 sesiones.' : 'Revisa los días, las horas y el rango de fechas.'));
+    if (invalid) return setError(new Error(dates.length > MAX_SESSIONS ? 'El horario genera más de 200 sesiones.' : 'Revisa los días, las horas y el rango de fechas. Verifica que las fechas y horas sean válidas.'));
     setConfirming(true);
   }
   async function replace() {
