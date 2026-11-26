@@ -55,10 +55,7 @@ public class AdminController {
 
   public record Correos(@NotNull List<String> correos) {}
 
-  public record DirectorBody(
-      UUID cuenta_id,
-      UUID account_id,
-      String correo) {}
+  public record DirectorBody(UUID cuenta_id, UUID account_id, String correo) {}
 
   private static ResponseEntity<Map<String, Object>> reply(Receipt r) {
     return ResponseEntity.status(r.status()).body(r.body());

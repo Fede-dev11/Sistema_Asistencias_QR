@@ -186,8 +186,7 @@ public class ManageCareersAndParallels {
 
   public Map<String, Object> careerDirectorPage(UserSession user, UUID career) {
     repo.career(career).orElseThrow(ApiFailure::missing);
-    if (!user.has("ADMINISTRADOR") && !user.has("DIRECTOR_CARRERA"))
-      throw ApiFailure.forbidden();
+    if (!user.has("ADMINISTRADOR") && !user.has("DIRECTOR_CARRERA")) throw ApiFailure.forbidden();
     if (!user.has("ADMINISTRADOR")) {
       boolean directs =
           repo.careerDirectors(career).stream()
@@ -206,8 +205,7 @@ public class ManageCareersAndParallels {
     Set<UUID> accepted = new LinkedHashSet<>();
     List<Map<String, String>> rejections = new ArrayList<>();
     for (String raw : correos) {
-      var account =
-          repo.accountByEmail(raw == null ? "" : raw.strip().toLowerCase(Locale.ROOT));
+      var account = repo.accountByEmail(raw == null ? "" : raw.strip().toLowerCase(Locale.ROOT));
       if (account.isEmpty()) {
         rejections.add(rejected(raw, "No existe la cuenta."));
         continue;
@@ -233,8 +231,7 @@ public class ManageCareersAndParallels {
   }
 
   @Transactional
-  public Map<String, Object> assignCareerDirector(
-      UserSession user, UUID career, String correo) {
+  public Map<String, Object> assignCareerDirector(UserSession user, UUID career, String correo) {
     user.requireAnyRole("ADMINISTRADOR");
     repo.career(career).orElseThrow(ApiFailure::missing);
     var account =
@@ -242,7 +239,8 @@ public class ManageCareersAndParallels {
     if (account.isEmpty()) throw ApiFailure.missing();
     var roles = repo.roles(account.get());
     if (!roles.contains("DIRECTOR_CARRERA") || !repo.activeAccount(account.get()))
-      throw new ApiFailure(422, "DIRECTOR_NO_AUTORIZADO", "La cuenta no es un director activo de carrera.");
+      throw new ApiFailure(
+          422, "DIRECTOR_NO_AUTORIZADO", "La cuenta no es un director activo de carrera.");
     repo.assignDirector(account.get(), career);
     audit.write(
         user.accountId(),
@@ -255,14 +253,14 @@ public class ManageCareersAndParallels {
   }
 
   @Transactional
-  public Map<String, Object> assignCareerDirectorById(
-      UserSession user, UUID career, UUID account) {
+  public Map<String, Object> assignCareerDirectorById(UserSession user, UUID career, UUID account) {
     user.requireAnyRole("ADMINISTRADOR");
     repo.career(career).orElseThrow(ApiFailure::missing);
     if (!repo.accountExists(account)
         || !repo.activeAccount(account)
         || !repo.roles(account).contains("DIRECTOR_CARRERA"))
-      throw new ApiFailure(422, "DIRECTOR_NO_AUTORIZADO", "La cuenta no es un director activo de carrera.");
+      throw new ApiFailure(
+          422, "DIRECTOR_NO_AUTORIZADO", "La cuenta no es un director activo de carrera.");
     repo.assignDirector(account, career);
     audit.write(
         user.accountId(),

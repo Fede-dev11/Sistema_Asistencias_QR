@@ -28,7 +28,16 @@ public class ActivityQueryController {
       @RequestParam(required = false) String materia,
       @RequestParam(required = false) String estado) {
     return queries.list(
-        user, page, size, modalidad, carrera_id, paralelo_id, docente_id, director_id, materia, estado);
+        user,
+        page,
+        size,
+        modalidad,
+        carrera_id,
+        paralelo_id,
+        docente_id,
+        director_id,
+        materia,
+        estado);
   }
 
   @GetMapping("/{activityId}")

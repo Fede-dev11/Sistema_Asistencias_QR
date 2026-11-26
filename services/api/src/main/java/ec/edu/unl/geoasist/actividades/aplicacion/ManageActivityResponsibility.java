@@ -37,7 +37,8 @@ public class ManageActivityResponsibility {
     UUID target = accountId;
     if (target == null && correo != null) {
       target =
-          db.query(
+          db
+              .query(
                   "SELECT id FROM cuentas WHERE identificador=?",
                   (r, n) -> r.getObject("id", UUID.class),
                   correo.strip().toLowerCase(Locale.ROOT))
@@ -47,7 +48,8 @@ public class ManageActivityResponsibility {
     }
     if (target == null) throw ApiFailure.invalid();
     var account =
-        db.query(
+        db
+            .query(
                 "SELECT activa FROM cuentas WHERE id=?",
                 (r, n) -> r.getObject("activa", Boolean.class),
                 target)
@@ -55,13 +57,18 @@ public class ManageActivityResponsibility {
             .findFirst()
             .orElseThrow(ApiFailure::missing);
     if (!Boolean.TRUE.equals(account))
-      throw new ApiFailure(422, "RESPONSABLE_NO_AUTORIZADO", "La cuenta responsable no está activa.");
+      throw new ApiFailure(
+          422, "RESPONSABLE_NO_AUTORIZADO", "La cuenta responsable no está activa.");
 
     var roles =
-        db.queryForList(
-            "SELECT rol FROM roles_cuenta WHERE cuenta_id=?", String.class, target);
-    if (!roles.contains("DOCENTE") && !roles.contains("ENCARGADO") && !roles.contains("DIRECTOR_CARRERA"))
-      throw new ApiFailure(422, "RESPONSABLE_NO_AUTORIZADO", "La cuenta no puede asumir responsabilidades académicas.");
+        db.queryForList("SELECT rol FROM roles_cuenta WHERE cuenta_id=?", String.class, target);
+    if (!roles.contains("DOCENTE")
+        && !roles.contains("ENCARGADO")
+        && !roles.contains("DIRECTOR_CARRERA"))
+      throw new ApiFailure(
+          422,
+          "RESPONSABLE_NO_AUTORIZADO",
+          "La cuenta no puede asumir responsabilidades académicas.");
 
     if (roles.contains("DIRECTOR_CARRERA")) {
       boolean authorized =
@@ -75,7 +82,8 @@ public class ManageActivityResponsibility {
                   activityId,
                   target));
       if (!authorized)
-        throw new ApiFailure(403, "DIRECTOR_FUERA_DE_CARRERA", "El director no pertenece a la carrera de la clase.");
+        throw new ApiFailure(
+            403, "DIRECTOR_FUERA_DE_CARRERA", "El director no pertenece a la carrera de la clase.");
     } else {
       boolean authorized =
           Boolean.TRUE.equals(
@@ -88,7 +96,10 @@ public class ManageActivityResponsibility {
                   activityId,
                   target));
       if (!authorized)
-        throw new ApiFailure(403, "DOCENTE_FUERA_DE_PARALELO", "El docente no está autorizado en los paralelos de la clase.");
+        throw new ApiFailure(
+            403,
+            "DOCENTE_FUERA_DE_PARALELO",
+            "El docente no está autorizado en los paralelos de la clase.");
     }
 
     UUID before = activity.responsible();

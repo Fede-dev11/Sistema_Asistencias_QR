@@ -139,8 +139,9 @@ public class FindVisibleActivities {
       params.add(teacher);
     }
     if (director != null) {
-      if (!user.has("ADMINISTRADOR") && !user.has("DIRECTOR_INSTITUCIONAL") && !director.equals(user.accountId()))
-        throw ApiFailure.forbidden();
+      if (!user.has("ADMINISTRADOR")
+          && !user.has("DIRECTOR_INSTITUCIONAL")
+          && !director.equals(user.accountId())) throw ApiFailure.forbidden();
       where +=
           " AND EXISTS(SELECT 1 FROM direcciones_carrera d JOIN actividad_carreras ac ON ac.carrera_id=d.carrera_id WHERE d.cuenta_id=? AND d.vigente AND ac.actividad_id=a.id)";
       params.add(director);
