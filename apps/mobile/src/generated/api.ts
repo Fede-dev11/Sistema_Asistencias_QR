@@ -284,7 +284,7 @@ export interface paths {
         };
         /**
          * Obtener QR vigente
-         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo sesión ACTIVA y actividad abierta. Rotación cada 30 segundos; cada token vence a los 40 segundos desde su emisión. El servidor comprueba la hora de recepción, no la hora declarada por el dispositivo. No incluye datos personales. Responder Cache-Control: no-store. Representación permitida del cliente: URL con fragmento #qr=token; nunca ruta o query.
+         * @description Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo sesión ACTIVA y actividad abierta. Rotación cada 30 segundos; cada token tiene vigencia nominal de 40 segundos, limitada por el fin de la ventana de la sesión. La respuesta incluye hora_servidor para la cuenta regresiva. Fuera de ventana responde 409 FUERA_DE_HORARIO con horario_inicio, horario_fin y accion_recomendada. El servidor comprueba la hora de recepción, no la hora declarada por el dispositivo. No incluye datos personales. Responder Cache-Control: no-store. Representación permitida del cliente: URL con fragmento #qr=token; nunca ruta o query.
          */
         get: operations["getSessionQr"];
         put?: never;
@@ -330,7 +330,7 @@ export interface paths {
         put?: never;
         /**
          * Registrar asistencia autenticada
-         * @description Cuenta autenticada obligatoria. En CLASE comprobar vínculo autorizado a la clase; en EVENTO comprobar autorización del evento. No aceptar una cédula cliente para elegir identidad. Comprobar QR vigente, sesión activa, actividad abierta, GPS si corresponde y unicidad persona/sesión. El plazo exclusivo de invitados nunca aplica aquí. Con GPS deshabilitado, rechazar ubicación innecesaria sin guardarla.
+         * @description Cuenta autenticada obligatoria. En CLASE comprobar vínculo autorizado a la clase; en EVENTO comprobar autorización del evento. No aceptar una cédula cliente para elegir identidad. Comprobar QR vigente, sesión activa, actividad abierta, GPS si corresponde y unicidad persona/sesión. El plazo exclusivo de invitados nunca aplica aquí. La ventana incluye el inicio y excluye el fin; fuera de ella responde FUERA_DE_HORARIO con el horario permitido. Cuando exige GPS, una ubicación ausente, inválida o vencida requiere una nueva medición y no pasa a revisión por reiteración. Con GPS deshabilitado, rechazar ubicación innecesaria sin guardarla.
          */
         post: operations["recordAuthenticatedAttendance"];
         delete?: never;
@@ -1237,6 +1237,23 @@ export interface components {
             code: string;
             /** @example La sesión está cerrada. */
             mensaje: string;
+            /** @description Acción para resolver o continuar tras el rechazo. */
+            accion_recomendada?: string;
+            /**
+             * Format: date-time
+             * @description Inicio incluido de la ventana permitida, en FUERA_DE_HORARIO.
+             */
+            horario_inicio?: string;
+            /**
+             * Format: date-time
+             * @description Fin excluido de la ventana permitida, en FUERA_DE_HORARIO.
+             */
+            horario_fin?: string;
+            /**
+             * Format: date-time
+             * @description Instante del servidor usado para validar la ventana.
+             */
+            hora_servidor?: string;
             /** Format: uuid */
             attempt_id?: string;
             /**
@@ -1474,8 +1491,16 @@ export interface components {
             qr_token: string;
             /** Format: date-time */
             emitido_en: string;
-            /** Format: date-time */
+            /**
+             * Format: date-time
+             * @description Vencimiento limitado también por el fin de la sesión.
+             */
             vence_en: string;
+            /**
+             * Format: date-time
+             * @description Hora del servidor al responder; permite calcular la cuenta regresiva sin el reloj del cliente.
+             */
+            hora_servidor: string;
             /** @enum {integer} */
             rotacion_segundos: 30;
             /** @enum {integer} */
@@ -1539,6 +1564,7 @@ export interface components {
             resultado: "REPETIR" | "PENDIENTE_REVISION";
             code: string;
             mensaje: string;
+            accion_recomendada?: string;
         };
         /** @description Inicio del flujo de invitado con QR o sesión. */
         GuestStartRequest: {
@@ -3120,6 +3146,7 @@ export interface operations {
                      *       "qr_token": "ejemplo-qr-opaco-no-es-un-secreto-real-0001",
                      *       "emitido_en": "2026-10-19T16:00:00Z",
                      *       "vence_en": "2026-10-19T16:00:40Z",
+                     *       "hora_servidor": "2026-10-19T16:00:00Z",
                      *       "rotacion_segundos": 30,
                      *       "vigencia_segundos": 40
                      *     }

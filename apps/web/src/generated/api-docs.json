@@ -1288,7 +1288,7 @@
       "method": "GET",
       "path": "/sessions/{sessionId}/qr",
       "summary": "Obtener QR vigente",
-      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo sesión ACTIVA y actividad abierta. Rotación cada 30 segundos; cada token vence a los 40 segundos desde su emisión. El servidor comprueba la hora de recepción, no la hora declarada por el dispositivo. No incluye datos personales. Responder Cache-Control: no-store. Representación permitida del cliente: URL con fragmento #qr=token; nunca ruta o query.",
+      "desc": "Solo RESPONSABLE vinculado a esta actividad. Los directores no reciben facultades de modificación por su permiso de lectura. Solo sesión ACTIVA y actividad abierta. Rotación cada 30 segundos; cada token tiene vigencia nominal de 40 segundos, limitada por el fin de la ventana de la sesión. La respuesta incluye hora_servidor para la cuenta regresiva. Fuera de ventana responde 409 FUERA_DE_HORARIO con horario_inicio, horario_fin y accion_recomendada. El servidor comprueba la hora de recepción, no la hora declarada por el dispositivo. No incluye datos personales. Responder Cache-Control: no-store. Representación permitida del cliente: URL con fragmento #qr=token; nunca ruta o query.",
       "group": "sessions",
       "roles": [
         "doc",
@@ -1505,7 +1505,7 @@
       "method": "POST",
       "path": "/attendance/attempts",
       "summary": "Registrar asistencia autenticada",
-      "desc": "Cuenta autenticada obligatoria. En CLASE comprobar vínculo autorizado a la clase; en EVENTO comprobar autorización del evento. No aceptar una cédula cliente para elegir identidad. Comprobar QR vigente, sesión activa, actividad abierta, GPS si corresponde y unicidad persona/sesión. El plazo exclusivo de invitados nunca aplica aquí. Con GPS deshabilitado, rechazar ubicación innecesaria sin guardarla.",
+      "desc": "Cuenta autenticada obligatoria. En CLASE comprobar vínculo autorizado a la clase; en EVENTO comprobar autorización del evento. No aceptar una cédula cliente para elegir identidad. Comprobar QR vigente, sesión activa, actividad abierta, GPS si corresponde y unicidad persona/sesión. El plazo exclusivo de invitados nunca aplica aquí. La ventana incluye el inicio y excluye el fin; fuera de ella responde FUERA_DE_HORARIO con el horario permitido. Cuando exige GPS, una ubicación ausente, inválida o vencida requiere una nueva medición y no pasa a revisión por reiteración. Con GPS deshabilitado, rechazar ubicación innecesaria sin guardarla.",
       "group": "attendance",
       "roles": [
         "est"

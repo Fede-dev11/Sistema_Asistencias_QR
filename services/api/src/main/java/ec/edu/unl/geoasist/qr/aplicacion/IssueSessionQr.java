@@ -4,6 +4,7 @@ import ec.edu.unl.geoasist.actividades.aplicacion.ActivityAuthorization;
 import ec.edu.unl.geoasist.actividades.persistencia.ActivityRepository;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
 import ec.edu.unl.geoasist.compartido.aplicacion.OpaqueSecrets;
+import ec.edu.unl.geoasist.compartido.aplicacion.SessionWindow;
 import ec.edu.unl.geoasist.compartido.persistencia.AttendanceLocks;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import ec.edu.unl.geoasist.sesiones.persistencia.*;
@@ -54,8 +55,13 @@ public class IssueSessionQr {
     locks.activity(activity, false);
     locks.session(session);
     scope.write(user, activity);
-    if (!active(session, activity)) throw ApiFailure.conflict();
-    return issue(session);
+    var s = sessions.find(session);
+    if (!activities.find(activity).state().equals("ABIERTA")
+        || !SessionRepository.usesQr(sessions.method(session))
+        || !s.state().equals("ACTIVA")) throw ApiFailure.conflict();
+    Instant now = clock.instant();
+    SessionWindow.require(s.windowStart(), s.windowEnd(), now);
+    return issue(session, now, s.windowEnd());
   }
 
   @Transactional
@@ -63,22 +69,21 @@ public class IssueSessionQr {
     UUID activity = activities.activityOfSession(session);
     locks.activity(activity, false);
     locks.session(session);
-    if (active(session, activity)) issue(session);
+    var s = sessions.find(session);
+    Instant now = clock.instant();
+    if (active(session, activity, now)) issue(session, now, s.windowEnd());
   }
 
-  private boolean active(UUID session, UUID activity) {
+  private boolean active(UUID session, UUID activity, Instant now) {
     var a = activities.find(activity);
     var s = sessions.find(session);
-    var now = clock.instant();
     return a.state().equals("ABIERTA")
         && SessionRepository.usesQr(sessions.method(session))
         && s.state().equals("ACTIVA")
-        && !now.isBefore(s.windowStart())
-        && now.isBefore(s.windowEnd());
+        && SessionWindow.contains(s.windowStart(), s.windowEnd(), now);
   }
 
-  private Map<String, Object> issue(UUID session) {
-    Instant now = clock.instant();
+  private Map<String, Object> issue(UUID session, Instant now, Instant windowEnd) {
     Cached qr = cache.get(session);
     if (qr == null || !now.isBefore(qr.issued().plusSeconds(30)) || now.isBefore(qr.issued())) {
       qr = new Cached(secrets.issue(), now, now.plusSeconds(40));
@@ -105,7 +110,10 @@ public class IssueSessionQr {
         "emitido_en",
         qr.issued(),
         "vence_en",
-        qr.expires(),
+        // La vida nominal del token se conserva; la ventana limita su uso efectivo.
+        qr.expires().isBefore(windowEnd) ? qr.expires() : windowEnd,
+        "hora_servidor",
+        now,
         "rotacion_segundos",
         30,
         "vigencia_segundos",

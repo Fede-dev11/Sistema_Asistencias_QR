@@ -36,6 +36,8 @@ public class ApiProblemHandler {
   public ResponseEntity<Map<String, Object>> fields(MethodArgumentNotValidException e) {
     if (e.getBindingResult().getFieldErrors().stream()
         .anyMatch(x -> "dispositivo_id".equals(x.getField()))) return deviceRequired();
+    if (e.getBindingResult().getFieldErrors().stream()
+        .anyMatch(x -> x.getField().startsWith("ubicacion."))) return invalidLocation();
     String detail =
         e.getBindingResult().getFieldErrors().stream()
             .map(x -> x.getField() + ": " + x.getDefaultMessage())
@@ -56,7 +58,16 @@ public class ApiProblemHandler {
         && e.getCause() instanceof tools.jackson.core.JacksonException m
         && m.getPath().stream().anyMatch(r -> "dispositivo_id".equals(r.getPropertyName())))
       return deviceRequired();
+    if (e instanceof HttpMessageNotReadableException
+        && e.getCause() instanceof tools.jackson.core.JacksonException m
+        && m.getPath().stream().anyMatch(r -> "ubicacion".equals(r.getPropertyName())))
+      return invalidLocation();
     return failure(ApiFailure.invalid());
+  }
+
+  private ResponseEntity<Map<String, Object>> invalidLocation() {
+    return failure(
+        new ApiFailure(400, "UBICACION_INVALIDA", "La medición de ubicación no es válida."));
   }
 
   private ResponseEntity<Map<String, Object>> deviceRequired() {

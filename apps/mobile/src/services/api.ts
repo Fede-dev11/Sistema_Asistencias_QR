@@ -18,7 +18,11 @@ export async function request<T>(path: string, options: ApiRequestInit = {}): Pr
  const response = await fetch(base + path, { ...fetchOptions, headers, credentials: 'omit', cache: 'no-store' });
  if (!response.ok) {
   let problem: Problem;
-  try { problem = await response.json() as Problem; } catch { problem = { type: 'urn:unl:problem:red', title: 'Respuesta no disponible', status: response.status, code: 'RESPUESTA_INVALIDA', mensaje: 'No se pudo leer la respuesta. Reintenta con la misma operación.' }; }
+  try {
+   const raw = await response.json() as Partial<Problem> & { message?: string };
+   const mensaje = raw.mensaje ?? raw.message ?? 'No se pudo completar la operación.';
+   problem = { ...raw, type: raw.type ?? 'urn:unl:problem:api-error', title: raw.title ?? mensaje, status: response.status, code: raw.code ?? `HTTP_${response.status}`, mensaje };
+  } catch { problem = { type: 'urn:unl:problem:red', title: 'Respuesta no disponible', status: response.status, code: 'RESPUESTA_INVALIDA', mensaje: 'No se pudo leer la respuesta. Reintenta con la misma operación.' }; }
   if (response.status === 401 && bearerUsed && bearer === bearerUsed) { setBearer(null); unauthorized.forEach(callback=>callback()); }
   throw new ApiError(problem, response.status);
  }
