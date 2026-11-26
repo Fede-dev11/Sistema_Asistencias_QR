@@ -36,7 +36,8 @@ public class AcademicRepository {
     return db
         .queryForList(
             PERSON
-                + "WHERE position(lower(?) in lower(p.nombres))>0 OR position(? in p.cedula_normalizada)>0 ORDER BY p.nombres,p.id LIMIT ? OFFSET ?",
+                + "WHERE position(lower(?) in lower(p.nombres))>0 OR position(? in p.cedula_normalizada)>0 OR position(lower(?) in lower(coalesce(c.identificador, ''))) > 0 ORDER BY p.nombres,p.id LIMIT ? OFFSET ?",
+            q,
             q,
             q,
             limit,
@@ -48,8 +49,9 @@ public class AcademicRepository {
 
   public long countPeople(String q) {
     return db.queryForObject(
-        "SELECT count(*) FROM personas WHERE position(lower(?) in lower(nombres))>0 OR position(? in cedula_normalizada)>0",
+        "SELECT count(*) FROM personas p LEFT JOIN cuentas c ON c.persona_id=p.id WHERE position(lower(?) in lower(p.nombres))>0 OR position(? in p.cedula_normalizada)>0 OR position(lower(?) in lower(coalesce(c.identificador, ''))) > 0",
         Long.class,
+        q,
         q,
         q);
   }
