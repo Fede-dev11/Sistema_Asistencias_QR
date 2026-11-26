@@ -24,7 +24,14 @@ class AdminContractTest extends AdminSupport {
           new String[] {"GET", "/api/v1/admin/careers/" + ZERO + "000000000001/parallels"},
           new String[] {"POST", "/api/v1/admin/careers/" + ZERO + "000000000001/parallels"},
           new String[] {"PUT", "/api/v1/admin/parallels/" + ZERO + "000000000011/enrollments"},
-          new String[] {"PUT", "/api/v1/admin/parallels/" + ZERO + "000000000011/teachers"});
+          new String[] {"PUT", "/api/v1/admin/parallels/" + ZERO + "000000000011/teachers"},
+          new String[] {"GET", "/api/v1/admin/careers/" + ZERO + "000000000001/directors"},
+          new String[] {"POST", "/api/v1/admin/careers/" + ZERO + "000000000001/directors"},
+          new String[] {"PUT", "/api/v1/admin/careers/" + ZERO + "000000000001/directors"},
+          new String[] {
+            "DELETE",
+            "/api/v1/admin/careers/" + ZERO + "000000000001/directors/" + ZERO + "000000000200"
+          });
 
   @Test
   void withoutSessionIs401AndNonAdminRolesAre403() throws Exception {

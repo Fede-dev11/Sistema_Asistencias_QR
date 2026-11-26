@@ -380,6 +380,46 @@
           "type": "string (uuid)",
           "desc": "Restringir por vínculo de carrera verificado en servidor; no concede permisos.",
           "rules": ""
+        },
+        {
+          "name": "paralelo_id",
+          "in": "query",
+          "required": false,
+          "type": "string (uuid)",
+          "desc": "Restringir por paralelo autorizado dentro del ámbito del usuario.",
+          "rules": ""
+        },
+        {
+          "name": "docente_id",
+          "in": "query",
+          "required": false,
+          "type": "string (uuid)",
+          "desc": "Restringir por docente responsable autorizado.",
+          "rules": ""
+        },
+        {
+          "name": "director_id",
+          "in": "query",
+          "required": false,
+          "type": "string (uuid)",
+          "desc": "Restringir por director de carrera autorizado.",
+          "rules": ""
+        },
+        {
+          "name": "materia",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "desc": "Buscar por nombre de materia o clase.",
+          "rules": ""
+        },
+        {
+          "name": "estado",
+          "in": "query",
+          "required": false,
+          "type": "string",
+          "desc": "Restringir por estado de la actividad.",
+          "rules": "ABIERTA | CERRADA | CANCELADA"
         }
       ],
       "body": null,
@@ -760,6 +800,88 @@
         {
           "code": "429",
           "desc": "Demasiadas solicitudes; límite técnico configurable por despliegue.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "replaceActivityResponsible",
+      "method": "PUT",
+      "path": "/activities/{activityId}/responsible",
+      "summary": "Reemplazar responsable de una clase",
+      "desc": "ADMINISTRADOR o DIRECTOR_CARRERA autorizado. El destinatario debe ser docente activo autorizado en los paralelos, o director activo autorizado en la carrera.",
+      "group": "activities",
+      "roles": [
+        "doc",
+        "enc"
+      ],
+      "note": "Solo el responsable de la actividad.",
+      "params": [
+        {
+          "name": "activityId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "Identificador de la actividad (clase o evento).",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "cuenta_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "responsable_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "correo",
+            "type": "string (email)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Responsable actualizado",
+          "schema": null
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Cuenta o asignación académica no válida para la operación.",
           "schema": "Problem"
         }
       ]
@@ -3290,6 +3412,247 @@
       ]
     },
     {
+      "id": "adminListCareerDirectors",
+      "method": "GET",
+      "path": "/admin/careers/{careerId}/directors",
+      "summary": "Listar directores vigentes de una carrera",
+      "desc": "Lista las asignaciones vigentes de directores para la carrera indicada.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "careerId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "Identificador de la carrera.",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Directores vigentes",
+          "schema": null
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminAssignCareerDirector",
+      "method": "POST",
+      "path": "/admin/careers/{careerId}/directors",
+      "summary": "Asignar un director a una carrera",
+      "desc": "Asigna una cuenta activa con rol DIRECTOR_CARRERA a la carrera indicada.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "careerId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "Identificador de la carrera.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "cuenta_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "account_id",
+            "type": "string (uuid)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          },
+          {
+            "name": "correo",
+            "type": "string (email)",
+            "required": false,
+            "desc": "",
+            "rules": ""
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Director asignado",
+          "schema": null
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        },
+        {
+          "code": "422",
+          "desc": "Cuenta o asignación académica no válida para la operación.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminReplaceCareerDirectors",
+      "method": "PUT",
+      "path": "/admin/careers/{careerId}/directors",
+      "summary": "Reemplazar directores de una carrera",
+      "desc": "Reemplaza de forma auditable todas las asignaciones vigentes de directores de la carrera.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "careerId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "Identificador de la carrera.",
+          "rules": ""
+        }
+      ],
+      "body": {
+        "contentType": "application/json",
+        "schema": "object",
+        "fields": [
+          {
+            "name": "correos",
+            "type": "lista de string (email)",
+            "required": true,
+            "desc": "",
+            "rules": "máx. elementos 5000"
+          }
+        ]
+      },
+      "responses": [
+        {
+          "code": "200",
+          "desc": "Resultado del reemplazo",
+          "schema": null
+        },
+        {
+          "code": "400",
+          "desc": "Datos mal formados o parámetros inválidos.",
+          "schema": "Problem"
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
+      "id": "adminRevokeCareerDirector",
+      "method": "DELETE",
+      "path": "/admin/careers/{careerId}/directors/{accountId}",
+      "summary": "Retirar un director de una carrera",
+      "desc": "Retira de forma auditable la asignación vigente de una cuenta directora.",
+      "group": "admin",
+      "roles": [
+        "adm"
+      ],
+      "note": null,
+      "params": [
+        {
+          "name": "careerId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "Identificador de la carrera.",
+          "rules": ""
+        },
+        {
+          "name": "accountId",
+          "in": "path",
+          "required": true,
+          "type": "string (uuid)",
+          "desc": "Identificador de la cuenta directora.",
+          "rules": ""
+        }
+      ],
+      "body": null,
+      "responses": [
+        {
+          "code": "204",
+          "desc": "Director retirado",
+          "schema": null
+        },
+        {
+          "code": "401",
+          "desc": "Credenciales o bearer ausentes, inválidos, revocados o caducados.",
+          "schema": "Problem"
+        },
+        {
+          "code": "403",
+          "desc": "Permisos o ámbito insuficientes; en invitados USAR_CREDENCIALES si existe cuenta, NO_AUTORIZADO si no pertenece al listado.",
+          "schema": "Problem"
+        },
+        {
+          "code": "404",
+          "desc": "Recurso inexistente.",
+          "schema": "Problem"
+        }
+      ]
+    },
+    {
       "id": "adminListParallels",
       "method": "GET",
       "path": "/admin/careers/{careerId}/parallels",
@@ -5445,6 +5808,7 @@
     }
   ],
   "codes": [
+    "ASIGNACION_NO_VALIDA",
     "CAMBIO_PASSWORD_REQUERIDO",
     "CEDULA_INVALIDA",
     "CUENTA_INACTIVA",

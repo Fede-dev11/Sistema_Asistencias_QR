@@ -248,6 +248,26 @@ paths:
         schema:
           type: string
           format: uuid
+      - name: paralelo_id
+        in: query
+        description: Restringir por paralelo autorizado dentro del ámbito del usuario.
+        schema: {type: string, format: uuid}
+      - name: docente_id
+        in: query
+        description: Restringir por docente responsable autorizado.
+        schema: {type: string, format: uuid}
+      - name: director_id
+        in: query
+        description: Restringir por director de carrera autorizado.
+        schema: {type: string, format: uuid}
+      - name: materia
+        in: query
+        description: Buscar por nombre de materia o clase.
+        schema: {type: string}
+      - name: estado
+        in: query
+        description: Restringir por estado de la actividad.
+        schema: {type: string, enum: [ABIERTA, CERRADA, CANCELADA]}
       responses:
         '200':
           description: Página de actividades visibles, incluso vacía; sin datos de otros ámbitos.
@@ -396,6 +416,33 @@ paths:
           $ref: '#/components/responses/RateLimited'
       parameters:
       - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/responsible:
+    put:
+      operationId: replaceActivityResponsible
+      summary: Reemplazar responsable de una clase
+      description: ADMINISTRADOR o DIRECTOR_CARRERA autorizado. El destinatario debe ser docente activo autorizado en los paralelos, o director activo autorizado en la carrera.
+      tags: [activities]
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      requestBody:
+        description: Cuenta o correo del nuevo responsable.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                cuenta_id: {type: string, format: uuid}
+                responsable_id: {type: string, format: uuid}
+                correo: {type: string, format: email}
+      responses:
+        '200': {description: Responsable actualizado}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
   /activities/{activityId}/close:
     post:
       operationId: closeActivity
@@ -1557,6 +1604,81 @@ paths:
         '401': {$ref: '#/components/responses/Unauthorized'}
         '403': {$ref: '#/components/responses/Forbidden'}
         '404': {$ref: '#/components/responses/NotFound'}
+  /admin/careers/{careerId}/directors:
+    parameters:
+    - {name: careerId, in: path, required: true, description: Identificador de la carrera., schema: {type: string, format: uuid}}
+    get:
+      operationId: adminListCareerDirectors
+      summary: Listar directores vigentes de una carrera
+      description: Lista las asignaciones vigentes de directores para la carrera indicada.
+      tags: [admin]
+      responses:
+        '200': {description: Directores vigentes}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      operationId: adminReplaceCareerDirectors
+      summary: Reemplazar directores de una carrera
+      description: Reemplaza de forma auditable todas las asignaciones vigentes de directores de la carrera.
+      tags: [admin]
+      requestBody:
+        description: Correos de las cuentas que tendrán la asignación vigente.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [correos]
+              properties:
+                correos:
+                  type: array
+                  maxItems: 5000
+                  items: {type: string, format: email}
+      responses:
+        '200': {description: Resultado del reemplazo}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: adminAssignCareerDirector
+      summary: Asignar un director a una carrera
+      description: Asigna una cuenta activa con rol DIRECTOR_CARRERA a la carrera indicada.
+      tags: [admin]
+      requestBody:
+        description: Identificador o correo de la cuenta directora.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                cuenta_id: {type: string, format: uuid}
+                account_id: {type: string, format: uuid}
+                correo: {type: string, format: email}
+      responses:
+        '200': {description: Director asignado}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+  /admin/careers/{careerId}/directors/{accountId}:
+    parameters:
+    - {name: careerId, in: path, required: true, description: Identificador de la carrera., schema: {type: string, format: uuid}}
+    - {name: accountId, in: path, required: true, description: Identificador de la cuenta directora., schema: {type: string, format: uuid}}
+    delete:
+      operationId: adminRevokeCareerDirector
+      summary: Retirar un director de una carrera
+      description: Retira de forma auditable la asignación vigente de una cuenta directora.
+      tags: [admin]
+      responses:
+        '204': {description: Director retirado}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
   /admin/careers/{careerId}/parallels:
     parameters:
     - {name: careerId, in: path, required: true, description: Identificador de la carrera., schema: {type: string, format: uuid}}
@@ -2600,6 +2722,18 @@ components:
             status: 409
             code: ESTADO_INCOMPATIBLE
             mensaje: Estado incompatible o reutilización de Idempotency-Key con otra carga.
+    UnprocessableEntity:
+      description: Cuenta o asignación académica no válida para la operación.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          example:
+            type: urn:unl:problem:asignacion-no-valida
+            title: La asignación académica no es válida.
+            status: 422
+            code: ASIGNACION_NO_VALIDA
+            mensaje: La cuenta no cumple las reglas de asignación académica.
     Gone:
       description: Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS).
         En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado

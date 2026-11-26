@@ -184,6 +184,108 @@ public class ManageCareersAndParallels {
     return pageOf(user, parallel, page, size, false);
   }
 
+  public Map<String, Object> careerDirectorPage(UserSession user, UUID career) {
+    repo.career(career).orElseThrow(ApiFailure::missing);
+    if (!user.has("ADMINISTRADOR") && !user.has("DIRECTOR_CARRERA")) throw ApiFailure.forbidden();
+    if (!user.has("ADMINISTRADOR")) {
+      boolean directs =
+          repo.careerDirectors(career).stream()
+              .anyMatch(row -> Objects.equals(row.get("cuenta_id"), user.accountId()));
+      if (!directs) throw ApiFailure.forbidden();
+    }
+    return Map.of("items", repo.careerDirectors(career));
+  }
+
+  @Transactional
+  public Map<String, Object> replaceCareerDirectors(
+      UserSession user, UUID career, List<String> correos) {
+    user.requireAnyRole("ADMINISTRADOR");
+    repo.career(career).orElseThrow(ApiFailure::missing);
+    if (correos == null || correos.size() > MAX_LIST) throw ApiFailure.invalid();
+    Set<UUID> accepted = new LinkedHashSet<>();
+    List<Map<String, String>> rejections = new ArrayList<>();
+    for (String raw : correos) {
+      var account = repo.accountByEmail(raw == null ? "" : raw.strip().toLowerCase(Locale.ROOT));
+      if (account.isEmpty()) {
+        rejections.add(rejected(raw, "No existe la cuenta."));
+        continue;
+      }
+      var roles = repo.roles(account.get());
+      if (!roles.contains("DIRECTOR_CARRERA"))
+        rejections.add(rejected(raw, "La cuenta no tiene rol DIRECTOR_CARRERA."));
+      else if (!repo.activeAccount(account.get()))
+        rejections.add(rejected(raw, "La cuenta no está activa."));
+      else accepted.add(account.get());
+    }
+    for (var row : repo.careerDirectors(career))
+      repo.revokeDirector((UUID) row.get("cuenta_id"), career);
+    accepted.forEach(account -> repo.assignDirector(account, career));
+    audit.write(
+        user.accountId(),
+        "REEMPLAZAR_DIRECTORES_CARRERA",
+        "CARRERA",
+        career,
+        Map.of(),
+        Map.of("directores", accepted.size(), "rechazadas", rejections.size()));
+    return Map.of("directores", accepted.size(), "rechazadas", rejections);
+  }
+
+  @Transactional
+  public Map<String, Object> assignCareerDirector(UserSession user, UUID career, String correo) {
+    user.requireAnyRole("ADMINISTRADOR");
+    repo.career(career).orElseThrow(ApiFailure::missing);
+    var account =
+        repo.accountByEmail(correo == null ? "" : correo.strip().toLowerCase(Locale.ROOT));
+    if (account.isEmpty()) throw ApiFailure.missing();
+    var roles = repo.roles(account.get());
+    if (!roles.contains("DIRECTOR_CARRERA") || !repo.activeAccount(account.get()))
+      throw new ApiFailure(
+          422, "DIRECTOR_NO_AUTORIZADO", "La cuenta no es un director activo de carrera.");
+    repo.assignDirector(account.get(), career);
+    audit.write(
+        user.accountId(),
+        "ASIGNAR_DIRECTOR_CARRERA",
+        "CARRERA",
+        career,
+        Map.of(),
+        Map.of("cuenta_id", account.get()));
+    return Map.of("cuenta_id", account.get(), "vigente", true);
+  }
+
+  @Transactional
+  public Map<String, Object> assignCareerDirectorById(UserSession user, UUID career, UUID account) {
+    user.requireAnyRole("ADMINISTRADOR");
+    repo.career(career).orElseThrow(ApiFailure::missing);
+    if (!repo.accountExists(account)
+        || !repo.activeAccount(account)
+        || !repo.roles(account).contains("DIRECTOR_CARRERA"))
+      throw new ApiFailure(
+          422, "DIRECTOR_NO_AUTORIZADO", "La cuenta no es un director activo de carrera.");
+    repo.assignDirector(account, career);
+    audit.write(
+        user.accountId(),
+        "ASIGNAR_DIRECTOR_CARRERA",
+        "CARRERA",
+        career,
+        Map.of(),
+        Map.of("cuenta_id", account));
+    return Map.of("cuenta_id", account, "vigente", true);
+  }
+
+  @Transactional
+  public void revokeCareerDirector(UserSession user, UUID career, UUID account) {
+    user.requireAnyRole("ADMINISTRADOR");
+    repo.career(career).orElseThrow(ApiFailure::missing);
+    if (!repo.revokeDirector(account, career)) throw ApiFailure.missing();
+    audit.write(
+        user.accountId(),
+        "RETIRAR_DIRECTOR_CARRERA",
+        "CARRERA",
+        career,
+        Map.of("cuenta_id", account),
+        Map.of("vigente", false));
+  }
+
   private Map<String, Object> pageOf(
       UserSession user, UUID parallel, int page, int size, boolean students) {
     user.requireAnyRole("ADMINISTRADOR");

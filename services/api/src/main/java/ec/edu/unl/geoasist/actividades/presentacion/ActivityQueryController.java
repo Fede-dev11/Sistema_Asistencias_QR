@@ -21,8 +21,23 @@ public class ActivityQueryController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
       @RequestParam(required = false) String modalidad,
-      @RequestParam(required = false) UUID carrera_id) {
-    return queries.list(user, page, size, modalidad, carrera_id);
+      @RequestParam(required = false) UUID carrera_id,
+      @RequestParam(required = false) UUID paralelo_id,
+      @RequestParam(required = false) UUID docente_id,
+      @RequestParam(required = false) UUID director_id,
+      @RequestParam(required = false) String materia,
+      @RequestParam(required = false) String estado) {
+    return queries.list(
+        user,
+        page,
+        size,
+        modalidad,
+        carrera_id,
+        paralelo_id,
+        docente_id,
+        director_id,
+        materia,
+        estado);
   }
 
   @GetMapping("/{activityId}")
