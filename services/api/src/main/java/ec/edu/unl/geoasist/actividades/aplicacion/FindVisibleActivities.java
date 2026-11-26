@@ -65,10 +65,27 @@ public class FindVisibleActivities {
 
   @Transactional(readOnly = true)
   public Map<String, Object> list(UserSession user, int page, int size, String mode, UUID career) {
+    return list(user, page, size, mode, career, null, null, null, null, null);
+  }
+
+  @Transactional(readOnly = true)
+  public Map<String, Object> list(
+      UserSession user,
+      int page,
+      int size,
+      String mode,
+      UUID career,
+      UUID parallel,
+      UUID teacher,
+      UUID director,
+      String materia,
+      String estado) {
     if (page < 0
         || size < 1
         || size > 100
-        || (mode != null && !Set.of("CLASE", "EVENTO").contains(mode))) throw ApiFailure.invalid();
+        || (mode != null && !Set.of("CLASE", "EVENTO").contains(mode))
+        || (estado != null && !Set.of("ABIERTA", "CERRADA", "CANCELADA").contains(estado)))
+      throw ApiFailure.invalid();
     if (!user.responsibleRole()
         && !user.has("ADMINISTRADOR")
         && !user.has("DIRECTOR_INSTITUCIONAL")
@@ -111,6 +128,31 @@ public class FindVisibleActivities {
       where +=
           " AND EXISTS(SELECT 1 FROM actividad_carreras ac WHERE ac.actividad_id=a.id AND ac.carrera_id=?)";
       params.add(career);
+    }
+    if (parallel != null) {
+      where +=
+          " AND EXISTS(SELECT 1 FROM actividad_paralelos ap WHERE ap.actividad_id=a.id AND ap.paralelo_id=?)";
+      params.add(parallel);
+    }
+    if (teacher != null) {
+      where += " AND a.responsable_id=?";
+      params.add(teacher);
+    }
+    if (director != null) {
+      if (!user.has("ADMINISTRADOR")
+          && !user.has("DIRECTOR_INSTITUCIONAL")
+          && !director.equals(user.accountId())) throw ApiFailure.forbidden();
+      where +=
+          " AND EXISTS(SELECT 1 FROM direcciones_carrera d JOIN actividad_carreras ac ON ac.carrera_id=d.carrera_id WHERE d.cuenta_id=? AND d.vigente AND ac.actividad_id=a.id)";
+      params.add(director);
+    }
+    if (materia != null && !materia.isBlank()) {
+      where += " AND lower(a.nombre) LIKE ?";
+      params.add("%" + materia.strip().toLowerCase(Locale.ROOT) + "%");
+    }
+    if (estado != null) {
+      where += " AND a.estado=?";
+      params.add(estado);
     }
     Long total =
         db.queryForObject(

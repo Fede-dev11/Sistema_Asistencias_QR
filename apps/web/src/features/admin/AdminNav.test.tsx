@@ -12,5 +12,6 @@ it('permite volver al inicio y distingue la sección administrativa actual', () 
   expect(nav.getByRole('link', { name: 'Espacios y geocercas' })).toHaveAttribute('aria-current', 'page');
   expect(nav.getByRole('link', { name: 'Personas y cuentas' })).toHaveAttribute('href', '/admin/personas');
   expect(nav.getByRole('link', { name: 'Carreras y paralelos' })).toHaveAttribute('href', '/admin/carreras');
+  expect(nav.getByRole('link', { name: 'Asignaciones académicas' })).toHaveAttribute('href', '/admin/asignaciones');
   expect(nav.getByRole('link', { name: 'Importar listas' })).toHaveAttribute('href', '/admin/importar');
 });

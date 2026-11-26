@@ -6,6 +6,7 @@ const MAP: Record<string, [string, Tone, string]> = {
   RECHAZADO: ['Rechazado', 'danger', '✕'], RECHAZADA: ['Rechazada', 'danger', '✕'],
   PENDIENTE_REVISION: ['Pendiente de revisión', 'warn', '!'], AUSENTE: ['Ausente', 'danger', '✕'], JUSTIFICADA: ['Justificada', 'warn', '✓'],
   INACTIVA: ['Inactiva', 'danger', '✕'], SIN_CUENTA: ['Sin cuenta', 'neutral', '•'],
+  VIGENTE: ['Vigente', 'ok', '✓'], NO_VIGENTE: ['No vigente', 'danger', '✕'],
 };
 
 /** status: código del backend. Muestra icono + etiqueta en español; un código desconocido se muestra tal cual. */

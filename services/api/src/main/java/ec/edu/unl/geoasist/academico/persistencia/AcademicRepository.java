@@ -36,7 +36,8 @@ public class AcademicRepository {
     return db
         .queryForList(
             PERSON
-                + "WHERE position(lower(?) in lower(p.nombres))>0 OR position(? in p.cedula_normalizada)>0 ORDER BY p.nombres,p.id LIMIT ? OFFSET ?",
+                + "WHERE position(lower(?) in lower(p.nombres))>0 OR position(? in p.cedula_normalizada)>0 OR position(lower(?) in lower(coalesce(c.identificador, ''))) > 0 ORDER BY p.nombres,p.id LIMIT ? OFFSET ?",
+            q,
             q,
             q,
             limit,
@@ -48,8 +49,9 @@ public class AcademicRepository {
 
   public long countPeople(String q) {
     return db.queryForObject(
-        "SELECT count(*) FROM personas WHERE position(lower(?) in lower(nombres))>0 OR position(? in cedula_normalizada)>0",
+        "SELECT count(*) FROM personas p LEFT JOIN cuentas c ON c.persona_id=p.id WHERE position(lower(?) in lower(p.nombres))>0 OR position(? in p.cedula_normalizada)>0 OR position(lower(?) in lower(coalesce(c.identificador, ''))) > 0",
         Long.class,
+        q,
         q,
         q);
   }
@@ -138,6 +140,12 @@ public class AcademicRepository {
         .isEmpty();
   }
 
+  public boolean activeAccount(UUID account) {
+    return Boolean.TRUE.equals(
+        db.queryForObject(
+            "SELECT EXISTS(SELECT 1 FROM cuentas WHERE id=? AND activa)", Boolean.class, account));
+  }
+
   // Carreras y paralelos
   public List<Map<String, Object>> careers() {
     return db.queryForList("SELECT id,codigo,nombre FROM carreras ORDER BY codigo");
@@ -222,6 +230,30 @@ public class AcademicRepository {
         "UPDATE docentes_paralelo SET vigente=false WHERE paralelo_id=? AND vigente AND NOT (cuenta_id = ANY(?))",
         parallel,
         keep.toArray(new UUID[0]));
+  }
+
+  public List<Map<String, Object>> careerDirectors(UUID career) {
+    return db.queryForList(
+        "SELECT c.id AS cuenta_id,c.identificador AS correo,p.nombres,d.vigente "
+            + "FROM direcciones_carrera d JOIN cuentas c ON c.id=d.cuenta_id "
+            + "JOIN personas p ON p.id=c.persona_id "
+            + "WHERE d.carrera_id=? ORDER BY c.identificador",
+        career);
+  }
+
+  public void assignDirector(UUID account, UUID career) {
+    db.update(
+        "INSERT INTO direcciones_carrera VALUES (?,?,true) ON CONFLICT(cuenta_id,carrera_id) DO UPDATE SET vigente=true",
+        account,
+        career);
+  }
+
+  public boolean revokeDirector(UUID account, UUID career) {
+    return db.update(
+            "UPDATE direcciones_carrera SET vigente=false WHERE cuenta_id=? AND carrera_id=? AND vigente",
+            account,
+            career)
+        > 0;
   }
 
   public List<Map<String, Object>> enrollments(UUID parallel, int limit, long offset) {

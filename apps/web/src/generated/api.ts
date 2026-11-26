@@ -167,6 +167,26 @@ export interface paths {
         patch: operations["updateActivity"];
         trace?: never;
     };
+    "/activities/{activityId}/responsible": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Reemplazar responsable de una clase
+         * @description ADMINISTRADOR o DIRECTOR_CARRERA autorizado. El destinatario debe ser docente activo autorizado en los paralelos, o director activo autorizado en la carrera.
+         */
+        put: operations["replaceActivityResponsible"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/activities/{activityId}/close": {
         parameters: {
             query?: never;
@@ -712,6 +732,62 @@ export interface paths {
          * @description Cambia el nombre de una carrera existente. Solo ADMINISTRADOR; el código no se modifica.
          */
         patch: operations["adminRenameCareer"];
+        trace?: never;
+    };
+    "/admin/careers/{careerId}/directors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Identificador de la carrera. */
+                careerId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Listar directores vigentes de una carrera
+         * @description Lista las asignaciones vigentes de directores para la carrera indicada.
+         */
+        get: operations["adminListCareerDirectors"];
+        /**
+         * Reemplazar directores de una carrera
+         * @description Reemplaza de forma auditable todas las asignaciones vigentes de directores de la carrera.
+         */
+        put: operations["adminReplaceCareerDirectors"];
+        /**
+         * Asignar un director a una carrera
+         * @description Asigna una cuenta activa con rol DIRECTOR_CARRERA a la carrera indicada.
+         */
+        post: operations["adminAssignCareerDirector"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/careers/{careerId}/directors/{accountId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Identificador de la carrera. */
+                careerId: string;
+                /** @description Identificador de la cuenta directora. */
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Retirar un director de una carrera
+         * @description Retira de forma auditable la asignación vigente de una cuenta directora.
+         */
+        delete: operations["adminRevokeCareerDirector"];
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/admin/careers/{careerId}/parallels": {
@@ -2323,6 +2399,24 @@ export interface components {
                 "application/problem+json": components["schemas"]["Problem"];
             };
         };
+        /** @description Cuenta o asignación académica no válida para la operación. */
+        UnprocessableEntity: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                /**
+                 * @example {
+                 *       "type": "urn:unl:problem:asignacion-no-valida",
+                 *       "title": "La asignación académica no es válida.",
+                 *       "status": 422,
+                 *       "code": "ASIGNACION_NO_VALIDA",
+                 *       "mensaje": "La cuenta no cumple las reglas de asignación académica."
+                 *     }
+                 */
+                "application/problem+json": components["schemas"]["Problem"];
+            };
+        };
         /** @description Formulario vencido (FORMULARIO_EXPIRADO) o datos nominales ya sujetos a anonimización (DATOS_ANONIMIZADOS). En retención, 410 solo mientras el recurso vencido sea reconocible; tras sanear o eliminar el encabezado nominal, 404. */
         Gone: {
             headers: {
@@ -2693,6 +2787,16 @@ export interface operations {
                 modalidad?: "CLASE" | "EVENTO";
                 /** @description Restringir por vínculo de carrera verificado en servidor; no concede permisos. */
                 carrera_id?: string;
+                /** @description Restringir por paralelo autorizado dentro del ámbito del usuario. */
+                paralelo_id?: string;
+                /** @description Restringir por docente responsable autorizado. */
+                docente_id?: string;
+                /** @description Restringir por director de carrera autorizado. */
+                director_id?: string;
+                /** @description Buscar por nombre de materia o clase. */
+                materia?: string;
+                /** @description Restringir por estado de la actividad. */
+                estado?: "ABIERTA" | "CERRADA" | "CANCELADA";
             };
             header?: never;
             path?: never;
@@ -2862,6 +2966,44 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
             429: components["responses"]["RateLimited"];
+        };
+    };
+    replaceActivityResponsible: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Identificador de la actividad (clase o evento). */
+                activityId: components["parameters"]["activityId"];
+            };
+            cookie?: never;
+        };
+        /** @description Cuenta o correo del nuevo responsable. */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    cuenta_id?: string;
+                    /** Format: uuid */
+                    responsable_id?: string;
+                    /** Format: email */
+                    correo?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Responsable actualizado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
         };
     };
     closeActivity: {
@@ -4113,6 +4255,126 @@ export interface operations {
                 };
             };
             400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminListCareerDirectors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Identificador de la carrera. */
+                careerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Directores vigentes */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminReplaceCareerDirectors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Identificador de la carrera. */
+                careerId: string;
+            };
+            cookie?: never;
+        };
+        /** @description Correos de las cuentas que tendrán la asignación vigente. */
+        requestBody: {
+            content: {
+                "application/json": {
+                    correos: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Resultado del reemplazo */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+        };
+    };
+    adminAssignCareerDirector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Identificador de la carrera. */
+                careerId: string;
+            };
+            cookie?: never;
+        };
+        /** @description Identificador o correo de la cuenta directora. */
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    cuenta_id?: string;
+                    /** Format: uuid */
+                    account_id?: string;
+                    /** Format: email */
+                    correo?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Director asignado */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["BadRequest"];
+            401: components["responses"]["Unauthorized"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["UnprocessableEntity"];
+        };
+    };
+    adminRevokeCareerDirector: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Identificador de la carrera. */
+                careerId: string;
+                /** @description Identificador de la cuenta directora. */
+                accountId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Director retirado */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             401: components["responses"]["Unauthorized"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
