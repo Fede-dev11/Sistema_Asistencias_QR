@@ -90,10 +90,33 @@ describe('panel de asignaciones académicas', () => {
     expect(screen.queryByRole('button', { name: 'Asignar docente@example.test como director' })).toBeNull();
     fireEvent.click(assign);
 
+    expect(await screen.findByRole('button', { name: 'Confirmar' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+
     await waitFor(() => expect(request).toHaveBeenCalledWith('/admin/careers/c2/directors', expect.objectContaining({ method: 'POST' })));
     const call = vi.mocked(request).mock.calls.find(([path, init]) => path === '/admin/careers/c2/directors' && init?.method === 'POST');
     expect(JSON.parse(String(call?.[1]?.body))).toEqual({ cuenta_id: 'account-dir' });
     expect(await screen.findByText(/Directora Nueva fue asignado como director/)).toBeTruthy();
+  });
+
+  it('cancelar asignación de director no llama a la API', async () => {
+    baseApi((path, init) => {
+      if (path.startsWith('/admin/people?')) return { items: [directorPerson], page: 0, size: 10, total: 1 };
+      return undefined;
+    });
+    render(<AssignmentsPanel />);
+
+    fireEvent.click(await screen.findByRole('row', { name: 'Seleccionar Carrera ficticia 2' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Asignar director' })[0]);
+    const search = screen.getByLabelText('Buscar director');
+    fireEvent.change(search, { target: { value: 'nueva' } });
+    fireEvent.click(await screen.findByRole('button', { name: 'Asignar nueva@example.test como director' }));
+
+    expect(await screen.findByRole('button', { name: 'Confirmar' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    expect(screen.queryByRole('button', { name: 'Confirmar' })).toBeNull();
+    expect(request).not.toHaveBeenCalledWith('/admin/careers/c2/directors', expect.objectContaining({ method: 'POST' }));
   });
 
   it('reemplaza y retira directores con confirmación', async () => {
@@ -109,7 +132,10 @@ describe('panel de asignaciones académicas', () => {
     fireEvent.click(await screen.findByRole('row', { name: 'Seleccionar Carrera ficticia 1' }));
     fireEvent.click(await screen.findByRole('button', { name: 'Reemplazar Directora Antigua' }));
     fireEvent.change(screen.getByLabelText('Buscar director'), { target: { value: 'nueva' } });
-    fireEvent.click(await screen.findByRole('button', { name: 'Asignar nueva@example.test como director' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Reemplazar nueva@example.test como director' }));
+
+    expect(await screen.findByRole('button', { name: 'Confirmar' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
 
     await waitFor(() => expect(request).toHaveBeenCalledWith('/admin/careers/c1/directors', expect.objectContaining({ method: 'PUT' })));
     const replace = vi.mocked(request).mock.calls.find(([path, init]) => path === '/admin/careers/c1/directors' && init?.method === 'PUT');

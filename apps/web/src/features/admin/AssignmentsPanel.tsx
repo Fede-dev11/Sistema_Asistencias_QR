@@ -108,6 +108,7 @@ function CareerDirectorsTab({ careers }: { careers: Career[] }) {
   const [drawer, setDrawer] = useState<DirectorDrawer>(null);
   const [drawerError, setDrawerError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState<{ person: AdminPerson; career: Career | null } | null>(null);
   const [candidateQuery, setCandidateQuery] = useState('');
   const [candidatePage, setCandidatePage] = useState(0);
   const [candidates, setCandidates] = useState<AdminPersonPage | null>(null);
@@ -175,6 +176,7 @@ function CareerDirectorsTab({ careers }: { careers: Career[] }) {
     setDrawer(null);
     setDrawerError(null);
     setCandidateError(null);
+    setConfirm(null);
   }
 
   async function assignDirector(candidate: AdminPerson) {
@@ -201,6 +203,16 @@ function CareerDirectorsTab({ careers }: { careers: Career[] }) {
       setReload(value => value + 1);
     } catch (cause) { setDrawerError(cause); }
     finally { setBusy(false); }
+  }
+
+  async function confirmAssign(person: AdminPerson) {
+    if (!selectedId || !selectedCareer || !person.cuenta) return;
+    setDrawerError(null);
+    try {
+      await assignDirector(person);
+    } finally {
+      setConfirm(null);
+    }
   }
 
   async function revokeDirector(director: DirectorRow) {
@@ -279,6 +291,15 @@ function CareerDirectorsTab({ careers }: { careers: Career[] }) {
           <Button variant="danger" loading={busy} onClick={() => void revokeDirector(drawer.director)}>Confirmar retiro</Button>
           <Button variant="secondary" onClick={closeDrawer}>Cancelar</Button>
         </div>
+      </section> : confirm ? <section aria-label={`Confirmar ${drawer.type === 'replace' ? 'reemplazo' : 'asignación'} de director`}>
+        {drawer.type === 'replace'
+          ? <p>¿Reemplazar a <strong>{drawer.director.nombres}</strong> por <strong>{confirm.person.nombres}</strong> como director de {confirm.career?.nombre ?? 'la carrera'}?</p>
+          : <p>¿Asignar a <strong>{confirm.person.nombres}</strong> como director de {confirm.career?.nombre ?? 'la carrera'}?</p>}
+        <ProblemMessage error={drawerError} />
+        <div className={styles.drawerActions}>
+          <Button variant="danger" loading={busy} onClick={() => void confirmAssign(confirm.person)}>Confirmar</Button>
+          <Button variant="secondary" onClick={() => setConfirm(null)}>Cancelar</Button>
+        </div>
       </section> : <section aria-label={drawer.type === 'replace' ? `Reemplazar a ${drawer.director.nombres}` : 'Asignar director'}>
         {drawer.type === 'replace' && <p>Al asignar, se retirará a <strong>{drawer.director.nombres}</strong> como director vigente.</p>}
         <label className={styles.search}>Buscar director
@@ -296,7 +317,9 @@ function CareerDirectorsTab({ careers }: { careers: Career[] }) {
         {!candidateLoading && candidateQuery.trim().length >= 2 && candidates && validCandidates.length === 0 && <p>No hay directores activos que coincidan con la búsqueda.</p>}
         {validCandidates.length > 0 && <ul className={styles.candidateList}>{validCandidates.map(person => <li key={person.id}>
           <div><strong>{person.nombres}</strong><span>{person.cuenta?.correo} · {person.cedula}</span></div>
-          <Button variant="secondary" loading={busy} aria-label={`Asignar ${person.cuenta?.correo} como director`} onClick={() => void assignDirector(person)}>
+          <Button variant="secondary" loading={busy} aria-label={`${drawer.type === 'replace' ? 'Reemplazar' : 'Asignar'} ${person.cuenta?.correo} como director`} onClick={() => {
+            setConfirm({ person, career: selectedCareer });
+          }}>
             {drawer.type === 'replace' ? 'Reemplazar' : 'Asignar'}
           </Button>
         </li>)}</ul>}

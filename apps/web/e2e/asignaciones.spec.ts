@@ -1,6 +1,5 @@
 import { expect, test } from '@playwright/test';
 import { execFileSync } from 'node:child_process';
-import { sql } from './data';
 import { ssoLogin } from './sso';
 
 /** Crea un segundo director de carrera candidato (no es aún director de la carrera 1) para probar asignar/reemplazar. */
@@ -35,6 +34,8 @@ test('administrador asigna, reemplaza y retira directores de una carrera', async
   await expect(page.getByRole('dialog', { name: 'Asignar director' })).toBeVisible();
   await page.getByLabel('Buscar director').fill('director-2');
   await page.getByRole('button', { name: 'Asignar director-2@example.test como director' }).click();
+  await expect(page.getByText(/¿Asignar a Persona ficticia 11 como director de Carrera ficticia 1\?/)).toBeVisible();
+  await page.getByRole('button', { name: 'Confirmar' }).click();
   await expect(page.getByText(/Persona ficticia 11 fue asignado como director/)).toBeVisible();
 
   // Reemplaza el director vigente de la carrera.
@@ -42,6 +43,8 @@ test('administrador asigna, reemplaza y retira directores de una carrera', async
   await expect(page.getByRole('dialog', { name: 'Reemplazar director' })).toBeVisible();
   await page.getByLabel('Buscar director').fill('director-2');
   await page.getByRole('button', { name: 'Reemplazar director-2@example.test como director' }).click();
+  await expect(page.getByText(/¿Reemplazar a Persona ficticia 5 por Persona ficticia 11 como director de Carrera ficticia 1\?/)).toBeVisible();
+  await page.getByRole('button', { name: 'Confirmar' }).click();
   await expect(page.getByText(/Persona ficticia 11 reemplaza a Persona ficticia 5/)).toBeVisible();
 
   // Retira el director.
