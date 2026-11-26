@@ -22,6 +22,7 @@ abstract class AdminSupport extends PostgresFixture {
           case "POST" -> post(path);
           case "PUT" -> put(path);
           case "PATCH" -> patch(path);
+          case "DELETE" -> delete(path);
           default -> get(path);
         };
     if (bearer != null) b.header("Authorization", "Bearer " + bearer);

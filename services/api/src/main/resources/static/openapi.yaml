@@ -396,6 +396,32 @@ paths:
           $ref: '#/components/responses/RateLimited'
       parameters:
       - $ref: '#/components/parameters/activityId'
+  /activities/{activityId}/responsible:
+    put:
+      operationId: replaceActivityResponsible
+      summary: Reemplazar responsable de una clase
+      description: ADMINISTRADOR o DIRECTOR_CARRERA autorizado. El destinatario debe ser docente activo autorizado en los paralelos, o director activo autorizado en la carrera.
+      tags: [activities]
+      parameters:
+      - $ref: '#/components/parameters/activityId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                cuenta_id: {type: string, format: uuid}
+                responsable_id: {type: string, format: uuid}
+                correo: {type: string, format: email}
+      responses:
+        '200': {description: Responsable actualizado}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
   /activities/{activityId}/close:
     post:
       operationId: closeActivity
@@ -1549,6 +1575,76 @@ paths:
             application/json:
               schema: {$ref: '#/components/schemas/AdminCareer'}
         '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+  /admin/careers/{careerId}/directors:
+    parameters:
+    - {name: careerId, in: path, required: true, description: Identificador de la carrera., schema: {type: string, format: uuid}}
+    get:
+      operationId: adminListCareerDirectors
+      summary: Listar directores vigentes de una carrera
+      description: ADMINISTRADOR puede consultar todas las carreras; DIRECTOR_CARRERA solo puede consultar las carreras que dirige.
+      tags: [admin]
+      responses:
+        '200': {description: Directores vigentes}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    put:
+      operationId: adminReplaceCareerDirectors
+      summary: Reemplazar directores de una carrera
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [correos]
+              properties:
+                correos:
+                  type: array
+                  maxItems: 5000
+                  items: {type: string, format: email}
+      responses:
+        '200': {description: Resultado del reemplazo}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+    post:
+      operationId: adminAssignCareerDirector
+      summary: Asignar un director a una carrera
+      tags: [admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                cuenta_id: {type: string, format: uuid}
+                account_id: {type: string, format: uuid}
+                correo: {type: string, format: email}
+      responses:
+        '200': {description: Director asignado}
+        '400': {$ref: '#/components/responses/BadRequest'}
+        '401': {$ref: '#/components/responses/Unauthorized'}
+        '403': {$ref: '#/components/responses/Forbidden'}
+        '404': {$ref: '#/components/responses/NotFound'}
+        '422': {$ref: '#/components/responses/UnprocessableEntity'}
+  /admin/careers/{careerId}/directors/{accountId}:
+    parameters:
+    - {name: careerId, in: path, required: true, schema: {type: string, format: uuid}}
+    - {name: accountId, in: path, required: true, schema: {type: string, format: uuid}}
+    delete:
+      operationId: adminRevokeCareerDirector
+      summary: Retirar un director de una carrera
+      tags: [admin]
+      responses:
+        '204': {description: Director retirado}
         '401': {$ref: '#/components/responses/Unauthorized'}
         '403': {$ref: '#/components/responses/Forbidden'}
         '404': {$ref: '#/components/responses/NotFound'}

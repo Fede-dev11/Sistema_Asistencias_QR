@@ -19,18 +19,23 @@ public class ActivityCommandController {
   private final EditActivity edit;
   private final ReplaceSchedule schedule;
   private final ManageAuthorizedStudents students;
+  private final ManageActivityResponsibility responsibility;
+
+  public record ResponsibilityBody(UUID cuenta_id, UUID responsable_id, String correo) {}
 
   public ActivityCommandController(
       CloseActivity service,
       CreateActivity create,
       EditActivity edit,
       ReplaceSchedule schedule,
-      ManageAuthorizedStudents students) {
+      ManageAuthorizedStudents students,
+      ManageActivityResponsibility responsibility) {
     this.service = service;
     this.create = create;
     this.edit = edit;
     this.schedule = schedule;
     this.students = students;
+    this.responsibility = responsibility;
   }
 
   @PostMapping("/{activityId}/close")
@@ -105,5 +110,14 @@ public class ActivityCommandController {
   public Map<String, Object> syncStudents(
       @AuthenticationPrincipal UserSession user, @PathVariable UUID activityId) {
     return students.sync(user, activityId);
+  }
+
+  @PutMapping("/{activityId}/responsible")
+  public Map<String, Object> replaceResponsible(
+      @AuthenticationPrincipal UserSession user,
+      @PathVariable UUID activityId,
+      @Valid @RequestBody ResponsibilityBody body) {
+    UUID account = body.cuenta_id() != null ? body.cuenta_id() : body.responsable_id();
+    return responsibility.replace(user, activityId, account, body.correo());
   }
 }

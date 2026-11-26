@@ -55,6 +55,11 @@ public class AdminController {
 
   public record Correos(@NotNull List<String> correos) {}
 
+  public record DirectorBody(
+      UUID cuenta_id,
+      UUID account_id,
+      String correo) {}
+
   private static ResponseEntity<Map<String, Object>> reply(Receipt r) {
     return ResponseEntity.status(r.status()).body(r.body());
   }
@@ -174,5 +179,42 @@ public class AdminController {
       @PathVariable UUID parallelId,
       @Valid @RequestBody Correos body) {
     return academic.replaceTeachers(user, parallelId, body.correos());
+  }
+
+  @GetMapping("/careers/{careerId}/directors")
+  public Map<String, Object> careerDirectors(
+      @AuthenticationPrincipal UserSession user, @PathVariable UUID careerId) {
+    return academic.careerDirectorPage(user, careerId);
+  }
+
+  @PutMapping("/careers/{careerId}/directors")
+  public Map<String, Object> replaceCareerDirectors(
+      @AuthenticationPrincipal UserSession user,
+      @PathVariable UUID careerId,
+      @Valid @RequestBody Correos body) {
+    return academic.replaceCareerDirectors(user, careerId, body.correos());
+  }
+
+  @PostMapping("/careers/{careerId}/directors")
+  public Map<String, Object> assignCareerDirector(
+      @AuthenticationPrincipal UserSession user,
+      @PathVariable UUID careerId,
+      @Valid @RequestBody DirectorBody body) {
+    UUID account = body.cuenta_id() != null ? body.cuenta_id() : body.account_id();
+    if (body.correo() != null) {
+      return academic.assignCareerDirector(user, careerId, body.correo());
+    }
+    if (account == null) throw ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure.invalid();
+    // Se conserva la operación por cuenta para clientes que ya disponen del identificador.
+    return academic.assignCareerDirectorById(user, careerId, account);
+  }
+
+  @DeleteMapping("/careers/{careerId}/directors/{accountId}")
+  public ResponseEntity<Void> revokeCareerDirector(
+      @AuthenticationPrincipal UserSession user,
+      @PathVariable UUID careerId,
+      @PathVariable UUID accountId) {
+    academic.revokeCareerDirector(user, careerId, accountId);
+    return ResponseEntity.noContent().build();
   }
 }
