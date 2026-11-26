@@ -86,15 +86,18 @@ public class CreateActivity {
 
   private Map<String, Object> createEvent(UserSession user, Command c) {
     user.requireAnyRole("DOCENTE", "ENCARGADO");
-    if (c.nombre() == null
-        || c.nombre().isBlank()
-        || c.nombre().length() > 200
-        || c.espacio_id() == null
-        || c.inicio() == null
-        || c.fin() == null
-        || !c.fin().isAfter(c.inicio())
-        || !("CERRADO".equals(c.acceso()) || "ABIERTO".equals(c.acceso())))
-      throw ApiFailure.invalid();
+    if (c.nombre() == null || c.nombre().isBlank() || c.nombre().length() > 200)
+      throw new ApiFailure(400, "NOMBRE_REQUERIDO", "El nombre de la actividad es obligatorio.");
+    if (c.espacio_id() == null)
+      throw new ApiFailure(400, "ESPACIO_REQUERIDO", "Debes seleccionar un espacio.");
+    if (c.inicio() == null || c.fin() == null)
+      throw new ApiFailure(
+          400, "FECHAS_REQUERIDAS", "El inicio y el fin del evento son obligatorios.");
+    if (!c.fin().isAfter(c.inicio()))
+      throw new ApiFailure(
+          400, "FECHAS_INVALIDAS", "La fecha de fin debe ser posterior al inicio.");
+    if (!("CERRADO".equals(c.acceso()) || "ABIERTO".equals(c.acceso())))
+      throw new ApiFailure(400, "ACCESO_INVALIDO", "El acceso debe ser CERRADO o ABIERTO.");
     int tolerance =
         c.tolerancia_invitado_segundos() == null ? 120 : c.tolerancia_invitado_segundos();
     if (tolerance <= 40) throw ApiFailure.invalid();
@@ -163,7 +166,9 @@ public class CreateActivity {
         || c.espacio_id() == null
         || c.paralelo_ids() == null
         || c.paralelo_ids().isEmpty()
-        || c.paralelo_ids().stream().anyMatch(Objects::isNull)) throw ApiFailure.invalid();
+        || c.paralelo_ids().stream().anyMatch(Objects::isNull))
+      throw new ApiFailure(
+          400, "CAMPOS_REQUERIDOS", "El nombre, espacio y al menos un paralelo son obligatorios.");
     var parallels = new ArrayList<>(new LinkedHashSet<>(c.paralelo_ids()));
     var marks = String.join(",", Collections.nCopies(parallels.size(), "?"));
     var args = new ArrayList<Object>();

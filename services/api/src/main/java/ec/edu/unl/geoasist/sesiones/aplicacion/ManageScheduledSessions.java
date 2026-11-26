@@ -95,8 +95,12 @@ public class ManageScheduledSessions {
     locks.activity(activityId, true);
     var activity = scope.manage(user, activityId);
     if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
-    if (c.inicio() == null || c.fin() == null || !c.fin().isAfter(c.inicio()))
-      throw ApiFailure.invalid();
+    if (c.inicio() == null || c.fin() == null)
+      throw new ApiFailure(
+          400, "FECHAS_REQUERIDAS", "El inicio y el fin de la sesión son obligatorios.");
+    if (!c.fin().isAfter(c.inicio()))
+      throw new ApiFailure(
+          400, "FECHAS_INVALIDAS", "La fecha de fin debe ser posterior al inicio.");
     var defaults =
         db.queryForMap(
             "SELECT espacio_id,metodo_verificacion FROM actividades WHERE id=?", activityId);
@@ -128,7 +132,9 @@ public class ManageScheduledSessions {
     Instant start = c.inicio() == null ? (Instant) row.get("inicio") : c.inicio();
     Instant end = c.fin() == null ? (Instant) row.get("fin") : c.fin();
     UUID space = c.espacio_id() == null ? (UUID) row.get("espacio_id") : c.espacio_id();
-    if (!end.isAfter(start)) throw ApiFailure.invalid();
+    if (!end.isAfter(start))
+      throw new ApiFailure(
+          400, "FECHAS_INVALIDAS", "La fecha de fin debe ser posterior al inicio.");
     String before = (String) row.get("metodo_verificacion");
     String method = c.metodo_verificacion() == null ? before : c.metodo_verificacion();
     rules.check(space, method);
