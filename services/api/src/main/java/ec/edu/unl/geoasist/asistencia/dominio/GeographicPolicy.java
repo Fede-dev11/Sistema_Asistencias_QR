@@ -1,6 +1,5 @@
 package ec.edu.unl.geoasist.asistencia.dominio;
 
-import java.time.Duration;
 import java.time.Instant;
 
 public class GeographicPolicy {
@@ -39,28 +38,18 @@ public class GeographicPolicy {
       Instant received) {
     if (!config.enabled()) return AttendanceOutcome.accepted();
     if (measurement == null)
-      return uncertain(
-          "UBICACION_REQUERIDA",
-          "Obtén tu ubicación para continuar.",
-          previousUncertainties,
-          null,
-          null);
+      return AttendanceOutcome.repeat(
+          "UBICACION_REQUERIDA", "Obtén tu ubicación para continuar.", null, null);
     if (!valid(measurement))
-      return uncertain(
+      return AttendanceOutcome.repeat(
           "UBICACION_INVALIDA",
           "La medición de ubicación no es válida.",
-          previousUncertainties,
           distance,
           measurement.precision());
     if (measurement.measuredAt().isAfter(received.plusSeconds(5))
-        || Duration.between(measurement.measuredAt(), received).getSeconds()
-            > config.maximumAgeSeconds())
-      return uncertain(
-          "UBICACION_ANTIGUA",
-          "Vuelve a obtener tu ubicación.",
-          previousUncertainties,
-          distance,
-          measurement.precision());
+        || measurement.measuredAt().isBefore(received.minusSeconds(config.maximumAgeSeconds())))
+      return AttendanceOutcome.repeat(
+          "UBICACION_ANTIGUA", "Vuelve a obtener tu ubicación.", distance, measurement.precision());
     if (measurement.precision() > config.maximumPrecision())
       return uncertain(
           "PRECISION_INSUFICIENTE",

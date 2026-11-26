@@ -1,6 +1,7 @@
 import { jest, test, expect, beforeAll, beforeEach } from '@jest/globals';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
+import * as Location from 'expo-location';
 import { request } from '../../services/api';
 import { AttendanceScreen } from './AttendanceScreen';
 import { createGuestResume, loadGuestResume, saveGuestResume } from './guestResume';
@@ -32,6 +33,7 @@ jest.mock('expo-crypto', () => ({ randomUUID: () => '11111111-1111-4111-8111-111
 jest.mock('expo-location', () => ({
   Accuracy: { Highest: 6 },
   requestForegroundPermissionsAsync: jest.fn(),
+  hasServicesEnabledAsync: jest.fn(),
   getCurrentPositionAsync: jest.fn(),
 }));
 jest.mock('../../services/api', () => ({ request: jest.fn() }));
@@ -134,4 +136,44 @@ test('evento abierto exige y envia nombres en el autorregistro', async () => {
   await waitFor(() => expect(request).toHaveBeenCalledWith('/guest-registrations/submit', expect.objectContaining({
     body: expect.stringContaining('Persona Externa'),
   })));
+});
+
+test.each(['denegada', 'apagada'])('ubicación %s bloquea el envío y muestra código y acción', async reason => {
+  jest.mocked(SecureStore.getItemAsync).mockResolvedValue(JSON.stringify({
+    token: 'g'.repeat(64), inicioEn: '2026-10-20T01:00:00Z', venceEn: '2026-10-20T01:02:00Z',
+    idempotencyKey: '11111111-1111-4111-8111-111111111111', deviceId: '11111111-1111-4111-8111-111111111111', openEvent: false,
+  }));
+  jest.mocked(request).mockResolvedValue({ resultado: 'REPETIR', code: 'UBICACION_REQUERIDA', mensaje: 'Obtén tu ubicación.', accion_recomendada: 'Permite el GPS.' });
+  jest.mocked(Location.requestForegroundPermissionsAsync).mockResolvedValue({ granted: reason !== 'denegada', canAskAgain: false } as never);
+  jest.mocked(Location.hasServicesEnabledAsync).mockResolvedValue(false);
+  const ui = await render(<AttendanceScreen session={null} />);
+  await waitFor(() => expect(ui.getByLabelText('Cédula')).toBeTruthy());
+  await fireEvent.changeText(ui.getByLabelText('Cédula'), '0105000017');
+  await fireEvent.press(ui.getByText('Enviar asistencia'));
+  await fireEvent.press(await ui.findByText('Obtener ubicación y reintentar'));
+  expect(await ui.findByText(reason === 'denegada' ? 'UBICACION_DENEGADA' : 'GPS_DESACTIVADO')).toBeTruthy();
+  expect(ui.getByText(/Acción recomendada:/)).toBeTruthy();
+  expect(ui.queryByText('Solicitar revisión sin ubicación')).toBeNull();
+  expect(Location.getCurrentPositionAsync).not.toHaveBeenCalled();
+  expect(request).toHaveBeenCalledTimes(1);
+  expect(SecureStore.deleteItemAsync).not.toHaveBeenCalled();
+});
+
+test('rechazo del backend conserva código, mensaje, horario permitido y acción', async () => {
+  jest.mocked(SecureStore.getItemAsync).mockResolvedValue(JSON.stringify({
+    token: 'g'.repeat(64), inicioEn: '2026-10-20T01:00:00Z', venceEn: '2026-10-20T01:02:00Z',
+    idempotencyKey: '11111111-1111-4111-8111-111111111111', deviceId: '11111111-1111-4111-8111-111111111111', openEvent: false,
+  }));
+  jest.mocked(request).mockRejectedValue(Object.assign(new Error('Fuera de horario.'), { status: 409, problem: {
+    code: 'FUERA_DE_HORARIO', mensaje: 'Fuera de horario.', accion_recomendada: 'Contacta al responsable.',
+    horario_inicio: '2026-10-20T13:00:00Z', horario_fin: '2026-10-20T15:00:00Z',
+  } }));
+  const ui = await render(<AttendanceScreen session={null} />);
+  await waitFor(() => expect(ui.getByLabelText('Cédula')).toBeTruthy());
+  await fireEvent.changeText(ui.getByLabelText('Cédula'), '0105000017');
+  await fireEvent.press(ui.getByText('Enviar asistencia'));
+  expect(await ui.findByText('FUERA_DE_HORARIO')).toBeTruthy();
+  expect(ui.getByText('Fuera de horario.')).toBeTruthy();
+  expect(ui.getByText(/Horario permitido:/)).toBeTruthy();
+  expect(ui.getByText('Acción recomendada: Contacta al responsable.')).toBeTruthy();
 });

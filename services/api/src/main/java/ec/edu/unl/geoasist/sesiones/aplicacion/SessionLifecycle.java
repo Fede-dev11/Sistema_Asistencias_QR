@@ -6,6 +6,7 @@ import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
 import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService;
 import ec.edu.unl.geoasist.compartido.aplicacion.IdempotencyService.Receipt;
 import ec.edu.unl.geoasist.compartido.aplicacion.RecordAbsences;
+import ec.edu.unl.geoasist.compartido.aplicacion.SessionWindow;
 import ec.edu.unl.geoasist.compartido.persistencia.AttendanceLocks;
 import ec.edu.unl.geoasist.identidades.dominio.UserSession;
 import ec.edu.unl.geoasist.sesiones.persistencia.*;
@@ -65,13 +66,13 @@ public class SessionLifecycle {
           var row = sessions.find(session);
           if (!activity.state().equals("ABIERTA")) throw ApiFailure.conflict();
           if (start) {
-            if (!row.state().equals("PROGRAMADA")
-                || clock.instant().isBefore(row.windowStart())
-                || !clock.instant().isBefore(row.windowEnd())) throw ApiFailure.conflict();
+            if (!row.state().equals("PROGRAMADA")) throw ApiFailure.conflict();
+            var now = clock.instant();
+            SessionWindow.require(row.windowStart(), row.windowEnd(), now);
             sessions.requireGpsConfigured(session);
             db.update(
                 "UPDATE sesiones SET estado='ACTIVA',iniciada_en=? WHERE id=?",
-                java.sql.Timestamp.from(clock.instant()),
+                java.sql.Timestamp.from(now),
                 session);
           } else {
             if (row.state().equals("CERRADA") || row.state().equals("CANCELADA"))

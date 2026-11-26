@@ -41,11 +41,9 @@ public class AttendanceRecording {
 
   public void requireActive(Activity activity, Session session) {
     Instant now = clock.instant();
-    if (!activity.state().equals("ABIERTA")
-        || !session.state().equals("ACTIVA")
-        || now.isBefore(session.windowStart())
-        || !now.isBefore(session.windowEnd()))
+    if (!activity.state().equals("ABIERTA") || !session.state().equals("ACTIVA"))
       throw new ApiFailure(409, "SESION_INACTIVA", "La sesión no admite nuevos registros.");
+    SessionWindow.require(session.windowStart(), session.windowEnd(), now);
   }
 
   public Receipt reject(
@@ -121,7 +119,9 @@ public class AttendanceRecording {
             "code",
             outcome.code(),
             "mensaje",
-            outcome.message()));
+            outcome.message(),
+            "accion_recomendada",
+            RecommendedAction.forCode(outcome.code())));
   }
 
   public String deviceHash(UUID deviceId) {

@@ -12,6 +12,7 @@ public final class ProblemDetails {
     out.put("status", error.status());
     out.put("code", error.code());
     out.put("mensaje", error.getMessage());
+    out.put("accion_recomendada", RecommendedAction.forCode(error.code()));
     out.put("correlation_id", RequestCorrelation.id().toString());
     if (error.detail() != null) out.put("detail", error.detail());
     out.putAll(error.extras());

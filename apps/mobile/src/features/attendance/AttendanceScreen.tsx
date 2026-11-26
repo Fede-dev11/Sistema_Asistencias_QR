@@ -5,6 +5,7 @@ import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { components } from '../../generated/api';
 import type { AccountSession } from '../auth/session';
 import { request } from '../../services/api';
+import { describeFailure } from '../../services/failure';
 import {
   clearGuestResume,
   createGuestResume,
@@ -19,7 +20,7 @@ import { getInstallationId } from '../device/installationId';
 type GuestStart = components['schemas']['GuestStartResult'];
 type Receipt = components['schemas']['AttendanceReceipt'];
 type Pending = components['schemas']['PendingReceipt'];
-type Result = { state: 'CONFIRMADA' | 'REPETIR' | 'PENDIENTE_REVISION' | 'RECHAZADA'; message: string; code?: string };
+type Result = { state: 'CONFIRMADA' | 'REPETIR' | 'PENDIENTE_REVISION' | 'RECHAZADA'; message: string; code?: string; action?: string; schedule?: string };
 
 function qrFrom(value: string): string | null {
   const trimmed = value.trim();
@@ -33,7 +34,8 @@ function qrFrom(value: string): string | null {
 }
 
 function show(value: Receipt | Pending): Result {
-  return { state: value.resultado, message: value.mensaje, code: value.resultado === 'CONFIRMADA' ? undefined : value.code };
+  return { state: value.resultado, message: value.mensaje, code: value.resultado === 'CONFIRMADA' ? undefined : value.code,
+    action: value.resultado === 'CONFIRMADA' ? undefined : value.accion_recomendada };
 }
 
 function statusOf(error: unknown): number | null {
@@ -96,7 +98,7 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
       });
       setResult(show(value));
     } catch (error) {
-      setResult({ state: 'RECHAZADA', message: error instanceof Error ? error.message : 'No se pudo registrar.' });
+      setResult({ state: 'RECHAZADA', ...describeFailure(error) });
     } finally {
       setBusy(false);
     }
@@ -104,12 +106,13 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
 
   async function locateAccount() {
     setBusy(true);
+    setAccountLocation(null);
     try {
       const location = await captureAttendanceLocation();
       setAccountLocation(location);
       await accountAttendance(location, true);
     } catch (error) {
-      setResult({ state: 'REPETIR', message: error instanceof Error ? error.message : 'No se obtuvo la ubicación.' });
+      setResult({ state: 'REPETIR', ...describeFailure(error) });
     } finally {
       setBusy(false);
     }
@@ -129,7 +132,7 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
       await saveGuestResume(resume);
       setGuest(resume);
     } catch (error) {
-      setResult({ state: 'RECHAZADA', message: error instanceof Error ? error.message : 'No se pudo abrir el formulario.' });
+      setResult({ state: 'RECHAZADA', ...describeFailure(error) });
     } finally {
       setBusy(false);
     }
@@ -164,7 +167,7 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
         await clearGuestResume();
         setGuest(null);
       }
-      setResult({ state: 'RECHAZADA', message: error instanceof Error ? error.message : 'No se pudo registrar.' });
+      setResult({ state: 'RECHAZADA', ...describeFailure(error) });
     } finally {
       setBusy(false);
     }
@@ -172,12 +175,13 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
 
   async function locateGuest() {
     setBusy(true);
+    setGuestLocation(null);
     try {
       const location = await captureAttendanceLocation();
       setGuestLocation(location);
       await submitGuest(location, true);
     } catch (error) {
-      setResult({ state: 'REPETIR', message: error instanceof Error ? error.message : 'No se obtuvo la ubicación.' });
+      setResult({ state: 'REPETIR', ...describeFailure(error) });
     } finally {
       setBusy(false);
     }
@@ -223,14 +227,17 @@ export function AttendanceScreen({ session }: { session: AccountSession | null }
       {result && (
         <View accessibilityRole={result.state === 'CONFIRMADA' ? 'summary' : 'alert'}>
           <Text>{result.state.replaceAll('_', ' ')}</Text>
+          {result.code && <Text>{result.code}</Text>}
           <Text>{result.message}</Text>
+          {result.schedule && <Text>{result.schedule}</Text>}
+          {result.action && <Text>Acción recomendada: {result.action}</Text>}
         </View>
       )}
       {result?.state === 'REPETIR' && session && !guest && (
-        <View><Button title="Obtener ubicación y reintentar" disabled={busy} onPress={() => void locateAccount()} /><Button title="Solicitar revisión sin ubicación" disabled={busy} onPress={() => void accountAttendance(null, true)} /></View>
+        <View><Button title="Obtener ubicación y reintentar" disabled={busy} onPress={() => void locateAccount()} /></View>
       )}
       {result?.state === 'REPETIR' && guest && (
-        <View><Button title="Obtener ubicación y reintentar" disabled={busy} onPress={() => void locateGuest()} /><Button title="Solicitar revisión sin ubicación" disabled={busy} onPress={() => void submitGuest(null, true)} /></View>
+        <View><Button title="Obtener ubicación y reintentar" disabled={busy} onPress={() => void locateGuest()} /></View>
       )}
     </View>
   );

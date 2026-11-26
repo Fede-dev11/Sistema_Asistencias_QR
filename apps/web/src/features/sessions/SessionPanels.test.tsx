@@ -1,12 +1,12 @@
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { request, requestText } from '../../lib/api/client';
+import { ApiError, request, requestText } from '../../lib/api/client';
 import { GeolocationSettingsPanel } from './GeolocationSettingsPanel';
 import { LiveAttendances } from './LiveAttendances';
 import { SessionPicker } from './SessionPicker';
 
-vi.mock('../../lib/api/client', () => ({
-  ApiError: class extends Error {},
+vi.mock('../../lib/api/client', async importOriginal => ({
+  ...await importOriginal<typeof import('../../lib/api/client')>(),
   request: vi.fn(),
   requestText: vi.fn(),
 }));
@@ -70,6 +70,18 @@ describe('LiveAttendances', () => {
 });
 
 describe('GeolocationSettingsPanel', () => {
+  it('propaga el código y la acción del backend al rechazar la configuración', async () => {
+    vi.mocked(request).mockImplementation(async (_path, options) => {
+      if (options?.method === 'PUT') throw new ApiError({ type: 'u', title: 'GPS', status: 409, code: 'CAPACIDAD_GPS_NO_DISPONIBLE',
+        mensaje: 'No hay capacidad geográfica.', accion_recomendada: 'Revisa el espacio de la sesión.' }, 409);
+      return { habilitada: false, radio_m: null, precision_max_m: null, antiguedad_max_s: null, modo: 'OFF', evidencia_id: null, evidencia_vigente: false };
+    });
+    render(<GeolocationSettingsPanel sessionId="s1" />);
+    await screen.findByText(/Actual: deshabilitada/);
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar ubicación' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('CAPACIDAD_GPS_NO_DISPONIBLE: No hay capacidad geográfica.');
+    expect(screen.getByRole('alert')).toHaveTextContent('Revisa el espacio de la sesión.');
+  });
   it('carga y muestra la configuración actual antes de editar', async () => {
     vi.mocked(request).mockResolvedValue({ habilitada: true, radio_m: 50, precision_max_m: 20, antiguedad_max_s: 30, modo: 'AUTO', evidencia_id: null, evidencia_vigente: true });
     render(<GeolocationSettingsPanel sessionId="s1" />);
