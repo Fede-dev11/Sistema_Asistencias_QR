@@ -16,14 +16,17 @@ export function AbsencesPanel({ sessionId }: { sessionId: string }) {
   const [open, setOpen] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [failure, setFailure] = useState<unknown>(null);
+  const [busy, setBusy] = useState(false);
 
   async function justify(personId: string) {
     setFailure(null);
     if (!reason.trim()) return setFailure(new Error('Escribe la razón de la justificación.'));
+    setBusy(true);
     try {
       await request(`/sessions/${sessionId}/absences/${personId}/justify`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ razon: reason.trim() }) });
       setOpen(null); setReason(''); reload();
     } catch (e) { setFailure(e); }
+    finally { setBusy(false); }
   }
 
   return <section className="panel" aria-label="Ausencias">
@@ -35,9 +38,9 @@ export function AbsencesPanel({ sessionId }: { sessionId: string }) {
         {a.nombres} ({a.cedula}) — <StatusTag status={a.estado} />{' '}
         {a.estado === 'AUSENTE' && (open === a.persona_id
           ? <>
-            <label>Razón de justificación<input value={reason} onChange={e => setReason(e.target.value)} /></label>
-            <Button variant="primary" type="button" onClick={() => void justify(a.persona_id)}>Confirmar justificación</Button>
-            <Button variant="text" type="button" onClick={() => { setOpen(null); setReason(''); }}>Descartar</Button>
+            <label>Razón de justificación<input value={reason} aria-invalid={!!failure && !reason.trim()} onChange={e => { setReason(e.target.value); if (failure) setFailure(null); }} /></label>
+            <Button variant="primary" type="button" disabled={busy} loading={busy} onClick={() => void justify(a.persona_id)}>Confirmar justificación</Button>
+            <Button variant="text" type="button" disabled={busy} onClick={() => { setOpen(null); setReason(''); }}>Descartar</Button>
           </>
           : <Button variant="secondary" type="button" onClick={() => { setOpen(a.persona_id); setReason(''); }}>Justificar {a.nombres}</Button>)}
       </>} />

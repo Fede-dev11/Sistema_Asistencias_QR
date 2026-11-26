@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { ProblemMessage } from '../common/ProblemMessage';
 import { Button } from '../ui/Button';
 import styles from './activities.module.css';
 
@@ -12,18 +13,34 @@ export function AuthorizedStudents({ activityId }: { activityId: string }) {
   const [page, setPage] = useState<Page | null>(null);
   const [cedula, setCedula] = useState('');
   const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
+  const [busy, setBusy] = useState(false);
   const base = `/activities/${activityId}/students`;
 
   const load = useCallback(() => {
-    request<Page>(`${base}?size=100`).then(setPage).catch(e => setError(e instanceof Error ? e.message : 'No se pudo cargar la lista.'));
+    request<Page>(`${base}?size=100`)
+      .then(setPage)
+      .catch(e => setError(e));
   }, [base]);
   useEffect(load, [load]);
 
   async function run(action: () => Promise<unknown>, done: string): Promise<boolean> {
-    setError(''); setMessage('');
-    try { await action(); setMessage(done); load(); return true; } catch (cause) { setError(cause instanceof Error ? cause.message : 'No se pudo completar.'); return false; }
+    setBusy(true);
+    setError(null);
+    setMessage('');
+    try {
+      await action();
+      setMessage(done);
+      load();
+      return true;
+    } catch (cause) {
+      setError(cause);
+      return false;
+    } finally {
+      setBusy(false);
+    }
   }
+
   async function add(event: FormEvent) {
     event.preventDefault();
     if (await run(() => request(base, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ cedula }) }), 'Estudiante añadido.')) setCedula('');
@@ -37,11 +54,12 @@ export function AuthorizedStudents({ activityId }: { activityId: string }) {
           <p className={styles.panelHint}>Añade estudiantes por cédula o sincroniza la lista desde los paralelos de la clase.</p>
         </div>
         <div className={styles.panelActions}>
-          <Button variant="secondary" type="button" onClick={() => void run(() => request(`${base}/sync`, { method: 'POST' }), 'Lista sincronizada con los paralelos.')}>Sincronizar con paralelos</Button>
+          <Button variant="secondary" type="button" disabled={busy} onClick={() => void run(() => request(`${base}/sync`, { method: 'POST' }), 'Lista sincronizada con los paralelos.')}>Sincronizar con paralelos</Button>
         </div>
       </div>
 
       {!page && !error && <p role="status" className={styles.loadingText}>Cargando estudiantes…</p>}
+      <ProblemMessage error={error} />
       {page && page.items.length === 0 && <p className={styles.emptyText}>Todavía no hay estudiantes autorizados.</p>}
 
       {page && page.items.length > 0 && <div className={styles.tableScroll}>
@@ -56,7 +74,7 @@ export function AuthorizedStudents({ activityId }: { activityId: string }) {
               <td data-label="Estado"><span className={s.vigente ? styles.typeBadge : styles.methodTag}>{s.vigente ? 'Vigente' : 'Quitado'}</span></td>
               <td data-label="Acciones">
                 {s.vigente
-                  ? <div className={styles.rowActions}><Button variant="danger" type="button" onClick={() => void run(() => request(`${base}/${s.persona_id}`, { method: 'DELETE' }), 'Estudiante quitado.')}>Quitar</Button></div>
+                  ? <div className={styles.rowActions}><Button variant="danger" type="button" disabled={busy} onClick={() => void run(() => request(`${base}/${s.persona_id}`, { method: 'DELETE' }), 'Estudiante quitado.')}>Quitar</Button></div>
                   : <span className={styles.meta}>Sin acciones</span>}
               </td>
             </tr>
@@ -67,14 +85,13 @@ export function AuthorizedStudents({ activityId }: { activityId: string }) {
       <form className={styles.inlineForm} onSubmit={add}>
         <div className={styles.field}>
           <label className={styles.label}>Cédula del estudiante
-            <input className={styles.input} value={cedula} pattern="[0-9]{10}" required placeholder="10 dígitos" onChange={e => setCedula(e.target.value)} />
+            <input className={styles.input} value={cedula} pattern="[0-9]{10}" required placeholder="10 dígitos" aria-invalid={error ? true : undefined} onChange={e => { setCedula(e.target.value); if (error) setError(null); }} />
           </label>
         </div>
-        <Button variant="primary" type="submit">Añadir</Button>
+        <Button variant="primary" type="submit" disabled={busy} loading={busy}>Añadir</Button>
       </form>
 
       {message && <p role="status" className={styles.inlineMessage}>{message}</p>}
-      {error && <p role="alert">{error}</p>}
     </section>
   );
 }

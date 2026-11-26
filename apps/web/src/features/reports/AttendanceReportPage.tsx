@@ -1,6 +1,7 @@
 'use client';
 
 import { type FormEvent, useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { components } from '../../generated/api';
 import { request, requestText } from '../../lib/api/client';
 import { useSession } from '../auth/SessionProvider';
@@ -22,18 +23,33 @@ const formatDate = (value: string) => new Date(value).toLocaleString('es-EC');
 
 export function AttendanceReportPage() {
   const { session } = useSession();
+  const pathname = usePathname();
+  const router = useRouter();
+  const params = useSearchParams();
   const [activities, setActivities] = useState<Activity[] | null>(null);
   const [listError, setListError] = useState<unknown>(null);
-  const [career, setCareer] = useState('');
-  const [careerFilter, setCareerFilter] = useState('');
-  const [activityId, setActivityId] = useState('');
-  const [sessionId, setSessionId] = useState('');
-  const [state, setState] = useState<State>('');
+  const [career, setCareer] = useState(() => params.get('carrera') ?? '');
+  const [careerFilter, setCareerFilter] = useState(() => params.get('carrera') ?? '');
+  const [activityId, setActivityId] = useState(() => params.get('actividad') ?? '');
+  const [sessionId, setSessionId] = useState(() => params.get('sesion') ?? '');
+  const [state, setState] = useState<State>(() => (params.get('estado') as State) ?? '');
   const [page, setPage] = useState(0);
   const [result, setResult] = useState<Page | null>(null);
   const [queryError, setQueryError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [exporting, setExporting] = useState(false);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    const c = careerFilter.trim();
+    if (c) next.set('carrera', c);
+    if (activityId) next.set('actividad', activityId);
+    if (sessionId.trim()) next.set('sesion', sessionId.trim());
+    if (state) next.set('estado', state);
+    const q = next.toString();
+    if (q === params.toString()) return;
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  }, [careerFilter, activityId, sessionId, state, pathname, router, params]);
 
   useEffect(() => {
     if (!session) return;
@@ -143,6 +159,18 @@ export function AttendanceReportPage() {
     }
   }
 
+  function clearFilters() {
+    setCareer('');
+    setCareerFilter('');
+    setActivityId('');
+    setSessionId('');
+    setState('');
+    setPage(0);
+    setResult(null);
+    setQueryError(null);
+    setListError(null);
+  }
+
   return (
     <section className={styles.page} aria-labelledby="reports-title">
       <p className={styles.breadcrumb}>DTI PLATAFORMA <span aria-hidden="true">›</span> GESTIÓN ACADÉMICA <span aria-hidden="true">›</span> REPORTES</p>
@@ -241,6 +269,7 @@ export function AttendanceReportPage() {
                 Descargar CSV
               </Button>
             )}
+            <Button variant="text" type="button" onClick={clearFilters}>Limpiar filtros</Button>
           </div>
         </form>
       </section>

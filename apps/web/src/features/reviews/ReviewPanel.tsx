@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
+import { ProblemMessage } from '../common/ProblemMessage';
 import { Button } from '../ui/Button';
 
 type Decision = components['schemas']['ReviewRequest']['decision'];
@@ -13,20 +14,20 @@ export function ReviewPanel() {
   const [attemptId, setAttemptId] = useState('');
   const [reason, setReason] = useState('');
   const [result, setResult] = useState<ReviewResult | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
 
   async function decide(decision: Decision) {
     const trimmed = reason.trim();
     if (!trimmed || trimmed.length > 2000) {
-      setError('Escribe una razón de 1 a 2000 caracteres.');
+      setError(new Error('Escribe una razón de 1 a 2000 caracteres.'));
       return;
     }
     const operation = `${attemptId}:${decision}:${trimmed}`;
     const key = keys.current.get(operation) ?? crypto.randomUUID();
     keys.current.set(operation, key);
     setBusy(true);
-    setError('');
+    setError(null);
     try {
       const value = await request<ReviewResult>(`/attempts/${attemptId}/review`, {
         method: 'POST',
@@ -37,7 +38,7 @@ export function ReviewPanel() {
       setResult(value);
     } catch (cause) {
       if (cause instanceof ApiError) keys.current.delete(operation);
-      setError(cause instanceof Error ? cause.message : 'No se pudo resolver el intento.');
+      setError(cause);
     } finally {
       setBusy(false);
     }
@@ -51,7 +52,7 @@ export function ReviewPanel() {
       <Button variant="primary" type="button" disabled={busy || !attemptId} onClick={() => void decide('APROBAR')}>Aprobar</Button>{' '}
       <Button variant="danger" type="button" disabled={busy || !attemptId} onClick={() => void decide('RECHAZAR')}>Rechazar</Button>
       {result && <p role="status">Revisión {result.decision.toLowerCase()} registrada el {new Date(result.revisada_en).toLocaleString('es-EC')}.</p>}
-      {error && <p role="alert">{error}</p>}
+      <ProblemMessage error={error} />
     </section>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { ProblemMessage } from '../common/ProblemMessage';
 import { GeoEvidencePanel } from './GeoEvidencePanel';
 import { SpaceForm, type Space } from './SpaceForm';
 import { Button } from '../ui/Button';
@@ -14,15 +15,15 @@ export function SpacePicker({ onSelect }: { onSelect: (space: Space) => void }) 
   const [text, setText] = useState('');
   const [items, setItems] = useState<Space[]>([]);
   const [creating, setCreating] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [viewing, setViewing] = useState<string | null>(null);
 
   useEffect(() => {
     let current = true;
     const timer = setTimeout(() => {
       request<Page>(`/spaces?q=${encodeURIComponent(text.trim())}&size=10`)
-        .then(page => { if (current) { setItems(page.items); setError(''); } })
-        .catch(cause => { if (current) setError(cause instanceof Error ? cause.message : 'No se pudo buscar.'); });
+        .then(page => { if (current) { setItems(page.items); setError(null); } })
+        .catch(cause => { if (current) setError(cause); });
     }, 300);
     return () => { current = false; clearTimeout(timer); };
   }, [text]);
@@ -45,7 +46,7 @@ export function SpacePicker({ onSelect }: { onSelect: (space: Space) => void }) 
           </li>
         ))}
       </ul>
-      {error && <p role="alert" className={styles.error}>{error}</p>}
+      <ProblemMessage error={error} />
       <div className={styles.actions}>
         <Button variant="secondary" type="button" onClick={() => setCreating(true)}>Crear nuevo espacio</Button>
       </div>

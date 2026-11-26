@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
@@ -22,6 +23,9 @@ export function CareersPanel() {
 
 function CareersContent() {
   const keys = useRef(new Map<string, string>());
+  const pathname = usePathname();
+  const router = useRouter();
+  const params = useSearchParams();
   const [careers, setCareers] = useState<Career[]>([]);
   const [selected, setSelected] = useState<Career | null>(null);
   const [parallels, setParallels] = useState<Parallel[]>([]);
@@ -31,7 +35,16 @@ function CareersContent() {
   const [status, setStatus] = useState('');
   const [drawer, setDrawer] = useState<DrawerState | null>(null);
   const [reload, setReload] = useState(0);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(() => params.get('q') ?? '');
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    const q = query.trim();
+    if (q) next.set('q', q);
+    const qs = next.toString();
+    if (qs === params.toString()) return;
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [query, pathname, router, params]);
 
   useEffect(() => {
     let alive = true;
@@ -86,6 +99,7 @@ function CareersContent() {
         <div className={styles.panelHeading}><div><h2 id="careers-title">Oferta académica</h2><p>Selecciona una carrera para ver sus paralelos.</p></div>
           <Button onClick={() => { setError(null); setDrawer({ type: 'career' }); }}>Nueva carrera</Button></div>
         <label className={styles.search}>Filtrar carreras<input type="search" placeholder="Filtrar por código o nombre…" value={query} onChange={event => setQuery(event.target.value)} /></label>
+        {query && <Button variant="text" type="button" onClick={() => setQuery('')}>Limpiar filtros</Button>}
         {loading && careers.length === 0 && <p role="status">Cargando carreras…</p>}
         {!loading && careers.length === 0 && <EmptyState title="No hay carreras" text="Crea la primera carrera para continuar." />}
         {careers.length > 0 && visibleCareers.length === 0 && <p>No hay carreras que coincidan con la búsqueda.</p>}

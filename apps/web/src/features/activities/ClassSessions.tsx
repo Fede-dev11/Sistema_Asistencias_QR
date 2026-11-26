@@ -33,6 +33,7 @@ export function ClassSessions({ activityId }: { activityId: string }) {
   const [end, setEnd] = useState('');
   const [method, setMethod] = useState('SOLO_QR');
   const [error, setError] = useState<unknown>(null);
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(() => {
     request<Page>(`/activities/${activityId}/sessions?size=100`).then(setPage).catch(setError);
@@ -40,8 +41,10 @@ export function ClassSessions({ activityId }: { activityId: string }) {
   useEffect(load, [load]);
 
   async function run(action: () => Promise<unknown>) {
+    setBusy(true);
     setError(null);
     try { await action(); setEditing(null); load(); } catch (cause) { setError(cause); }
+    finally { setBusy(false); }
   }
   const edit = (s: Session) => { setEditing(s.id); setStart(local(s.inicio)); setEnd(local(s.fin)); setMethod(s.metodo_verificacion); };
   const save = (s: Session) => {
@@ -62,7 +65,7 @@ export function ClassSessions({ activityId }: { activityId: string }) {
           <p className={styles.panelHint}>Edita el inicio y el fin de las sesiones programadas o añade una sesión suelta.</p>
         </div>
         <div className={styles.panelActions}>
-          <Button variant="secondary" type="button" onClick={() => void addLoose()}>Añadir sesión suelta (próxima hora)</Button>
+          <Button variant="secondary" type="button" disabled={busy} onClick={() => void addLoose()}>Añadir sesión suelta (próxima hora)</Button>
         </div>
       </div>
 
@@ -81,16 +84,16 @@ export function ClassSessions({ activityId }: { activityId: string }) {
                   <p className={styles.sectionHint}>Editar sesión del {new Date(s.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil' })}</p>
                   <div className={styles.editGrid}>
                     <div className={styles.field}>
-                      <label className={styles.label}>Inicio<input className={styles.input} type="datetime-local" value={start} onChange={e => setStart(e.target.value)} /></label>
+                      <label className={styles.label}>Inicio<input className={styles.input} type="datetime-local" value={start} aria-invalid={!!error} onChange={e => { setStart(e.target.value); if (error) setError(null); }} /></label>
                     </div>
                     <div className={styles.field}>
-                      <label className={styles.label}>Fin<input className={styles.input} type="datetime-local" value={end} onChange={e => setEnd(e.target.value)} /></label>
+                      <label className={styles.label}>Fin<input className={styles.input} type="datetime-local" value={end} aria-invalid={!!error} onChange={e => { setEnd(e.target.value); if (error) setError(null); }} /></label>
                     </div>
                   </div>
                   <MethodSelect value={method} onChange={setMethod} />
                   <div className={styles.editActions}>
-                    <Button variant="primary" type="button" onClick={() => void save(s)}>Guardar</Button>
-                    <Button variant="text" type="button" onClick={() => setEditing(null)}>Descartar</Button>
+                    <Button variant="primary" type="button" disabled={busy} loading={busy} onClick={() => void save(s)}>Guardar</Button>
+                    <Button variant="text" type="button" disabled={busy} onClick={() => setEditing(null)}>Descartar</Button>
                   </div>
                 </div>
               </td>
@@ -106,8 +109,8 @@ export function ClassSessions({ activityId }: { activityId: string }) {
               <td data-label="Acciones">
                 {s.estado === 'PROGRAMADA'
                   ? <div className={styles.rowActions}>
-                    <Button variant="secondary" type="button" onClick={() => edit(s)}>Editar</Button>
-                    <Button variant="danger" type="button" onClick={() => void run(() => request(`/sessions/${s.id}/cancel`, { method: 'POST' }))}>Cancelar sesión</Button>
+                    <Button variant="secondary" type="button" disabled={busy} onClick={() => edit(s)}>Editar</Button>
+                    <Button variant="danger" type="button" disabled={busy} onClick={() => void run(() => request(`/sessions/${s.id}/cancel`, { method: 'POST' }))}>Cancelar sesión</Button>
                   </div>
                   : <span className={styles.meta}>Sin acciones disponibles</span>}
               </td>

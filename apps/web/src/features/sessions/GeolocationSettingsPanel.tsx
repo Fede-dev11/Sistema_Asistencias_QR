@@ -3,8 +3,8 @@
 import { type FormEvent, useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
-import { Button } from '../ui/Button';
 import { ProblemMessage } from '../common/ProblemMessage';
+import { Button } from '../ui/Button';
 import styles from './sessions.module.css';
 
 type Status = components['schemas']['GeolocationStatus'];

@@ -15,15 +15,18 @@ export function JustificationInbox({ activityId }: { activityId: string }) {
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [failure, setFailure] = useState<unknown>(null);
   const [message, setMessage] = useState('');
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   async function decide(id: string, decision: 'APROBAR' | 'RECHAZAR') {
     setFailure(null); setMessage('');
     const razon = (reasons[id] ?? '').trim();
     if (!razon) return setFailure(new Error('Escribe la razón de la decisión.'));
+    setBusyId(id);
     try {
       await request(`/justification-requests/${id}/decision`, { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify({ decision, razon }) });
       setMessage(decision === 'APROBAR' ? 'Solicitud aprobada.' : 'Solicitud rechazada.'); reload();
     } catch (e) { setFailure(e); }
+    finally { setBusyId(null); }
   }
 
   return <section className="panel" aria-label="Solicitudes de justificación">
@@ -34,9 +37,9 @@ export function JustificationInbox({ activityId }: { activityId: string }) {
       empty="No hay solicitudes pendientes."
       renderItem={j => <>
         {j.nombres} ({j.cedula}): {j.motivo}{' '}
-        <label>Razón de decisión de {j.nombres}<input value={reasons[j.id] ?? ''} onChange={e => setReasons({ ...reasons, [j.id]: e.target.value })} /></label>
-        <Button variant="primary" type="button" onClick={() => void decide(j.id, 'APROBAR')}>Aprobar</Button>
-        <Button variant="danger" type="button" onClick={() => void decide(j.id, 'RECHAZAR')}>Rechazar</Button>
+        <label>Razón de decisión de {j.nombres}<input value={reasons[j.id] ?? ''} aria-invalid={!!failure && !(reasons[j.id] ?? '').trim()} onChange={e => { setReasons({ ...reasons, [j.id]: e.target.value }); if (failure) setFailure(null); }} /></label>
+        <Button variant="primary" type="button" disabled={busyId === j.id} loading={busyId === j.id} onClick={() => void decide(j.id, 'APROBAR')}>Aprobar</Button>
+        <Button variant="danger" type="button" disabled={busyId === j.id} onClick={() => void decide(j.id, 'RECHAZAR')}>Rechazar</Button>
       </>} />
   </section>;
 }

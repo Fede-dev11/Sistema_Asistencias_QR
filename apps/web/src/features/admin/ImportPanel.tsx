@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { ProblemMessage } from '../common/ProblemMessage';
 import { RoleGuard } from '../common/RoleGuard';
 import { Button } from '../ui/Button';
 import styles from './ImportPanel.module.css';
@@ -22,7 +23,7 @@ export function ImportPanel() {
 function ImportContent() {
   const [kind, setKind] = useState<(typeof KINDS)[number]['id']>('students');
   const [report, setReport] = useState<Report | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const selectedKind = KINDS.find(item => item.id === kind) ?? KINDS[0];
@@ -30,16 +31,16 @@ function ImportContent() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setReport(null);
-    setError('');
-    if (!file || file.size === 0) { setError('Selecciona un archivo CSV.'); return; }
-    if (file.size > MAX_BYTES) { setError('El archivo supera 2 MB.'); return; }
+    setError(null);
+    if (!file || file.size === 0) { setError(new Error('Selecciona un archivo CSV.')); return; }
+    if (file.size > MAX_BYTES) { setError(new Error('El archivo supera 2 MB.')); return; }
     const body = new FormData();
     body.set('file', file);
     setBusy(true);
     try {
       setReport(await request<Report>(`/admin/imports/${kind}`, { method: 'POST', body }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se pudo importar el archivo.');
+      setError(cause);
     } finally {
       setBusy(false);
     }
@@ -59,6 +60,7 @@ function ImportContent() {
           <label>Tipo
             <select value={kind} onChange={e => setKind(e.target.value as typeof kind)}>
             {KINDS.map(k => <option key={k.id} value={k.id}>{k.label}</option>)}
+            {KINDS.map(k => <option key={k.id} value={k.id}>{k.label}</option>)}
             </select>
           </label>
           <p className={styles.hint}>Encabezados requeridos: <code>{selectedKind.headers}</code></p>
@@ -69,7 +71,7 @@ function ImportContent() {
           <Button variant="primary" type="submit" loading={busy}>{busy ? 'Importando…' : 'Importar'}</Button>
         </form>
       </section>
-      {error && <p className={styles.error} role="alert">{error}</p>}
+      <ProblemMessage error={error} />
       {report && (
         <section className={styles.report} role="status" aria-label="Resultado de la importación">
           <h2>Resultado</h2>

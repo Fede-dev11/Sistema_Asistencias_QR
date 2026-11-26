@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { components } from '../../../generated/api';
 import { request } from '../../../lib/api/client';
 import { ProblemMessage } from '../../../features/common/ProblemMessage';
@@ -21,14 +22,30 @@ export default function SpacesAdminPage() {
 }
 
 function Spaces() {
-  const [q, setQ] = useState('');
-  const [page, setPage] = useState(0);
+  const pathname = usePathname();
+  const router = useRouter();
+  const params = useSearchParams();
+  const [q, setQ] = useState(() => params.get('q') ?? '');
+  const [page, setPage] = useState(() => {
+    const p = Number(params.get('page') ?? '0');
+    return Number.isFinite(p) && p >= 0 ? Math.floor(p) : 0;
+  });
   const [data, setData] = useState<Page | null>(null);
   const [selected, setSelected] = useState<'new' | Space | null>(null);
   const [error, setError] = useState<unknown>(null);
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
   const [reload, setReload] = useState(0);
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    const query = q.trim();
+    if (query) next.set('q', query);
+    if (page > 0) next.set('page', String(page));
+    const qs = next.toString();
+    if (qs === params.toString()) return;
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [q, page, pathname, router, params]);
 
   useEffect(() => {
     let alive = true;
@@ -46,6 +63,11 @@ function Spaces() {
     setReload(n => n + 1);
   }
 
+  function clearFilters() {
+    setQ('');
+    setPage(0);
+  }
+
   return <section className={styles.adminPage} aria-labelledby="spaces-title">
     <div className={styles.pageHeading}><div>
       <p className={styles.breadcrumb}>Gestión académica <span aria-hidden="true">›</span> Administración</p>
@@ -54,7 +76,10 @@ function Spaces() {
     </div>
       <Button onClick={() => { setError(null); setSelected('new'); }}>Nuevo espacio</Button></div>
     {status && <p role="status">{status}</p>}
-    <label className={styles.search}>Buscar por código o nombre<input aria-label="Buscar espacios" value={q} onChange={e => { setPage(0); setQ(e.target.value); }} /></label>
+    <div className={styles.searchRow ?? undefined}>
+      <label className={styles.search}>Buscar por código o nombre<input aria-label="Buscar espacios" value={q} onChange={e => { setPage(0); setQ(e.target.value); }} /></label>
+      {(q || page > 0) && <Button variant="text" type="button" onClick={clearFilters}>Limpiar filtros</Button>}
+    </div>
     <ProblemMessage error={selected ? null : error} />
     {loading && <p role="status">Cargando…</p>}
     {data && data.items.length === 0 && <EmptyState title="No hay espacios" text="Prueba otra búsqueda o crea un espacio." />}
