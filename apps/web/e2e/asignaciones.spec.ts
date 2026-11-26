@@ -27,7 +27,7 @@ test('administrador asigna, reemplaza y retira directores de una carrera', async
   await page.getByRole('row', { name: 'Seleccionar Carrera ficticia 1' }).click();
 
   // La carrera ya tiene un director vigente (persona 104, director-carrera@example.test).
-  await expect(page.getByRole('cell', { name: 'Persona ficticia 5' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Persona ficticia 5', exact: true })).toBeVisible();
 
   // Asigna un segundo director válido solo para esta carrera.
   await page.getByRole('button', { name: 'Asignar director' }).click();
@@ -71,7 +71,7 @@ test('administrador filtra en cascada carrera → paralelo → clase → persona
 
   // Filtra por materia/clase
   await page.getByLabel('Materia o clase').fill('Actividad ficticia 1');
-  await expect(page.getByRole('cell', { name: 'Actividad ficticia 1' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Actividad ficticia 1', exact: true })).toBeVisible();
 
   // Gestiona el responsable de la clase
   await page.getByRole('button', { name: 'Gestionar responsables de Actividad ficticia 1' }).click();
