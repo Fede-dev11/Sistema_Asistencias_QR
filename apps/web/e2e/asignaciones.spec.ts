@@ -17,7 +17,7 @@ test('administrador asigna, reemplaza y retira directores de una carrera', async
   seedSecondDirector();
   await ssoLogin(page, 'admin@dev.geoasist.local');
 
-  await page.getByRole('navigation', { name: 'Secciones de administración' }).getByRole('link', { name: 'Asignaciones académicas' }).click();
+  await page.goto('/admin/asignaciones');
   await expect(page.getByRole('heading', { name: 'Asignaciones académicas' })).toBeVisible();
 
   await page.getByRole('tab', { name: 'Directores de carrera' }).click();
@@ -58,7 +58,8 @@ test('administrador filtra en cascada carrera → paralelo → clase → persona
   test.setTimeout(120_000);
   await ssoLogin(page, 'admin@dev.geoasist.local');
 
-  await page.getByRole('navigation', { name: 'Secciones de administración' }).getByRole('link', { name: 'Asignaciones académicas' }).click();
+  await page.goto('/admin/asignaciones');
+  await expect(page.getByRole('heading', { name: 'Asignaciones académicas' })).toBeVisible();
   await page.getByRole('tab', { name: 'Responsables de clase' }).click();
 
   // Carrera 1
