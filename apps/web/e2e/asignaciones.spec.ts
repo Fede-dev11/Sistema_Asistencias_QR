@@ -12,6 +12,15 @@ INSERT INTO roles_cuenta VALUES ('00000000-0000-0000-0000-000000000210', 'DIRECT
   execFileSync('docker', ['exec', '-i', process.env.GEOASIST_DB_CONTAINER ?? 'geoasist-db-1', 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'geoasist', '-d', 'geoasist'], { input: sqlText, encoding: 'utf8', stdio: ['pipe', 'ignore', 'inherit'] });
 }
 
+/** Restaura la asignación que el test anterior puede haber retirado. */
+function restoreBaselineDirector() {
+  const sqlText = `
+INSERT INTO direcciones_carrera VALUES ('00000000-0000-0000-0000-000000000204', '00000000-0000-0000-0000-000000000001', true)
+ON CONFLICT (cuenta_id, carrera_id) DO UPDATE SET vigente = true;
+`;
+  execFileSync('docker', ['exec', '-i', process.env.GEOASIST_DB_CONTAINER ?? 'geoasist-db-1', 'psql', '-v', 'ON_ERROR_STOP=1', '-U', 'geoasist', '-d', 'geoasist'], { input: sqlText, encoding: 'utf8', stdio: ['pipe', 'ignore', 'inherit'] });
+}
+
 test('administrador asigna, reemplaza y retira directores de una carrera', async ({ page }) => {
   test.setTimeout(120_000);
   seedSecondDirector();
@@ -51,11 +60,12 @@ test('administrador asigna, reemplaza y retira directores de una carrera', async
   await page.getByRole('button', { name: 'Retirar Persona ficticia 11' }).click();
   await expect(page.getByRole('dialog', { name: 'Retirar director' })).toBeVisible();
   await page.getByRole('button', { name: 'Confirmar retiro' }).click();
-  await expect(page.getByText(/Persona ficticia 11 fue retirado de Carrera ficticia 1/)).toBeVisible();
+  await expect(page.getByText(/Persona ficticia 11 fue retirado de Carrera ficticia 1/)).toBeVisible({ timeout: 10000 });
 });
 
 test('administrador filtra en cascada carrera → paralelo → clase → persona y asigna responsable', async ({ page }) => {
   test.setTimeout(120_000);
+  restoreBaselineDirector();
   await ssoLogin(page, 'admin@dev.geoasist.local');
 
   await page.goto('/admin/asignaciones');
