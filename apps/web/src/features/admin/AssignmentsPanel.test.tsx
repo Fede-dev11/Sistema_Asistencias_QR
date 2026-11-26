@@ -100,7 +100,7 @@ describe('panel de asignaciones académicas', () => {
   });
 
   it('cancelar asignación de director no llama a la API', async () => {
-    baseApi((path, init) => {
+    baseApi((path) => {
       if (path.startsWith('/admin/people?')) return { items: [directorPerson], page: 0, size: 10, total: 1 };
       return undefined;
     });
