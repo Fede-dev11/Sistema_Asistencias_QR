@@ -3,10 +3,21 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { request } from '../../lib/api/client';
 import { SpaceForm } from './SpaceForm';
 
+const leafletMocks = vi.hoisted(() => ({
+  mapCreated: vi.fn(),
+  markerRemoved: vi.fn(),
+  markerMoved: vi.fn(),
+}));
+
 vi.mock('../../lib/api/client', () => ({ ApiError: class extends Error {}, request: vi.fn() }));
 vi.mock('leaflet', () => {
   const map = { setView: () => map, on: () => map, remove: () => {} };
-  return { map: () => map, tileLayer: () => ({ addTo: () => {} }), circleMarker: () => ({ addTo: () => ({}), setLatLng: () => {} }) };
+  const marker = { setLatLng: leafletMocks.markerMoved, remove: leafletMocks.markerRemoved };
+  return {
+    map: () => { leafletMocks.mapCreated(); return map; },
+    tileLayer: () => ({ addTo: () => {} }),
+    circleMarker: () => ({ addTo: () => marker }),
+  };
 });
 vi.mock('leaflet/dist/leaflet.css', () => ({}));
 
@@ -14,6 +25,15 @@ beforeEach(() => vi.clearAllMocks());
 afterEach(cleanup);
 
 describe('formulario de espacio', () => {
+  it('sincroniza el marcador y lo retira si las coordenadas quedan incompletas', async () => {
+    render(<SpaceForm />);
+    await waitFor(() => expect(leafletMocks.mapCreated).toHaveBeenCalled());
+    fireEvent.change(screen.getByLabelText('Latitud'), { target: { value: '-4.03' } });
+    fireEvent.change(screen.getByLabelText('Longitud'), { target: { value: '-79.2' } });
+    fireEvent.change(screen.getByLabelText('Latitud'), { target: { value: '' } });
+    expect(leafletMocks.markerRemoved).toHaveBeenCalledOnce();
+  });
+
   it('exige latitud y longitud juntas', () => {
     render(<SpaceForm />);
     fireEvent.change(screen.getByLabelText('Código'), { target: { value: 'A334' } });

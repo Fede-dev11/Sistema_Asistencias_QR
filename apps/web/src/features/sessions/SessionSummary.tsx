@@ -50,6 +50,7 @@ export function SessionSummary({ id }: { id: string }) {
 
   const date = info && new Date(info.session.inicio).toLocaleString('es-EC', { timeZone: 'America/Guayaquil', dateStyle: 'medium', timeStyle: 'short' });
   const end = info && new Date(info.session.fin).toLocaleTimeString('es-EC', { timeZone: 'America/Guayaquil', hour: '2-digit', minute: '2-digit' });
+  const windowEnd = info && new Date(info.session.fin).toLocaleString('es-EC', { timeZone: 'America/Guayaquil', dateStyle: 'medium', timeStyle: 'short' });
   const activityId = info?.activity.id ?? '';
   return <section className={styles.detail}>
     <Breadcrumbs items={[{ label: 'Actividades', href: '/actividades' }, { label: info?.activity.nombre ?? 'Actividad', href: info ? `/actividades/${activityId}` : undefined }, { label: `Sesión ${date ?? ''}` }]} />
@@ -72,6 +73,7 @@ export function SessionSummary({ id }: { id: string }) {
       </div>
     </header>
     <ProblemMessage error={error} />
+    {info && <p className={styles.subtitle}>Horario permitido para activar el QR y registrar asistencia: {date} – {windowEnd} (hora de Ecuador; fin excluido). La validación usa la hora del servidor.</p>}
     {message && <p role="status">{message}</p>}
     {!info && !error && <p role="status" className={styles.loading}>Cargando la sesión…</p>}
     {confirm && <ConfirmInline danger message={confirm === 'session' ? '¿Cerrar la sesión? Ya no se admitirán registros.' : '¿Cerrar definitivamente esta actividad y todas sus sesiones?'} confirmLabel="Cerrar" onConfirm={() => void run(confirm === 'session' ? 'close' : 'activity')} onCancel={() => setConfirm(null)} />}

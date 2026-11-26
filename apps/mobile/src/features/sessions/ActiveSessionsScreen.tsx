@@ -6,6 +6,7 @@ import type { AccountSession } from '../auth/session';
 import { captureAttendanceLocation } from '../attendance/location';
 import { getInstallationId } from '../device/installationId';
 import { request } from '../../services/api';
+import { failureText } from '../../services/failure';
 
 type Page = components['schemas']['ActiveSessionPage'];
 type Item = components['schemas']['ActiveSession'];
@@ -22,7 +23,7 @@ export function ActiveSessionsScreen({ session }: { session: AccountSession | nu
     try {
       setItems((await request<Page>('/me/active-sessions')).items);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'No se pudieron cargar las sesiones activas.');
+      setMessage(failureText(error));
     }
   }, [session]);
   useEffect(() => { void load(); }, [load]);
@@ -31,16 +32,16 @@ export function ActiveSessionsScreen({ session }: { session: AccountSession | nu
     setBusy(true);
     setMessage('');
     try {
-      // La ubicación se pide solo aquí, al usar un método con GPS.
-      const location = item.metodo_verificacion === 'SOLO_GPS' ? await captureAttendanceLocation() : null;
-      const value = await request<{ mensaje: string }>('/attendance/attempts', {
+      // El servidor informa la exigencia efectiva de ubicación para la sesión.
+      const location = item.requiere_ubicacion ? await captureAttendanceLocation() : null;
+      const value = await request<components['schemas']['AttendanceReceipt'] | components['schemas']['PendingReceipt']>('/attendance/attempts', {
         method: 'POST',
         headers: { 'Idempotency-Key': randomUUID() },
         body: JSON.stringify({ sesion_id: item.sesion_id, dispositivo_id: await getInstallationId(), ...(location ? { ubicacion: location } : {}) }),
       });
-      setMessage(value.mensaje);
+      setMessage(value.resultado === 'CONFIRMADA' ? value.mensaje : `${value.code}: ${value.mensaje}\nAcción recomendada: ${value.accion_recomendada ?? 'Vuelve a medir o consulta al responsable.'}`);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'No se pudo registrar.');
+      setMessage(failureText(error));
     } finally {
       setBusy(false);
     }

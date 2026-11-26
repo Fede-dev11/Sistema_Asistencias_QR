@@ -4,6 +4,7 @@ import ec.edu.unl.geoasist.actividades.aplicacion.ActivityAuditWriter;
 import ec.edu.unl.geoasist.actividades.aplicacion.SpaceMethodRules;
 import ec.edu.unl.geoasist.compartido.aplicacion.ApiFailure;
 import ec.edu.unl.geoasist.compartido.aplicacion.RecordAbsences;
+import ec.edu.unl.geoasist.compartido.aplicacion.SessionWindow;
 import ec.edu.unl.geoasist.sesiones.persistencia.SessionRepository;
 import java.sql.Timestamp;
 import java.time.Clock;
@@ -60,7 +61,7 @@ public class SessionCycle {
   /** Procesa todo lo vencido; seguro ante ejecuciones simultáneas (SKIP LOCKED). */
   public void tick() {
     Timestamp now = Timestamp.from(clock.instant());
-    while (Boolean.TRUE.equals(tx.execute(s -> startOne(now)))) {}
+    while (Boolean.TRUE.equals(tx.execute(s -> startOne(Timestamp.from(clock.instant()))))) {}
     while (Boolean.TRUE.equals(tx.execute(s -> closeOne(DUE_CLOSE, now, "SISTEMA_CIERRE")))) {}
     while (Boolean.TRUE.equals(
         tx.execute(s -> closeOne(DUE_LATE, now, "SISTEMA_CIERRE_TARDIO")))) {}
@@ -77,6 +78,9 @@ public class SessionCycle {
     try {
       rules.check((UUID) row.get("espacio_id"), (String) row.get("metodo_verificacion"));
       sessions.requireGpsConfigured(id);
+      var session = sessions.find(id);
+      now = Timestamp.from(clock.instant());
+      SessionWindow.require(session.windowStart(), session.windowEnd(), now.toInstant());
     } catch (ApiFailure e) {
       db.update(
           "UPDATE sesiones SET siguiente_intento_en=? WHERE id=?",

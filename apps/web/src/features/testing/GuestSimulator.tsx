@@ -82,7 +82,7 @@ export function GuestSimulator() {
         {withLocation && <div className="grid"><label>Latitud<input required type="number" step="any" value={latitude} onChange={e => setLatitude(e.target.value)} /></label><label>Longitud<input required type="number" step="any" value={longitude} onChange={e => setLongitude(e.target.value)} /></label><label>Precisión (m)<input required min="0" type="number" step="any" value={precision} onChange={e => setPrecision(e.target.value)} /></label></div>}
       </fieldset><button disabled={loading} type="submit">Enviar asistencia</button>
     </form>}
-    {result && <section className="panel" aria-live="polite"><h2>Resultado</h2><p><strong>{result.resultado}</strong>{'code' in result ? ` · ${result.code}` : ''}: {result.mensaje}</p></section>}
+    {result && <section className="panel" aria-live="polite"><h2>Resultado</h2><p><strong>{result.resultado}</strong>{'code' in result ? ` · ${result.code}` : ''}: {result.mensaje}</p>{'accion_recomendada' in result && <p>Acción recomendada: {result.accion_recomendada}</p>}</section>}
     <ProblemMessage error={error} />
   </section>;
 }

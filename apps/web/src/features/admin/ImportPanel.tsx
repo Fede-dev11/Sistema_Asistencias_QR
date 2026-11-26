@@ -6,12 +6,13 @@ import { request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { RoleGuard } from '../common/RoleGuard';
 import { Button } from '../ui/Button';
+import styles from './ImportPanel.module.css';
 
 type Report = components['schemas']['ImportReport'];
 const KINDS = [
-  { id: 'students', label: 'Estudiantes (cedula,nombres,correo)' },
-  { id: 'teachers', label: 'Docentes (cedula,nombres,correo,rol)' },
-  { id: 'enrollments', label: 'Matrículas (cedula,carrera,paralelo)' },
+  { id: 'students', label: 'Estudiantes', headers: 'cedula,nombres,correo' },
+  { id: 'teachers', label: 'Docentes', headers: 'cedula,nombres,correo,rol' },
+  { id: 'enrollments', label: 'Matrículas', headers: 'cedula,carrera,paralelo' },
 ] as const;
 const MAX_BYTES = 2 * 1024 * 1024;
 
@@ -25,6 +26,7 @@ function ImportContent() {
   const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const selectedKind = KINDS.find(item => item.id === kind) ?? KINDS[0];
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,28 +47,43 @@ function ImportContent() {
   }
 
   return (
-    <section>
-      <h1>Importar CSV</h1>
-      <form onSubmit={submit}>
-        <label>Tipo
-          <select value={kind} onChange={e => setKind(e.target.value as typeof kind)}>
+    <section className={styles.page} aria-labelledby="import-title">
+      <header className={styles.heading}>
+        <div>
+          <p className={styles.breadcrumb}>Gestión académica <span aria-hidden="true">›</span> Administración</p>
+          <h1 id="import-title">Importar CSV</h1>
+          <p>Importa estudiantes, docentes o matrículas desde un archivo CSV UTF-8.</p>
+        </div>
+      </header>
+      <section className={styles.card} aria-label="Importación">
+        <form className={styles.form} onSubmit={submit}>
+          <label>Tipo
+            <select value={kind} onChange={e => setKind(e.target.value as typeof kind)}>
             {KINDS.map(k => <option key={k.id} value={k.id}>{k.label}</option>)}
-          </select>
-        </label>
-        <label>Archivo CSV (UTF-8, máx. 2 MB y 5 000 filas)<input name="file" type="file" accept=".csv,text/csv" onChange={e => setFile(e.target.files?.[0] ?? null)} /></label>
-        <Button variant="primary" type="submit" disabled={busy}>{busy ? 'Importando…' : 'Importar'}</Button>
-      </form>
+            {KINDS.map(k => <option key={k.id} value={k.id}>{k.label}</option>)}
+            </select>
+          </label>
+          <p className={styles.hint}>Encabezados requeridos: <code>{selectedKind.headers}</code></p>
+          <label>Archivo CSV (UTF-8, máx. 2 MB y 5 000 filas)
+            <input className={styles.fileInput} name="file" type="file" accept=".csv,text/csv" onChange={e => setFile(e.target.files?.[0] ?? null)} />
+          </label>
+          <p className={styles.hint}>Se informarán los registros procesados y el motivo de cada fila rechazada.</p>
+          <Button variant="primary" type="submit" loading={busy}>{busy ? 'Importando…' : 'Importar'}</Button>
+        </form>
+      </section>
       <ProblemMessage error={error} />
       {report && (
-        <div role="status">
+        <section className={styles.report} role="status" aria-label="Resultado de la importación">
+          <h2>Resultado</h2>
           <p>Procesadas {report.procesadas}: {report.creadas} creadas, {report.actualizadas} actualizadas, {report.sin_cambios} sin cambios, {report.rechazadas?.length ?? 0} rechazadas.</p>
           {!!report.rechazadas?.length && (
-            <div className="table-wrap"><table>
-              <thead><tr><th>Fila</th><th>Motivo</th></tr></thead>
+            <div className={styles.tableWrap}><table className={styles.reportTable}>
+              <caption>Filas rechazadas</caption>
+              <thead><tr><th scope="col">Fila</th><th scope="col">Motivo</th></tr></thead>
               <tbody>{report.rechazadas.map(r => <tr key={`${r.fila}-${r.motivo}`}><td>{r.fila}</td><td>{r.motivo}</td></tr>)}</tbody>
             </table></div>
           )}
-        </div>
+        </section>
       )}
     </section>
   );

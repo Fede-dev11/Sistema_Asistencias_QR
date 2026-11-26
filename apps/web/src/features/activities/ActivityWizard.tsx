@@ -10,6 +10,7 @@ import type { Space } from '../spaces/SpaceForm';
 import { MethodSelect } from '../sessions/MethodSelect';
 import { Button } from '../ui/Button';
 import { MAX_SESSIONS, previewDates } from './schedulePreview';
+import { validDate, validDateTimeLocal } from './dateValidation';
 import styles from './activities.module.css';
 
 type Created = components['schemas']['CreatedActivity'];
@@ -67,13 +68,14 @@ export function ActivityWizard() {
     if (s === 1) {
       if (!space) e.space = 'Elige un espacio.';
       if (kind === 'CLASE' && days.length > 0) {
-        if (!from || !to || to < from) e.range = 'Revisa el rango de fechas.';
+        if (!validDate(from) || !validDate(to)) e.range = 'Indica fechas válidas para el rango.';
+        else if (to < from) e.range = 'La fecha Hasta debe ser posterior o igual a Desde.';
         else if (dates.length > MAX_SESSIONS) e.range = 'El horario genera más de 200 sesiones.';
-        if (hEnd <= hStart) e.hours = 'La hora de fin debe ser posterior a la de inicio.';
+        if (!/^\d{2}:\d{2}$/.test(hStart) || !/^\d{2}:\d{2}$/.test(hEnd) || hEnd <= hStart) e.hours = 'La hora de fin debe ser posterior a la de inicio.';
       }
       if (kind === 'EVENTO') {
-        if (!start) e.start = 'Indica el inicio.';
-        if (!end) e.end = 'Indica el fin.';
+        if (!validDateTimeLocal(start)) e.start = 'Indica una fecha y hora de inicio válidas.';
+        if (!validDateTimeLocal(end)) e.end = 'Indica una fecha y hora de fin válidas.';
         else if (start && end <= start) e.end = 'El fin debe ser posterior al inicio.';
       }
     }

@@ -1,0 +1,157 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: var(--color-ink);
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  padding: 1.25rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.9rem;
+  background: var(--color-surface);
+  box-shadow: var(--color-shadow);
+}
+
+.heading h1 {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: clamp(1.75rem, 3.5vw, 2.25rem);
+  line-height: 1.2;
+}
+
+.heading p {
+  margin: 0.35rem 0 0;
+  color: var(--color-muted);
+}
+
+.breadcrumb {
+  margin: 0 0 0.3rem !important;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.card,
+.report {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+  padding: 1.25rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0.9rem;
+  background: var(--color-surface);
+  box-shadow: var(--color-shadow);
+}
+
+.form {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.form label {
+  max-width: 48rem;
+  margin: 0;
+}
+
+.form select,
+.fileInput {
+  min-height: 48px;
+  margin-top: 0.35rem;
+  border-color: var(--color-line);
+  border-radius: 0.7rem;
+  background: #f2f3ff;
+}
+
+.fileInput {
+  padding: 0.55rem;
+  background: var(--color-surface);
+}
+
+.hint {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.hint code {
+  color: var(--color-brand);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.form button {
+  justify-self: start;
+}
+
+.error {
+  margin: 0;
+  border-left: 4px solid var(--color-danger);
+  border-radius: 0.4rem;
+  background: var(--color-danger-soft);
+  color: var(--color-ink);
+  padding: 0.85rem 1rem;
+}
+
+.report h2 {
+  margin: 0;
+  color: var(--color-brand);
+  font-size: 1.2rem;
+}
+
+.report > p {
+  margin: 0;
+}
+
+.tableWrap {
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid var(--color-line);
+  border-radius: 0.75rem;
+}
+
+.reportTable {
+  width: 100%;
+  min-width: 28rem;
+  border-collapse: collapse;
+}
+
+.reportTable caption {
+  padding: 0.65rem;
+  color: var(--color-brand);
+  font-weight: 700;
+  text-align: left;
+}
+
+.reportTable th {
+  background: #eaedff;
+  color: var(--color-muted);
+}
+
+.reportTable th,
+.reportTable td {
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+}
+
+@media (max-width: 600px) {
+  .heading,
+  .card,
+  .report {
+    padding: 1rem;
+  }
+
+  .form button {
+    width: 100%;
+  }
+}

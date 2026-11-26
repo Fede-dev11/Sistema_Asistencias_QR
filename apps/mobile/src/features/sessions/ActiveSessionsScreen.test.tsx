@@ -20,7 +20,7 @@ beforeEach(() => {
   jest.mocked(request).mockImplementation((async (path: string) =>
     path === '/me/active-sessions'
       ? { items: [item('s-gps', 'SOLO_GPS'), item('s-none', 'NINGUNO'), item('s-qr', 'SOLO_QR')], page: 0, size: 25, total: 3 }
-      : { mensaje: 'Asistencia registrada.' }) as never);
+      : { resultado: 'CONFIRMADA', mensaje: 'Asistencia registrada.' }) as never);
   jest.mocked(captureAttendanceLocation).mockResolvedValue({ latitud: -4, longitud: -79, precision_m: 5, medido_en: '2026-10-20T13:30:00Z' });
 });
 
@@ -40,3 +40,24 @@ test('pide ubicación solo al registrar en una sesión GPS y envía directo en N
   await fireEvent.press(screen.getAllByText('Registrar asistencia')[0]);
   await waitFor(() => expect(captureAttendanceLocation).toHaveBeenCalledTimes(1));
 }, 30000);
+
+test('si la ubicación falla no envía el registro de asistencia', async () => {
+  jest.mocked(captureAttendanceLocation).mockRejectedValue(Object.assign(new Error('Permiso denegado.'), {
+    code: 'UBICACION_DENEGADA', action: 'Abre los ajustes y permite la ubicación.',
+  }));
+  const ui = await render(<ActiveSessionsScreen session={session} />);
+  await ui.findByText(/Clase SOLO_GPS/);
+  await fireEvent.press(ui.getAllByText('Registrar asistencia')[0]);
+  expect(await ui.findByText(/UBICACION_DENEGADA: Permiso denegado/)).toBeTruthy();
+  expect(ui.getByText(/Abre los ajustes/)).toBeTruthy();
+  expect(jest.mocked(request).mock.calls.every(([path]) => path === '/me/active-sessions')).toBe(true);
+});
+
+test('respeta la exigencia efectiva de ubicación informada por el servidor', async () => {
+  jest.mocked(request).mockResolvedValueOnce({ items: [{ ...item('s-none', 'NINGUNO'), requiere_ubicacion: true }], page: 0, size: 25, total: 1 });
+  const ui = await render(<ActiveSessionsScreen session={session} />);
+  await ui.findByText(/Clase NINGUNO/);
+  await fireEvent.press(ui.getByText('Registrar asistencia'));
+  await waitFor(() => expect(captureAttendanceLocation).toHaveBeenCalledTimes(1));
+  await waitFor(() => expect(request).toHaveBeenCalledWith('/attendance/attempts', expect.objectContaining({ body: expect.stringContaining('ubicacion') })));
+});

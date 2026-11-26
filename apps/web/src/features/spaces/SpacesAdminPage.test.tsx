@@ -33,4 +33,16 @@ describe('espacios (administrador)', () => {
     expect(await screen.findByText('Sin evidencias registradas.')).toBeTruthy();
     expect(screen.getByRole('form', { name: 'Registrar evidencia' })).toBeTruthy();
   });
+
+  it('permite abrir un espacio desde la tabla con teclado', async () => {
+    vi.mocked(request).mockResolvedValue({
+      items: [{ id: 's1', codigo: 'A334', nombre: 'Aula', tipo: 'AULA', radio_defecto_m: 20, precision_defecto_m: 30, editable: true }],
+      page: 0, size: 20, total: 1,
+    });
+    render(<SpacesAdminPage />);
+    const row = await screen.findByRole('row', { name: 'Editar espacio Aula' });
+    row.focus();
+    fireEvent.keyDown(row, { key: 'Enter' });
+    expect(screen.getByRole('dialog', { name: 'A334 · Aula' })).toBeTruthy();
+  });
 });

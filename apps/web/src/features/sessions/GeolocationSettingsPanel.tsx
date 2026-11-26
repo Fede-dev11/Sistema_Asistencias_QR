@@ -5,6 +5,7 @@ import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { Button } from '../ui/Button';
+import { ProblemMessage } from '../common/ProblemMessage';
 import styles from './sessions.module.css';
 
 type Status = components['schemas']['GeolocationStatus'];
@@ -31,7 +32,7 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
-    setError('');
+    setError(null);
     try {
       const body = enabled
         ? {
@@ -41,14 +42,14 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
             antiguedad_max_s: Number(age),
           }
         : { habilitada: false };
-      setStatus(
-        await request<Status>(`/sessions/${sessionId}/geolocation`, {
+      const saved = await request<Status>(`/sessions/${sessionId}/geolocation`, {
           method: 'PUT',
           body: JSON.stringify(body),
-        }),
-      );
+        });
+      setStatus(saved);
+      setCurrent(await request<components['schemas']['GeolocationConfig']>(`/sessions/${sessionId}/geolocation`));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se guardó la configuración geográfica.');
+      setError(cause);
     } finally {
       setBusy(false);
     }
