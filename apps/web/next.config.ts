@@ -26,6 +26,9 @@ const contentSecurityPolicy = [
 ].join('; ');
 
 const nextConfig: NextConfig = {
+  experimental: {
+    agentUpgrade: 'security',
+  },
   // El workflow ejecuta `npm run typecheck` por separado; evitar que Next 16.4
   // intente interpretar la salida incompatible de TypeScript 6 durante el build.
   typescript: { ignoreBuildErrors: true },
