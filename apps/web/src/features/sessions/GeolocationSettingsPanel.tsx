@@ -4,6 +4,7 @@ import { type FormEvent, useEffect, useState } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { Button } from '../ui/Button';
+import { ProblemMessage } from '../common/ProblemMessage';
 import styles from './sessions.module.css';
 
 type Status = components['schemas']['GeolocationStatus'];
@@ -14,7 +15,7 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
   const [precision, setPrecision] = useState('');
   const [age, setAge] = useState('60');
   const [status, setStatus] = useState<Status | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
 
   const [current, setCurrent] = useState<components['schemas']['GeolocationConfig'] | null>(null);
@@ -23,14 +24,14 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
     request<components['schemas']['GeolocationConfig']>(`/sessions/${sessionId}/geolocation`).then(c => {
       if (!alive) return;
       setCurrent(c); setEnabled(c.habilitada); setRadius(c.radio_m?.toString() ?? ''); setPrecision(c.precision_max_m?.toString() ?? ''); setAge(c.antiguedad_max_s?.toString() ?? '60');
-    }).catch(cause => { if (alive) setError(cause instanceof Error ? cause.message : 'No se pudo cargar la configuración geográfica.'); });
+    }).catch(cause => { if (alive) setError(cause); });
     return () => { alive = false; };
   }, [sessionId]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
-    setError('');
+    setError(null);
     try {
       const body = enabled
         ? {
@@ -40,14 +41,14 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
             antiguedad_max_s: Number(age),
           }
         : { habilitada: false };
-      setStatus(
-        await request<Status>(`/sessions/${sessionId}/geolocation`, {
+      const saved = await request<Status>(`/sessions/${sessionId}/geolocation`, {
           method: 'PUT',
           body: JSON.stringify(body),
-        }),
-      );
+        });
+      setStatus(saved);
+      setCurrent(await request<components['schemas']['GeolocationConfig']>(`/sessions/${sessionId}/geolocation`));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se guardó la configuración geográfica.');
+      setError(cause);
     } finally {
       setBusy(false);
     }
@@ -74,7 +75,7 @@ export function GeolocationSettingsPanel({ sessionId }: { sessionId: string }) {
         <Button variant="primary" type="submit" disabled={busy || !sessionId}>Guardar ubicación</Button>
       </div>
       {status && <p role="status" className={styles.geoStatus}>Modo efectivo: {status.modo_efectivo.replaceAll('_', ' ')}.</p>}
-      {error && <p role="alert">{error}</p>}
+      <ProblemMessage error={error} />
     </form>
   );
 }

@@ -138,7 +138,7 @@ function ParticipantSimulatorContent() {
         onLatitude={setLatitude} onLongitude={setLongitude} onPrecision={setPrecision} />
       <button disabled={loading || !selected} type="submit">{loading ? 'Enviando…' : 'Registrar asistencia'}</button>
     </form>
-    {result && <section className="panel" aria-live="polite"><h2>Resultado</h2><p><strong>{result.resultado}</strong>{'code' in result ? ` · ${result.code}` : ''}: {result.mensaje}</p></section>}
+    {result && <section className="panel" aria-live="polite"><h2>Resultado</h2><p><strong>{result.resultado}</strong>{'code' in result ? ` · ${result.code}` : ''}: {result.mensaje}</p>{'accion_recomendada' in result && <p>Acción recomendada: {result.accion_recomendada}</p>}</section>}
     <ProblemMessage error={error} />
     {notice && <p role="status">{notice}</p>}
     <section className="panel" aria-labelledby="stats-title"><h2 id="stats-title">Porcentajes</h2>

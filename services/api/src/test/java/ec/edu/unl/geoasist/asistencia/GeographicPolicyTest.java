@@ -20,14 +20,13 @@ class GeographicPolicyTest {
   }
 
   @Test
-  void invalidMissingImpreciseAndOldMeasurementsRepeatThenWaitForReview() {
+  void missingLocationAlwaysBlocksAndImpreciseMeasurementsCanBeReviewed() {
     var pilot = GeographicPolicy.Config.reviewOnly(20, 10, 60);
     var missing = policy.decide(pilot, null, null, 0, RECEIVED);
     assertEquals(AttendanceOutcome.Result.REPETIR, missing.result());
     assertEquals("UBICACION_REQUERIDA", missing.code());
     assertEquals(
-        AttendanceOutcome.Result.PENDIENTE_REVISION,
-        policy.decide(pilot, null, null, 1, RECEIVED).result());
+        AttendanceOutcome.Result.REPETIR, policy.decide(pilot, null, null, 1, RECEIVED).result());
     assertEquals(
         "PRECISION_INSUFICIENTE",
         policy.decide(pilot, new GeoMeasurement(0, 0, 11, RECEIVED), 5d, 0, RECEIVED).code());
@@ -41,6 +40,36 @@ class GeographicPolicyTest {
         policy
             .decide(pilot, new GeoMeasurement(Double.NaN, 0, 3, RECEIVED), null, 0, RECEIVED)
             .code());
+  }
+
+  @Test
+  void validatesCoordinateAndAgeBoundariesWithoutEscalatingInvalidMeasurements() {
+    var config = GeographicPolicy.Config.automatic(20, 10, 60, true);
+    for (var value :
+        java.util.List.of(
+            new GeoMeasurement(91, 0, 1, RECEIVED),
+            new GeoMeasurement(0, -181, 1, RECEIVED),
+            new GeoMeasurement(0, 0, -1, RECEIVED),
+            new GeoMeasurement(0, 0, Double.POSITIVE_INFINITY, RECEIVED),
+            new GeoMeasurement(0, 0, 1, null))) {
+      var outcome = policy.decide(config, value, 0d, 3, RECEIVED);
+      assertEquals("UBICACION_INVALIDA", outcome.code());
+      assertEquals(AttendanceOutcome.Result.REPETIR, outcome.result());
+    }
+    for (var measured :
+        java.util.List.of(
+            RECEIVED.minusSeconds(60).minusNanos(1), RECEIVED.plusSeconds(5).plusNanos(1))) {
+      var outcome = policy.decide(config, new GeoMeasurement(0, 0, 1, measured), 0d, 3, RECEIVED);
+      assertEquals("UBICACION_ANTIGUA", outcome.code());
+      assertEquals(AttendanceOutcome.Result.REPETIR, outcome.result());
+    }
+    for (var measured : java.util.List.of(RECEIVED.minusSeconds(60), RECEIVED.plusSeconds(5))) {
+      assertEquals(
+          AttendanceOutcome.Result.ACEPTADO,
+          policy
+              .decide(config, new GeoMeasurement(90, -180, 0, measured), 0d, 0, RECEIVED)
+              .result());
+    }
   }
 
   @Test

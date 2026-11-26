@@ -22,7 +22,11 @@ export function ProjectionView({ id }: { id: string }) {
   const [image, setImage] = useState('');
   const [left, setLeft] = useState(0);
   const remaining = useRef(0);
+  const validUntil = useRef(0);
+  const refreshAt = useRef(0);
+  const fetching = useRef(false);
   const [present, setPresent] = useState(0);
+  const [attendanceError, setAttendanceError] = useState<unknown>(null);
   const [error, setError] = useState<unknown>(null);
   const [confirming, setConfirming] = useState(false);
   const [note, setNote] = useState('');
@@ -31,27 +35,49 @@ export function ProjectionView({ id }: { id: string }) {
   useEffect(() => { loadSession(id).then(setInfo, setError); }, [id]);
 
   const fetchQr = useCallback(async () => {
+    if (fetching.current) return;
+    fetching.current = true;
+    const requestedAt = performance.now();
     try {
       const qr = await request<Qr>(`/sessions/${id}/qr`);
-      setImage(await QRCode.toDataURL(`geoasist://asistencia#qr=${encodeURIComponent(qr.qr_token)}`, { width: 640, margin: 2, errorCorrectionLevel: 'M' }));
-      remaining.current = qr.vigencia_segundos; setLeft(qr.vigencia_segundos); setError(null);
+      const rendered = await QRCode.toDataURL(`geoasist://asistencia#qr=${encodeURIComponent(qr.qr_token)}`, { width: 640, margin: 2, errorCorrectionLevel: 'M' });
+      // El servidor define la validez; el reloj monotónico solo descuenta el tiempo transcurrido.
+      const serverNow = Date.parse(qr.hora_servidor);
+      const expiresIn = Date.parse(qr.vence_en) - serverNow;
+      const rotatesIn = Date.parse(qr.emitido_en) + qr.rotacion_segundos * 1000 - serverNow;
+      validUntil.current = requestedAt + expiresIn;
+      refreshAt.current = requestedAt + Math.min(rotatesIn, expiresIn);
+      if (!Number.isFinite(expiresIn) || !Number.isFinite(rotatesIn) || performance.now() >= validUntil.current) {
+        throw new Error('El QR ya venció. Vuelve a cargar la sesión para obtener el actual.');
+      }
+      setImage(rendered);
+      remaining.current = Math.max(0, Math.ceil((refreshAt.current - performance.now()) / 1000));
+      setLeft(remaining.current); setError(null);
     } catch (e) {
+      setImage('');
       setError(e);
+      refreshAt.current = performance.now() + 5000;
       if (e instanceof ApiError && [403, 409, 410].includes(e.status)) setEnded(true);
+    } finally {
+      fetching.current = false;
     }
   }, [id]);
 
   useEffect(() => { // cada segundo descuenta; al llegar a 0 pide otro QR (5 s de espera si falla)
     if (!active) return;
     const tick = () => {
-      if (remaining.current <= 0) { remaining.current = 5; void fetchQr(); } else { remaining.current -= 1; setLeft(remaining.current); }
+      if (performance.now() >= validUntil.current) setImage('');
+      remaining.current = Math.max(0, Math.ceil((refreshAt.current - performance.now()) / 1000)); setLeft(remaining.current);
+      if (remaining.current <= 0) void fetchQr();
     };
     const first = setTimeout(tick, 0), t = setInterval(tick, 1000);
     return () => { clearTimeout(first); clearInterval(t); };
   }, [active, fetchQr]);
   useEffect(() => {
     if (!active) return;
-    const poll = () => request<{ total: number }>(`/sessions/${id}/attendances?size=1&estado=CONFIRMADA`).then(p => setPresent(p.total), () => undefined);
+    const poll = () => request<{ total: number }>(`/sessions/${id}/attendances?size=1&estado=CONFIRMADA`).then(p => {
+      setPresent(p.total); setAttendanceError(null);
+    }, setAttendanceError);
     void poll();
     const t = setInterval(poll, 5000);
     return () => clearInterval(t);
@@ -81,6 +107,7 @@ export function ProjectionView({ id }: { id: string }) {
     {confirming && <ConfirmInline danger message="¿Cerrar la sesión? Ya no se admitirán registros." confirmLabel="Cerrar sesión" onConfirm={() => void close()} onCancel={() => setConfirming(false)} />}
     {note && <p role="status">{note}</p>}
     <ProblemMessage error={error} />
+    <ProblemMessage error={attendanceError} />
 
     {info && !active && <div className={styles.inactiveCard}>
       <p role="status">Esta sesión no está activa ({info.session.estado.toLowerCase()}).</p>
