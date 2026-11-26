@@ -5,7 +5,6 @@ import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
 import { Button } from '../ui/Button';
-import { ProblemMessage } from '../common/ProblemMessage';
 import styles from './sessions.module.css';
 
 type Status = components['schemas']['GeolocationStatus'];

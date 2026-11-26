@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { components } from '../../generated/api';
 import { ApiError, request } from '../../lib/api/client';
 import { ProblemMessage } from '../common/ProblemMessage';
@@ -35,8 +36,14 @@ export function PeoplePanel() {
 
 function PeopleContent() {
   const keys = useRef(new Map<string, string>());
-  const [q, setQ] = useState('');
-  const [page, setPage] = useState(0);
+  const pathname = usePathname();
+  const router = useRouter();
+  const params = useSearchParams();
+  const [q, setQ] = useState(() => params.get('q') ?? '');
+  const [page, setPage] = useState(() => {
+    const p = Number(params.get('page') ?? '0');
+    return Number.isFinite(p) && p >= 0 ? Math.floor(p) : 0;
+  });
   const [data, setData] = useState<Page | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<unknown>(null);
@@ -46,6 +53,16 @@ function PeopleContent() {
   const [reload, setReload] = useState(0);
   const [pendingPersonId, setPendingPersonId] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  useEffect(() => {
+    const next = new URLSearchParams();
+    const query = q.trim();
+    if (query) next.set('q', query);
+    if (page > 0) next.set('page', String(page));
+    const qs = next.toString();
+    if (qs === params.toString()) return;
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [q, page, pathname, router, params]);
 
   useEffect(() => {
     let alive = true;
@@ -146,11 +163,22 @@ function PeopleContent() {
     setFieldErrors({});
   }
 
+  function clearFilters() {
+    setLoading(true);
+    setData(null);
+    setError(null);
+    setPage(0);
+    setQ('');
+  }
+
   return <section className={styles.people}>
     <div className="page-heading"><div><h1>Personas y cuentas</h1><p>Busca y administra los datos y accesos institucionales.</p></div>
       <Button onClick={() => { setError(null); setStatus(''); setPendingPersonId(null); setDrawer('new'); }}>Nueva persona</Button></div>
     {status && <p role="status">{status}</p>}
-    <label className={styles.search}>Buscar por cédula o nombre<input aria-label="Buscar personas" value={q} onChange={e => { setLoading(true); setData(null); setError(null); setPage(0); setQ(e.target.value); }} /></label>
+    <div>
+      <label className={styles.search}>Buscar por cédula o nombre<input aria-label="Buscar personas" value={q} onChange={e => { setLoading(true); setData(null); setError(null); setPage(0); setQ(e.target.value); }} /></label>
+      {(q || page > 0) && <Button variant="text" type="button" onClick={clearFilters}>Limpiar filtros</Button>}
+    </div>
     <ProblemMessage error={drawer ? null : error} />
     {loading && <p role="status">Cargando…</p>}
     {data && data.items.length === 0 && <EmptyState title="No hay personas" text="Prueba otra búsqueda o registra una persona." />}
@@ -167,7 +195,7 @@ function PeopleContent() {
       <Button variant="text" disabled={page === 0 || loading} onClick={() => { setLoading(true); setData(null); setPage(p => p - 1); }}>Anterior</Button>
       <Button variant="text" disabled={(page + 1) * SIZE >= data.total || loading} onClick={() => { setLoading(true); setData(null); setPage(p => p + 1); }}>Siguiente</Button></nav>}
     {drawer && <Drawer title={drawer === 'new' ? 'Nueva persona' : `Editar ${drawer.nombres}`} onClose={closeDrawer}>
-      <form aria-label={drawer === 'new' ? 'Nueva persona' : 'Editar persona'} onSubmit={save} noValidate>
+      <form aria-label={drawer === 'new' ? 'Nueva persona' : 'Editar persona'} onSubmit={save} noValidate onChange={e => { const name = (e.target as unknown as { name?: string }).name; if (name === 'cedula' || name === 'nombres' || name === 'correo') { setFieldErrors(prev => prev[name] ? { ...prev, [name]: undefined } : prev); } if (error) setError(null); }}>
         <p className={styles.hint}>Los campos marcados con <span aria-hidden="true">*</span> son obligatorios.</p>
         {drawer === 'new' && <><label>Cédula <span aria-hidden="true">*</span><input aria-label="Cédula" name="cedula" required maxLength={10} inputMode="numeric" disabled={!!pendingPersonId} aria-invalid={!!fieldErrors.cedula} aria-describedby="person-cedula-hint" /></label><p id="person-cedula-hint" role={fieldErrors.cedula ? 'alert' : undefined} className={fieldErrors.cedula ? styles.fieldError : styles.hint}>{fieldErrors.cedula ?? 'Cédula ecuatoriana válida: 10 dígitos, sin espacios ni guiones.'}</p></>}
         <label>Nombres <span aria-hidden="true">*</span><input aria-label="Nombres" name="nombres" required maxLength={200} defaultValue={drawer === 'new' ? '' : drawer.nombres} aria-invalid={!!fieldErrors.nombres} aria-describedby={fieldErrors.nombres ? 'person-names-error' : undefined} /></label>

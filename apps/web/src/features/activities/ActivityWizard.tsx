@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { ProblemMessage } from '../common/ProblemMessage';
 import { SpacePicker } from '../spaces/SpacePicker';
 import type { Space } from '../spaces/SpaceForm';
 import { MethodSelect } from '../sessions/MethodSelect';
@@ -22,7 +23,7 @@ const STEPS = ['Tipo y nombre', 'Dónde y cuándo', 'Quiénes'];
 const SPACE_KEY = 'activity-wizard:last-space'; // solo id, código y nombre del espacio
 
 const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter(x => x !== v) : [...list, v]);
-const Err = ({ e }: { e?: string }) => (e ? <span role="alert" className="field-error">{e}</span> : null);
+const Err = ({ e, id }: { e?: string; id: string }) => (e ? <span id={id} role="alert" className="field-error">{e}</span> : null);
 
 function lastSpace(): Space | null {
   try {
@@ -51,13 +52,17 @@ export function ActivityWizard() {
   const [access, setAccess] = useState<'CERRADO' | 'ABIERTO'>('CERRADO');
   const [tolerance, setTolerance] = useState(120);
   const [errors, setErrors] = useState<Errors>({});
-  const [failure, setFailure] = useState('');
+  const [failure, setFailure] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
+  const clear = (key: string) => {
+    setErrors(prev => { if (!(key in prev)) return prev; const next = { ...prev }; delete next[key]; return next; });
+    if (failure) setFailure(null);
+  };
 
   useEffect(() => {
     if (kind !== 'CLASE') return;
     request<{ items: Parallel[] }>('/me/parallels').then(r => setParallels(r.items))
-      .catch(e => setFailure(e instanceof Error ? e.message : 'No se pudieron cargar tus paralelos.'));
+      .catch(e => setFailure(e));
   }, [kind]);
 
   const dates = previewDates(days, from, to);
@@ -89,11 +94,12 @@ export function ActivityWizard() {
   const prev = () => { setErrors({}); setStep(step - 1); };
   const pickSpace = (sp: Space) => {
     setSpace(sp); setChangingSpace(false);
+    clear('space');
     try { localStorage.setItem(SPACE_KEY, JSON.stringify({ id: sp.id, codigo: sp.codigo, nombre: sp.nombre })); } catch { /* sin almacenamiento */ }
   };
 
   async function create() {
-    const e = validate(2); setErrors(e); setFailure('');
+    const e = validate(2); setErrors(e); setFailure(null);
     if (Object.keys(e).length > 0 || !space) return;
     const body = kind === 'CLASE'
       ? { modalidad: 'CLASE', nombre: name.trim(), espacio_id: space.id, metodo_verificacion: method, paralelo_ids: chosen,
@@ -105,7 +111,7 @@ export function ActivityWizard() {
       const created = await request<Created>('/activities', { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify(body) });
       router.push(`/actividades/${created.id}`);
     } catch (cause) {
-      setFailure(cause instanceof Error ? cause.message : 'No se pudo crear la actividad.');
+      setFailure(cause);
       setBusy(false);
     }
   }
@@ -160,9 +166,9 @@ export function ActivityWizard() {
             </div>
             <div className={styles.field}>
               <label className={styles.label}>Nombre
-                <input className={styles.input} value={name} maxLength={200} placeholder="Ej. Redes de computadoras" onChange={e => setName(e.target.value)} />
+                <input className={styles.input} value={name} maxLength={200} placeholder="Ej. Redes de computadoras" aria-invalid={!!errors.name} aria-describedby={errors.name ? 'activity-name-error' : undefined} onChange={e => { setName(e.target.value); clear('name'); }} />
               </label>
-              <Err e={errors.name} />
+              <Err e={errors.name} id="activity-name-error" />
             </div>
           </div>}
 
@@ -181,7 +187,7 @@ export function ActivityWizard() {
               {space && !changingSpace && <Button variant="secondary" onClick={() => setChangingSpace(true)}>Cambiar espacio</Button>}
             </div>
             {(!space || changingSpace) && <SpacePicker onSelect={pickSpace} />}
-            <Err e={errors.space} />
+            <Err e={errors.space} id="activity-space-error" />
 
             {kind === 'CLASE' && <MethodSelect value={method} onChange={setMethod} />}
 
@@ -192,25 +198,25 @@ export function ActivityWizard() {
                 {DAYS.map(([n, label]) => (
                   <button key={n} type="button" aria-pressed={days.includes(n)}
                     className={`${styles.dayPill}${days.includes(n) ? ` ${styles.dayPillActive}` : ''}`}
-                    onClick={() => setDays(toggle(days, n))}>{label}</button>
+                    onClick={() => { setDays(toggle(days, n)); clear('range'); }}>{label}</button>
                 ))}
               </div>
               <div className={styles.fieldGrid}>
                 <div className={styles.field}>
-                  <label className={styles.label}>Hora de inicio<input className={styles.input} type="time" value={hStart} onChange={e => setHStart(e.target.value)} /></label>
+                  <label className={styles.label}>Hora de inicio<input className={styles.input} type="time" value={hStart} aria-invalid={!!errors.hours} aria-describedby={errors.hours ? 'activity-hours-error' : undefined} onChange={e => { setHStart(e.target.value); clear('hours'); }} /></label>
                 </div>
                 <div className={styles.field}>
-                  <label className={styles.label}>Hora de fin<input className={styles.input} type="time" value={hEnd} onChange={e => setHEnd(e.target.value)} /></label>
+                  <label className={styles.label}>Hora de fin<input className={styles.input} type="time" value={hEnd} aria-invalid={!!errors.hours} aria-describedby={errors.hours ? 'activity-hours-error' : undefined} onChange={e => { setHEnd(e.target.value); clear('hours'); }} /></label>
                 </div>
                 <div className={styles.field}>
-                  <label className={styles.label}>Desde<input className={styles.input} type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
+                  <label className={styles.label}>Desde<input className={styles.input} type="date" value={from} aria-invalid={!!errors.range} aria-describedby={errors.range ? 'activity-range-error' : undefined} onChange={e => { setFrom(e.target.value); clear('range'); }} /></label>
                 </div>
                 <div className={styles.field}>
-                  <label className={styles.label}>Hasta<input className={styles.input} type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
+                  <label className={styles.label}>Hasta<input className={styles.input} type="date" value={to} aria-invalid={!!errors.range} aria-describedby={errors.range ? 'activity-range-error' : undefined} onChange={e => { setTo(e.target.value); clear('range'); }} /></label>
                 </div>
               </div>
-              <Err e={errors.hours} />
-              <Err e={errors.range} />
+              <Err e={errors.hours} id="activity-hours-error" />
+              <Err e={errors.range} id="activity-range-error" />
               {days.length > 0 && <div className={styles.preview} aria-live="polite">
                 <div className={styles.previewHead}>
                   <p className={styles.previewTitle}>{dates.length > MAX_SESSIONS ? 'Más de 200 sesiones: reduce el rango.' : `${dates.length} sesiones (hora de Ecuador).`}</p>
@@ -225,12 +231,12 @@ export function ActivityWizard() {
               </div>}
             </fieldset> : <div className={styles.fieldGrid}>
               <div className={styles.field}>
-                <label className={styles.label}>Inicio<input className={styles.input} type="datetime-local" value={start} onChange={e => setStart(e.target.value)} /></label>
-                <Err e={errors.start} />
+                <label className={styles.label}>Inicio<input className={styles.input} type="datetime-local" value={start} aria-invalid={!!errors.start} aria-describedby={errors.start ? 'activity-start-error' : undefined} onChange={e => { setStart(e.target.value); clear('start'); clear('end'); }} /></label>
+                <Err e={errors.start} id="activity-start-error" />
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>Fin<input className={styles.input} type="datetime-local" value={end} onChange={e => setEnd(e.target.value)} /></label>
-                <Err e={errors.end} />
+                <label className={styles.label}>Fin<input className={styles.input} type="datetime-local" value={end} aria-invalid={!!errors.end} aria-describedby={errors.end ? 'activity-end-error' : undefined} onChange={e => { setEnd(e.target.value); clear('end'); }} /></label>
+                <Err e={errors.end} id="activity-end-error" />
               </div>
             </div>}
           </div>}
@@ -245,7 +251,7 @@ export function ActivityWizard() {
               <legend className={styles.legend}>Paralelos</legend>
               {parallels.length > 0 ? <div className={styles.checkList}>{parallels.map(p => (
                 <label key={p.paralelo_id} className={styles.checkCard}>
-                  <input type="checkbox" checked={chosen.includes(p.paralelo_id)} onChange={() => setChosen(toggle(chosen, p.paralelo_id))} />
+                  <input type="checkbox" checked={chosen.includes(p.paralelo_id)} onChange={() => { setChosen(toggle(chosen, p.paralelo_id)); clear('parallels'); }} />
                   <span className={styles.checkText}>
                     <span className={styles.checkTitle}>{p.carrera_codigo} {p.codigo}</span>
                     <span className={styles.checkMeta}>{p.carrera_nombre}</span>
@@ -253,7 +259,7 @@ export function ActivityWizard() {
                   <span className={styles.countPill}>{p.matriculados} matriculados</span>
                 </label>
               ))}</div> : <p className={styles.sectionHint}>No hay paralelos disponibles para tu cuenta.</p>}
-              <Err e={errors.parallels} />
+              <Err e={errors.parallels} id="activity-parallels-error" />
             </fieldset> : <div className={styles.fieldGrid}>
               <div className={styles.field}>
                 <label className={styles.label}>Tipo de acceso
@@ -265,9 +271,9 @@ export function ActivityWizard() {
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Tolerancia del formulario (segundos)
-                  <input className={styles.input} type="number" min={41} value={tolerance} onChange={e => setTolerance(Number(e.target.value))} />
+                  <input className={styles.input} type="number" min={41} value={tolerance} aria-invalid={!!errors.tolerance} aria-describedby={errors.tolerance ? 'activity-tolerance-error' : undefined} onChange={e => { setTolerance(Number(e.target.value)); clear('tolerance'); }} />
                 </label>
-                <Err e={errors.tolerance} />
+                <Err e={errors.tolerance} id="activity-tolerance-error" />
               </div>
             </div>}
 
@@ -283,10 +289,10 @@ export function ActivityWizard() {
               </ul>
             </section>
 
-            {failure && <p role="alert">{failure}</p>}
+            <ProblemMessage error={failure} />
           </div>}
 
-          {step < 2 && failure && <p role="alert">{failure}</p>}
+          {step < 2 && <ProblemMessage error={failure} />}
 
           <div className={styles.wizardActions}>
             {step > 0 && <Button variant="secondary" onClick={prev}>Anterior</Button>}
