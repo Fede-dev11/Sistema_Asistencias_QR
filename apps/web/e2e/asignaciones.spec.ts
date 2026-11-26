@@ -59,7 +59,10 @@ test('administrador asigna, reemplaza y retira directores de una carrera', async
   // Retira el director.
   await page.getByRole('button', { name: 'Retirar Persona ficticia 11' }).click();
   await expect(page.getByRole('dialog', { name: 'Retirar director' })).toBeVisible();
+  const revokeResponse = page.waitForResponse(response => response.request().method() === 'DELETE' && response.url().includes('/directors/'));
   await page.getByRole('button', { name: 'Confirmar retiro' }).click();
+  const response = await revokeResponse;
+  console.log(`REVOKE_STATUS=${response.status()} URL=${response.url()}`);
   await expect(page.getByRole('row', { name: /Persona ficticia 11/ }).getByText('NO_VIGENTE')).toBeVisible({ timeout: 10000 });
 });
 
