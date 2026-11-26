@@ -81,6 +81,11 @@ export function AdminHome() {
         <span>Gestiona la estructura académica.</span>
         <strong>{count(summary?.careers)} carreras · {count(summary?.parallels)} paralelos <span aria-hidden="true">→</span></strong>
       </Link>
+      <Link className={styles.shortcut} href="/admin/asignaciones">
+        <span className={styles.shortcutTitle}>Asignaciones académicas</span>
+        <span>Asigna directores a carreras y responsables a clases.</span>
+        <strong>Gestionar asignaciones <span aria-hidden="true">→</span></strong>
+      </Link>
       <Link className={styles.shortcut} href="/admin/espacios">
         <span className={styles.shortcutTitle}>Espacios</span>
         <span>Administra los lugares registrados.</span>

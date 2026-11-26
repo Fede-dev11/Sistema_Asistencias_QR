@@ -7,6 +7,7 @@ import styles from './AdminNav.module.css';
 const sections = [
   { href: '/admin/personas', label: 'Personas y cuentas' },
   { href: '/admin/carreras', label: 'Carreras y paralelos' },
+  { href: '/admin/asignaciones', label: 'Asignaciones académicas' },
   { href: '/admin/espacios', label: 'Espacios y geocercas' },
   { href: '/admin/importar', label: 'Importar listas' },
 ];
