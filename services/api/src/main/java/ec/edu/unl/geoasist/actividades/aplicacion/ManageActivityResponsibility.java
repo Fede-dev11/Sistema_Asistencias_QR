@@ -31,7 +31,10 @@ public class ManageActivityResponsibility {
   @Transactional
   public Map<String, Object> replace(
       UserSession user, UUID activityId, UUID accountId, String correo) {
-    var activity = scope.manage(user, activityId);
+    var activity = activities.find(activityId);
+    if (!user.has("ADMINISTRADOR")
+        && !(user.has("DIRECTOR_CARRERA") && activities.directs(user.accountId(), activityId)))
+      throw ApiFailure.forbidden();
     if (!"CLASE".equals(activity.mode())) throw ApiFailure.invalid();
 
     UUID target = accountId;

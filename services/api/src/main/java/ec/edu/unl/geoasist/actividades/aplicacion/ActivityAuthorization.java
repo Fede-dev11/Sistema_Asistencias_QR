@@ -45,10 +45,7 @@ public class ActivityAuthorization {
 
   public Activity manage(UserSession user, UUID id) {
     Activity a = activities.find(id);
-    if (!responsible(user, a)
-        && !user.has("ADMINISTRADOR")
-        && !(user.has("DIRECTOR_CARRERA") && activities.directs(user.accountId(), a.id())))
-      throw ApiFailure.forbidden();
+    if (!responsible(user, a) && !user.has("ADMINISTRADOR")) throw ApiFailure.forbidden();
     retention.check(a.anonymizeAt());
     return a;
   }
