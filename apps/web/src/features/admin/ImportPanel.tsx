@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import type { components } from '../../generated/api';
 import { request } from '../../lib/api/client';
+import { ProblemMessage } from '../common/ProblemMessage';
 import { RoleGuard } from '../common/RoleGuard';
 import { Button } from '../ui/Button';
 
@@ -21,23 +22,23 @@ export function ImportPanel() {
 function ImportContent() {
   const [kind, setKind] = useState<(typeof KINDS)[number]['id']>('students');
   const [report, setReport] = useState<Report | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setReport(null);
-    setError('');
-    if (!file || file.size === 0) { setError('Selecciona un archivo CSV.'); return; }
-    if (file.size > MAX_BYTES) { setError('El archivo supera 2 MB.'); return; }
+    setError(null);
+    if (!file || file.size === 0) { setError(new Error('Selecciona un archivo CSV.')); return; }
+    if (file.size > MAX_BYTES) { setError(new Error('El archivo supera 2 MB.')); return; }
     const body = new FormData();
     body.set('file', file);
     setBusy(true);
     try {
       setReport(await request<Report>(`/admin/imports/${kind}`, { method: 'POST', body }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'No se pudo importar el archivo.');
+      setError(cause);
     } finally {
       setBusy(false);
     }
@@ -55,7 +56,7 @@ function ImportContent() {
         <label>Archivo CSV (UTF-8, máx. 2 MB y 5 000 filas)<input name="file" type="file" accept=".csv,text/csv" onChange={e => setFile(e.target.files?.[0] ?? null)} /></label>
         <Button variant="primary" type="submit" disabled={busy}>{busy ? 'Importando…' : 'Importar'}</Button>
       </form>
-      {error && <p role="alert">{error}</p>}
+      <ProblemMessage error={error} />
       {report && (
         <div role="status">
           <p>Procesadas {report.procesadas}: {report.creadas} creadas, {report.actualizadas} actualizadas, {report.sin_cambios} sin cambios, {report.rechazadas?.length ?? 0} rechazadas.</p>

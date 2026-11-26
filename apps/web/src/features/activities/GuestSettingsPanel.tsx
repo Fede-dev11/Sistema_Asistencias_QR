@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { request } from '../../lib/api/client';
 import type { components } from '../../generated/api';
+import { ProblemMessage } from '../common/ProblemMessage';
 import { Button } from '../ui/Button';
 
 type Settings = components['schemas']['GuestSettings'];
@@ -12,7 +13,7 @@ export function GuestSettingsPanel({ activityId, onSaved }: { activityId: string
   const [enabled, setEnabled] = useState(false);
   const [roster, setRoster] = useState('{"invitados": []}');
   const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [error, setError] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -27,7 +28,7 @@ export function GuestSettingsPanel({ activityId, onSaved }: { activityId: string
 
   async function settings(event: FormEvent) {
     event.preventDefault();
-    setBusy(true); setError(''); setMessage('');
+    setBusy(true); setError(null); setMessage('');
     try {
       const value = await request<Settings>(`/activities/${activityId}/guest-settings`, {
         method: 'PUT',
@@ -35,20 +36,20 @@ export function GuestSettingsPanel({ activityId, onSaved }: { activityId: string
       });
       setMessage(`Configuración guardada. Invitados ${value.habilitado ? 'habilitados' : 'deshabilitados'}. Plazo del formulario: ${value.tolerancia_invitado_segundos} segundos.`);
       onSaved?.();
-    } catch (e) { setError(e instanceof Error ? e.message : 'No se pudo guardar.'); }
+    } catch (e) { setError(e); }
     finally { setBusy(false); }
   }
 
   async function load(event: FormEvent) {
     event.preventDefault();
-    setBusy(true); setError(''); setMessage('');
+    setBusy(true); setError(null); setMessage('');
     try {
       const body: unknown = JSON.parse(roster);
       const result = await request<components['schemas']['GuestListResult']>(`/activities/${activityId}/guest-list`, { method: 'PUT', body: JSON.stringify(body) });
       setMessage(`Listado guardado: ${result.total} invitados autorizados.`);
       setRoster('{"invitados": []}');
       onSaved?.();
-    } catch (e) { setError(e instanceof Error ? e.message : 'No se pudo cargar el listado.'); }
+    } catch (e) { setError(e); }
     finally { setBusy(false); }
   }
 
@@ -62,13 +63,13 @@ export function GuestSettingsPanel({ activityId, onSaved }: { activityId: string
       <Button variant="primary" type="submit" disabled={busy}>Guardar configuración</Button>
     </form>
     <form onSubmit={load}>
-      <label>Archivo de invitados (JSON)<input type="file" accept="application/json,.json" onChange={e => { const file = e.target.files?.[0]; if (file) { void file.text().then(setRoster).catch(() => setError('No se pudo leer el archivo.')); } }} /></label>
+      <label>Archivo de invitados (JSON)<input type="file" accept="application/json,.json" onChange={e => { const file = e.target.files?.[0]; if (file) { void file.text().then(setRoster).catch(() => setError(new Error('No se pudo leer el archivo.'))); } }} /></label>
       <label htmlFor="guest-roster">Listado de invitados</label>
       <textarea id="guest-roster" rows={6} required value={roster} onChange={e => setRoster(e.target.value)} />
       <p>Formato: un objeto con “invitados”, una lista de cédulas de diez dígitos y nombres. Cada carga reemplaza el listado completo; máximo 1000 personas.</p>
       <Button variant="secondary" type="submit" disabled={busy}>Reemplazar listado</Button>
     </form>
     {message && <p role="status">{message}</p>}
-    {error && <p role="alert">{error}</p>}
+    <ProblemMessage error={error} />
   </section>;
 }

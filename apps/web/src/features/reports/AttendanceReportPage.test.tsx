@@ -5,6 +5,13 @@ import { AttendanceReportPage } from './AttendanceReportPage';
 
 vi.mock('../../lib/api/client', () => ({ ApiError: class extends Error {}, request: vi.fn(), requestText: vi.fn() }));
 
+const nav = vi.hoisted(() => ({ replace: vi.fn(), params: new URLSearchParams() }));
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/reportes',
+  useRouter: () => ({ replace: nav.replace }),
+  useSearchParams: () => nav.params,
+}));
+
 let session: { roles: string[] } | null = { roles: ['DIRECTOR_INSTITUCIONAL'] };
 vi.mock('../auth/SessionProvider', () => ({
   useSession: () => ({ session }),
@@ -45,6 +52,7 @@ const attendancePage = (items: unknown[] = [row], total = items.length, page = 0
 
 beforeEach(() => {
   vi.clearAllMocks();
+  nav.params = new URLSearchParams();
   session = { roles: ['DIRECTOR_INSTITUCIONAL'] };
   vi.mocked(request).mockImplementation(async (path: string) => path.startsWith('/activities')
     ? { items: [activity], page: 0, size: 100, total: 1 }
