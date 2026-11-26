@@ -60,7 +60,7 @@ test('administrador asigna, reemplaza y retira directores de una carrera', async
   await page.getByRole('button', { name: 'Retirar Persona ficticia 11' }).click();
   await expect(page.getByRole('dialog', { name: 'Retirar director' })).toBeVisible();
   await page.getByRole('button', { name: 'Confirmar retiro' }).click();
-  await expect(page.getByText(/Persona ficticia 11 fue retirado de Carrera ficticia 1/)).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('row', { name: /Persona ficticia 11/ }).getByText('NO_VIGENTE')).toBeVisible({ timeout: 10000 });
 });
 
 test('administrador filtra en cascada carrera → paralelo → clase → persona y asigna responsable', async ({ page }) => {
